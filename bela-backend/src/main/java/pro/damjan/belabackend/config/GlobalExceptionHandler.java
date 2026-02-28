@@ -8,10 +8,12 @@ import pro.damjan.belabackend.auth.InvalidLoginException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
     @ExceptionHandler(InvalidLoginException.class)
     public ResponseEntity<String> handleInvalidLogin(InvalidLoginException ex) {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(ex.getMessage());
+
     }
 }

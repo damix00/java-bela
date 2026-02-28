@@ -10,7 +10,7 @@ import pro.damjan.belabackend.auth.jwt.JwtService;
 import pro.damjan.belabackend.user.User;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 public class AuthController {
 
     private final AuthService authService;
