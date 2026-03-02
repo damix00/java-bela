@@ -1,8 +1,7 @@
-package pro.damjan.belabackend.auth.dto;
+package pro.damjan.belabackend.auth.dto.request;
 
 import lombok.Getter;
 import lombok.Setter;
-import pro.damjan.belabackend.user.User;
 
 @Getter
 @Setter

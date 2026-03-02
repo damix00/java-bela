@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.auth.dto;
+package pro.damjan.belabackend.auth.dto.response;
 
 import lombok.Getter;
 import lombok.Setter;

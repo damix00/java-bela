@@ -2,10 +2,10 @@ package pro.damjan.belabackend.auth;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import pro.damjan.belabackend.auth.dto.AuthResponse;
-import pro.damjan.belabackend.auth.dto.LoginRequest;
-import pro.damjan.belabackend.auth.dto.RegisterRequest;
-import pro.damjan.belabackend.auth.dto.UserResponse;
+import pro.damjan.belabackend.auth.dto.response.AuthResponse;
+import pro.damjan.belabackend.auth.dto.request.LoginRequest;
+import pro.damjan.belabackend.auth.dto.request.RegisterRequest;
+import pro.damjan.belabackend.auth.dto.response.UserResponse;
 import pro.damjan.belabackend.auth.jwt.JwtService;
 import pro.damjan.belabackend.user.User;
 

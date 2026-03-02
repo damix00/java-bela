@@ -3,7 +3,7 @@ package pro.damjan.belabackend.auth;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import pro.damjan.belabackend.auth.dto.RegisterRequest;
+import pro.damjan.belabackend.auth.dto.request.RegisterRequest;
 import pro.damjan.belabackend.user.User;
 import pro.damjan.belabackend.user.UserRepository;
 
