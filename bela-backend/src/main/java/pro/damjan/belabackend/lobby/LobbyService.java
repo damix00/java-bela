@@ -7,6 +7,9 @@ import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 import pro.damjan.belabackend.lobby.model.LobbyPlayerStatus;
 import pro.damjan.belabackend.user.User;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -35,8 +38,12 @@ public class LobbyService {
         Lobby lobby = new Lobby();
         lobby.setId(this.generateLobbyId());
 
-        LobbyPlayer[] players = new LobbyPlayer[4];
-        players[0] = new LobbyPlayer(creator.getId(), true, LobbyPlayerStatus.NOT_READY);
+        // Get empty player list and set the first player as the creator
+        List<LobbyPlayer> players = lobby.getPlayers();
+
+        // 1st player is the creator, set to not ready. Others are null.
+        players.set(0, new LobbyPlayer(creator.getId(), true, LobbyPlayerStatus.NOT_READY));
+
         lobby.setPlayers(players);
 
         lobbyRepository.save(lobby);
