@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.config;
+package pro.damjan.belabackend.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.auth.jwt;
+package pro.damjan.belabackend.auth.security;
 
 import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
@@ -6,7 +6,6 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
 
 @Configuration

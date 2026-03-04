@@ -6,7 +6,7 @@ import pro.damjan.belabackend.auth.dto.response.AuthResponse;
 import pro.damjan.belabackend.auth.dto.request.LoginRequest;
 import pro.damjan.belabackend.auth.dto.request.RegisterRequest;
 import pro.damjan.belabackend.auth.dto.response.UserResponse;
-import pro.damjan.belabackend.auth.jwt.JwtService;
+import pro.damjan.belabackend.auth.security.JwtService;
 import pro.damjan.belabackend.user.User;
 
 @RestController
