@@ -7,6 +7,9 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import pro.damjan.belabackend.messaging.MessageBroker;
+import pro.damjan.belabackend.websocket.events.IncomingWebSocketMessage;
+import pro.damjan.belabackend.websocket.events.WebSocketEventRegistry;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.Map;
@@ -20,10 +23,15 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     private static final String CHANNEL_PREFIX = "user:";
 
     private final Map<String, Set<WebSocketSession>> sessions = new ConcurrentHashMap<>();
-    private final MessageBroker messageBroker;
 
-    public GameWebSocketHandler(MessageBroker messageBroker) {
+    private final MessageBroker messageBroker;
+    private final WebSocketEventRegistry eventRegistry;
+    private final ObjectMapper objectMapper;
+
+    public GameWebSocketHandler(MessageBroker messageBroker, WebSocketEventRegistry eventRegistry, ObjectMapper objectMapper) {
         this.messageBroker = messageBroker;
+        this.eventRegistry = eventRegistry;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -53,8 +61,12 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) {
-        // parse JSON
-        // route event
+        try {
+            IncomingWebSocketMessage wsMessage = objectMapper.readValue(message.getPayload(), IncomingWebSocketMessage.class);
+            eventRegistry.dispatch(session, wsMessage.getEvent(), wsMessage.getBody());
+        } catch (Exception e) {
+            log.error("Failed to handle message", e);
+        }
     }
 
     @Override

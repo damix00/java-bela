@@ -45,4 +45,30 @@ public class PresenceService {
             setUserPresence(userId, new UserPresence(LocalDateTime.now(), null, null));
         }
     }
+
+    public void setUserLobby(String userId, String lobbyId) {
+        UserPresence presence = getUserPresence(userId);
+
+        if (presence == null) {
+            presence = new UserPresence(LocalDateTime.now(), lobbyId, null);
+        } else {
+            presence.setLobbyId(lobbyId);
+            presence.setLastOnline(LocalDateTime.now());
+        }
+
+        setUserPresence(userId, presence);
+    }
+
+    public void setUserGame(String userId, String gameId) {
+        UserPresence presence = getUserPresence(userId);
+
+        if (presence == null) {
+            presence = new UserPresence(LocalDateTime.now(), null, gameId);
+        } else {
+            presence.setGameId(gameId);
+            presence.setLastOnline(LocalDateTime.now());
+        }
+
+        setUserPresence(userId, presence);
+    }
 }

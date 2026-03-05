@@ -6,6 +6,8 @@ import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 import pro.damjan.belabackend.lobby.model.LobbyPlayerStatus;
 import pro.damjan.belabackend.user.User;
+import pro.damjan.belabackend.user.presence.PresenceService;
+import pro.damjan.belabackend.user.presence.model.UserPresence;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,9 +18,11 @@ import java.util.UUID;
 public class LobbyService {
 
     private final LobbyRepository lobbyRepository;
+    private final PresenceService userPresence;
 
-    public LobbyService(LobbyRepository lobbyRepository) {
+    public LobbyService(LobbyRepository lobbyRepository, PresenceService userPresence) {
         this.lobbyRepository = lobbyRepository;
+        this.userPresence = userPresence;
     }
 
     private String generateLobbyId() {
@@ -47,6 +51,9 @@ public class LobbyService {
         lobby.setPlayers(players);
 
         lobbyRepository.save(lobby);
+        userPresence.setUserLobby(creator.getId(), lobby.getId());
+
+        // Emit lobby joined event to player
 
         return lobby;
     }

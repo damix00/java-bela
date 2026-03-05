@@ -11,6 +11,8 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import pro.damjan.belabackend.messaging.MessageBroker;
 import pro.damjan.belabackend.messaging.MessageListener;
+import pro.damjan.belabackend.websocket.events.WebSocketEventRegistry;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,11 +28,17 @@ class GameWebSocketHandlerTest {
     @Mock
     private MessageBroker messageBroker;
 
+    @Mock
+    private WebSocketEventRegistry eventRegistry;
+
+    @Mock
+    private ObjectMapper objectMapper;
+
     private GameWebSocketHandler handler;
 
     @BeforeEach
     void setUp() {
-        handler = new GameWebSocketHandler(messageBroker);
+        handler = new GameWebSocketHandler(messageBroker, eventRegistry, objectMapper);
     }
 
     private WebSocketSession mockSession(String userId) {
