@@ -8,6 +8,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import pro.damjan.belabackend.messaging.MessageBroker;
 import pro.damjan.belabackend.websocket.events.IncomingWebSocketMessage;
+import pro.damjan.belabackend.websocket.events.OutgoingEvent;
 import pro.damjan.belabackend.websocket.events.WebSocketEventRegistry;
 import tools.jackson.databind.ObjectMapper;
 
@@ -92,7 +93,10 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
      * Send a message to a user. Publishes through the message broker so it
      * reaches the user regardless of which server instance they are connected to.
      */
-    public void sendToUser(String userId, String payload) {
-        messageBroker.publish(CHANNEL_PREFIX + userId, payload);
+    public void sendToUser(String userId, OutgoingEvent event) {
+        messageBroker.publish(
+                CHANNEL_PREFIX + userId,
+                objectMapper.writeValueAsString(event)
+        );
     }
 }

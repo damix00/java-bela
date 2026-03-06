@@ -3,6 +3,7 @@ package pro.damjan.belabackend.user.presence;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import pro.damjan.belabackend.user.presence.model.UserPresence;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 
@@ -23,7 +24,12 @@ public class PresenceService {
     }
 
     public UserPresence getUserPresence(String userId) {
-        return (UserPresence) redisTemplate.opsForValue().get(PRESENCE_KEY_PREFIX + userId);
+        Object object = redisTemplate.opsForValue().get(PRESENCE_KEY_PREFIX + userId);
+
+        // Casting doesn't work here, we have to use object mapper
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        return objectMapper.convertValue(object, UserPresence.class);
     }
 
     public void setUserPresence(String userId, UserPresence presence) {

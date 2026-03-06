@@ -5,9 +5,11 @@ import org.springframework.stereotype.Service;
 import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 import pro.damjan.belabackend.lobby.model.LobbyPlayerStatus;
+import pro.damjan.belabackend.lobby.ws.dto.outgoing.LobbyJoinedEvent;
 import pro.damjan.belabackend.user.User;
 import pro.damjan.belabackend.user.presence.PresenceService;
 import pro.damjan.belabackend.user.presence.model.UserPresence;
+import pro.damjan.belabackend.websocket.GameWebSocketHandler;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,10 +21,12 @@ public class LobbyService {
 
     private final LobbyRepository lobbyRepository;
     private final PresenceService userPresence;
+    private final GameWebSocketHandler ws;
 
-    public LobbyService(LobbyRepository lobbyRepository, PresenceService userPresence) {
+    public LobbyService(LobbyRepository lobbyRepository, PresenceService userPresence, GameWebSocketHandler ws) {
         this.lobbyRepository = lobbyRepository;
         this.userPresence = userPresence;
+        this.ws = ws;
     }
 
     private String generateLobbyId() {
@@ -54,6 +58,7 @@ public class LobbyService {
         userPresence.setUserLobby(creator.getId(), lobby.getId());
 
         // Emit lobby joined event to player
+        ws.sendToUser(creator.getId(), new LobbyJoinedEvent(lobby));
 
         return lobby;
     }
