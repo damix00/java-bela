@@ -3,24 +3,22 @@ package pro.damjan.belabackend.user.presence.model;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Getter @Setter
 public class UserPresence implements Serializable {
-    private LocalDateTime lastOnline;
+    private LocalDateTime lastPing;
     private String lobbyId;
     private String gameId;
 
     public UserPresence(
-            LocalDateTime lastOnline,
+            LocalDateTime lastPing,
             String lobbyId,
             String gameId
     ) {
-        this.lastOnline = lastOnline;
+        this.lastPing = lastPing;
         this.lobbyId = lobbyId;
         this.gameId = gameId;
     }
@@ -29,6 +27,6 @@ public class UserPresence implements Serializable {
 
     public boolean isOnline() {
         // at least 30 seconds ago
-        return lastOnline.isAfter(LocalDateTime.now().minusSeconds(30));
+        return lastPing.isAfter(LocalDateTime.now().minusSeconds(30));
     }
 }

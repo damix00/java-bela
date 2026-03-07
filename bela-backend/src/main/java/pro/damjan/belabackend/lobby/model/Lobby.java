@@ -4,6 +4,7 @@ import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.index.Indexed;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -11,13 +12,58 @@ import java.util.Collections;
 import java.util.List;
 
 @RedisHash("Lobby")
-@Getter @Setter
 public class Lobby implements Serializable {
     @Id
+    @Getter @Setter
     private String id;
 
-    // List of players in the lobby (max 4)
-    private List<LobbyPlayer> players = new ArrayList<>(
-            Collections.nCopies(4, null)
-    );
+    @Indexed
+    @Getter @Setter
+    private String inviteCode;
+
+    public static final int MAX_PLAYERS = 4;
+
+    // List of players in the lobby (exactly 4)
+    @Getter @Setter
+    private LobbyPlayer[] players = new LobbyPlayer[MAX_PLAYERS];
+
+    public int getLobbyPlayerCount() {
+        int cnt = 0;
+
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+            if (players[i] != null) {
+                cnt++;
+            }
+        }
+
+        return cnt;
+    }
+
+    public boolean isPlayerInLobby(String userId) {
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+            if (players[i] != null && players[i].getUserId().equals(userId)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public LobbyPlayer getHost() {
+        for (LobbyPlayer player : players) {
+            if (player != null && player.isHost()) {
+                return player;
+            }
+        }
+        return null;
+    }
+
+    public void assignNewHost() {
+        for (LobbyPlayer player : players) {
+            if (player != null) {
+                player.setHost(true);
+                break; // assign the first available player as host
+            }
+        }
+    }
 }

@@ -33,6 +33,7 @@ public class PresenceService {
     }
 
     public void setUserPresence(String userId, UserPresence presence) {
+        presence.setLastPing(LocalDateTime.now()); // Update last ping time whenever we set the presence
         redisTemplate.opsForValue().set(PRESENCE_KEY_PREFIX + userId, presence, UserPresence.ttl);
     }
 
@@ -59,7 +60,6 @@ public class PresenceService {
             presence = new UserPresence(LocalDateTime.now(), lobbyId, null);
         } else {
             presence.setLobbyId(lobbyId);
-            presence.setLastOnline(LocalDateTime.now());
         }
 
         setUserPresence(userId, presence);
@@ -69,10 +69,9 @@ public class PresenceService {
         UserPresence presence = getUserPresence(userId);
 
         if (presence == null) {
-            presence = new UserPresence(LocalDateTime.now(), null, gameId);
+            throw new IllegalStateException("User presence not found for userId: " + userId);
         } else {
             presence.setGameId(gameId);
-            presence.setLastOnline(LocalDateTime.now());
         }
 
         setUserPresence(userId, presence);

@@ -7,6 +7,8 @@ import pro.damjan.belabackend.auth.dto.request.RegisterRequest;
 import pro.damjan.belabackend.user.User;
 import pro.damjan.belabackend.user.UserRepository;
 
+import java.time.LocalDateTime;
+
 @Service
 public class AuthService {
 
@@ -46,6 +48,9 @@ public class AuthService {
         if (!bCryptPasswordEncoder.matches(password, user.getPassword())) {
             throw new InvalidLoginException("Invalid login");
         }
+
+        user.setLastLoginAt(LocalDateTime.now());
+        userRepository.save(user);
 
         return user;
     }

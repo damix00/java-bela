@@ -11,11 +11,13 @@ import java.util.List;
 @Builder
 public class LobbyCreateResponse {
     private String id;
-    private List<LobbyPlayer> players;
+    private String inviteCode;
+    private LobbyPlayer[] players;
 
     public static LobbyCreateResponse fromLobby(Lobby lobby) {
         return LobbyCreateResponse.builder()
                 .id(lobby.getId())
+                .inviteCode(lobby.getInviteCode())
                 .players(lobby.getPlayers())
                 .build();
     }

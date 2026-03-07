@@ -105,7 +105,7 @@ class PresenceServiceTest {
 
         verify(valueOperations).set(eq(PRESENCE_KEY), argThat(arg -> {
             UserPresence p = (UserPresence) arg;
-            return p.getLobbyId() == null && p.getGameId() == null && p.getLastOnline() != null;
+            return p.getLobbyId() == null && p.getGameId() == null && p.getLastPing() != null;
         }), eq(UserPresence.ttl));
     }
 }

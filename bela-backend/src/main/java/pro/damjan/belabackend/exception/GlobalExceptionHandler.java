@@ -6,14 +6,26 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import pro.damjan.belabackend.auth.InvalidLoginException;
 
+import java.util.Map;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(InvalidLoginException.class)
-    public ResponseEntity<String> handleInvalidLogin(InvalidLoginException ex) {
+    @ExceptionHandler(ExceptionResponse.class)
+    public ResponseEntity<Map<String, String>> handleCustomException(ExceptionResponse ex) {
         return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(ex.getMessage());
+                .status(ex.getStatus())
+                .body(Map.of(
+                        "message", ex.getMessage()
+                ));
+    }
 
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                        "message", "Internal server error"
+                ));
     }
 }

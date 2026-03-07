@@ -2,11 +2,11 @@ package pro.damjan.belabackend.auth;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import pro.damjan.belabackend.exception.ExceptionResponse;
 
-@ResponseStatus(HttpStatus.UNAUTHORIZED)
-public class InvalidLoginException extends RuntimeException {
+public class InvalidLoginException extends ExceptionResponse {
     public InvalidLoginException(String message) {
-        super(message);
+        super(HttpStatus.UNAUTHORIZED, message);
     }
 }
 

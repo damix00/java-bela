@@ -2,18 +2,16 @@ package pro.damjan.belabackend.lobby;
 
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import pro.damjan.belabackend.lobby.exception.AlreadyInLobbyException;
+import pro.damjan.belabackend.lobby.exception.LobbyFullException;
+import pro.damjan.belabackend.lobby.exception.LobbyNotFoundException;
 import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 import pro.damjan.belabackend.lobby.model.LobbyPlayerStatus;
-import pro.damjan.belabackend.lobby.ws.dto.outgoing.LobbyJoinedEvent;
-import pro.damjan.belabackend.user.User;
+import pro.damjan.belabackend.lobby.ws.LobbyEventPublisher;
+import pro.damjan.belabackend.lobby.ws.dto.outgoing.LobbySnapshotEvent;
 import pro.damjan.belabackend.user.presence.PresenceService;
-import pro.damjan.belabackend.user.presence.model.UserPresence;
-import pro.damjan.belabackend.websocket.GameWebSocketHandler;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -21,12 +19,12 @@ public class LobbyService {
 
     private final LobbyRepository lobbyRepository;
     private final PresenceService userPresence;
-    private final GameWebSocketHandler ws;
+    private final LobbyEventPublisher lobbyEventPublisher;
 
-    public LobbyService(LobbyRepository lobbyRepository, PresenceService userPresence, GameWebSocketHandler ws) {
+    public LobbyService(LobbyRepository lobbyRepository, PresenceService userPresence, LobbyEventPublisher lobbyEventPublisher) {
         this.lobbyRepository = lobbyRepository;
         this.userPresence = userPresence;
-        this.ws = ws;
+        this.lobbyEventPublisher = lobbyEventPublisher;
     }
 
     private String generateLobbyId() {
@@ -41,26 +39,112 @@ public class LobbyService {
         while (true);
     }
 
-    @Transactional
-    public Lobby createLobby(User creator) {
+    private String generateInviteCode() {
+        // Random 6 character alphanumeric code
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder code = new StringBuilder();
+
+        do {
+            for (int i = 0; i < 6; i++) {
+                code.append(chars.charAt((int) (Math.random() * chars.length())));
+            }
+            String inviteCode = code.toString();
+            if (!lobbyRepository.existsByInviteCode(inviteCode)) {
+                return inviteCode;
+            }
+            code.setLength(0); // Reset the StringBuilder
+        } while (true);
+    }
+
+    public Lobby createLobby(String creatorId) {
         Lobby lobby = new Lobby();
         lobby.setId(this.generateLobbyId());
+        lobby.setInviteCode(this.generateInviteCode());
 
         // Get empty player list and set the first player as the creator
-        List<LobbyPlayer> players = lobby.getPlayers();
+        LobbyPlayer[] players = lobby.getPlayers();
 
         // 1st player is the creator, set to not ready. Others are null.
-        players.set(0, new LobbyPlayer(creator.getId(), true, LobbyPlayerStatus.NOT_READY));
-
-        lobby.setPlayers(players);
+        // No need to call lobby.setPlayers because this is a reference.
+        players[0] = new LobbyPlayer(creatorId, true, LobbyPlayerStatus.NOT_READY);
 
         lobbyRepository.save(lobby);
-        userPresence.setUserLobby(creator.getId(), lobby.getId());
+        userPresence.setUserLobby(creatorId, lobby.getId());
 
         // Emit lobby joined event to player
-        ws.sendToUser(creator.getId(), new LobbyJoinedEvent(lobby));
+        lobbyEventPublisher.sendSnapshot(lobby, creatorId);
 
         return lobby;
+    }
+
+    private void joinLobby(String userId, Lobby lobby) throws AlreadyInLobbyException, LobbyFullException {
+        if (lobby.isPlayerInLobby(userId)) {
+            throw new AlreadyInLobbyException();
+        }
+
+        LobbyPlayer[] players = lobby.getPlayers();
+
+        for (int i = 0; i < Lobby.MAX_PLAYERS; i++) {
+            if (players[i] == null) {
+                players[i] = new LobbyPlayer(
+                        userId,
+                        false,
+                        LobbyPlayerStatus.NOT_READY
+                );
+
+                lobbyRepository.save(lobby);
+                userPresence.setUserLobby(userId, lobby.getId());
+
+                lobbyEventPublisher.playerJoined(lobby, players[i]);
+
+                return;
+            }
+        }
+
+        throw new LobbyFullException();
+    }
+
+    public void leaveLobby(String userId) {
+        String lobbyId = userPresence.getUserPresence(userId).getLobbyId();
+
+        if (lobbyId == null) return;
+
+        Lobby lobby = lobbyRepository.findById(lobbyId).orElse(null);
+
+        if (lobby == null) return;
+
+        // Remove player from lobby
+        LobbyPlayer[] players = lobby.getPlayers();
+
+        for (int i = 0; i < Lobby.MAX_PLAYERS; i++) {
+            if (players[i] != null && players[i].getUserId().equals(userId)) {
+                players[i] = null;
+
+                userPresence.setUserLobby(userId, null);
+
+                // Last player left, delete lobby
+                if (lobby.getLobbyPlayerCount() == 0) {
+                    lobbyRepository.delete(lobby);
+                    return;
+                }
+
+                if (lobby.getHost() == null) {
+                    lobby.assignNewHost();
+                }
+
+                lobbyRepository.save(lobby);
+                lobbyEventPublisher.playerLeft(lobby, userId);
+                lobbyEventPublisher.lobbyHostChanged(lobby, userId);
+
+                break;
+            }
+        }
+    }
+
+    public void joinLobbyViaCode(String userId, String code) throws LobbyNotFoundException, AlreadyInLobbyException, LobbyFullException {
+        Lobby lobby = lobbyRepository.findByInviteCode(code).orElseThrow(LobbyNotFoundException::new);
+
+        this.joinLobby(userId, lobby);
     }
 
 }

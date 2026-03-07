@@ -8,7 +8,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import pro.damjan.belabackend.messaging.MessageBroker;
 import pro.damjan.belabackend.websocket.events.IncomingWebSocketMessage;
-import pro.damjan.belabackend.websocket.events.OutgoingEvent;
+import pro.damjan.belabackend.websocket.events.dto.OutgoingEvent;
 import pro.damjan.belabackend.websocket.events.WebSocketEventRegistry;
 import tools.jackson.databind.ObjectMapper;
 
