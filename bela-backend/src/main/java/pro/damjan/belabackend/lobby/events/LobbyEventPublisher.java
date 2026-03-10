@@ -1,12 +1,13 @@
-package pro.damjan.belabackend.lobby.ws;
+package pro.damjan.belabackend.lobby.events;
 
 import org.springframework.stereotype.Service;
 import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
-import pro.damjan.belabackend.lobby.ws.dto.outgoing.LobbyHostChangedEvent;
-import pro.damjan.belabackend.lobby.ws.dto.outgoing.LobbyPlayerJoinedEvent;
-import pro.damjan.belabackend.lobby.ws.dto.outgoing.LobbyPlayerLeftEvent;
-import pro.damjan.belabackend.lobby.ws.dto.outgoing.LobbySnapshotEvent;
+import pro.damjan.belabackend.lobby.events.dto.outgoing.LobbyHostChangedEvent;
+import pro.damjan.belabackend.lobby.events.dto.outgoing.LobbyPlayerJoinedEvent;
+import pro.damjan.belabackend.lobby.events.dto.outgoing.LobbyPlayerLeftEvent;
+import pro.damjan.belabackend.lobby.events.dto.outgoing.LobbyPlayerStatusChangeEvent;
+import pro.damjan.belabackend.lobby.events.dto.outgoing.LobbySnapshotEvent;
 import pro.damjan.belabackend.websocket.GameWebSocketHandler;
 import pro.damjan.belabackend.websocket.events.dto.OutgoingEvent;
 
@@ -51,5 +52,9 @@ public class LobbyEventPublisher {
 
     public void lobbyHostChanged(Lobby lobby, String newHostUserId) {
         broadcastToLobby(lobby, new LobbyHostChangedEvent(newHostUserId));
+    }
+
+    public void playerStatusChanged(Lobby lobby, LobbyPlayer player) {
+        broadcastToLobby(lobby, new LobbyPlayerStatusChangeEvent(player.getUserId(), player.getStatus()));
     }
 }

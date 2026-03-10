@@ -49,6 +49,16 @@ public class Lobby implements Serializable {
         return false;
     }
 
+    public LobbyPlayer getPlayerById(String userId) {
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+            if (players[i] != null && players[i].getUserId().equals(userId)) {
+                return players[i];
+            }
+        }
+
+        return null;
+    }
+
     public LobbyPlayer getHost() {
         for (LobbyPlayer player : players) {
             if (player != null && player.isHost()) {
@@ -58,12 +68,14 @@ public class Lobby implements Serializable {
         return null;
     }
 
-    public void assignNewHost() {
+    public LobbyPlayer assignNewHost() {
         for (LobbyPlayer player : players) {
             if (player != null) {
                 player.setHost(true);
-                break; // assign the first available player as host
+                return player;
             }
         }
+
+        return null;
     }
 }

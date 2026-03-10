@@ -5,7 +5,6 @@ import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
-
 import pro.damjan.belabackend.websocket.events.dto.IncomingEvent;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -56,23 +55,21 @@ public class WebSocketEventRegistry implements SmartInitializingSingleton {
 
         Method method = handler.method();
         Class<?>[] paramTypes = method.getParameterTypes();
+        Object[] args = new Object[paramTypes.length];
 
-        // 1st argument is always WebSocketSession, 2nd is always an instance of IncomingEvent if specified
-        Object[] args = new Object[2];
+        for (int i = 0; i < paramTypes.length; i++) {
+            Class<?> type = paramTypes[i];
 
-        if (paramTypes.length > 0) {
-            if (!WebSocketSession.class.isAssignableFrom(paramTypes[0])) {
-                throw new IllegalStateException("First parameter of @OnEvent handler must be WebSocketSession");
+            if (WebSocketSession.class.isAssignableFrom(type)) {
+                args[i] = session;
+            } else if (type == String.class) {
+                // String parameter receives the userId from the session
+                args[i] = session.getAttributes().get("userId");
+            } else if (IncomingEvent.class.isAssignableFrom(type)) {
+                args[i] = objectMapper.treeToValue(body, type);
+            } else {
+                throw new IllegalStateException("Unsupported parameter type in @OnEvent handler: " + type.getName());
             }
-            args[0] = session;
-        }
-
-        if (paramTypes.length > 1) {
-            if (!IncomingEvent.class.isAssignableFrom(paramTypes[1])) {
-                throw new IllegalStateException("Second parameter of @OnEvent handler must be a subclass of IncomingEvent");
-            }
-
-            args[1] = objectMapper.treeToValue(body, paramTypes[1]);
         }
 
         method.invoke(handler.bean(), args);

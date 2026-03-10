@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.lobby.ws.dto.outgoing;
+package pro.damjan.belabackend.lobby.events.dto.outgoing;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -10,7 +10,7 @@ public class LobbyPlayerLeftEvent extends OutgoingEvent {
     private String userId;
 
     public LobbyPlayerLeftEvent(String userId) {
-        super("lobbyPlayerLeft");
+        super("lobby:playerLeft");
         this.userId = userId;
     }
 }

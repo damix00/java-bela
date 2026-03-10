@@ -1,6 +1,5 @@
 package pro.damjan.belabackend.lobby;
 
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import pro.damjan.belabackend.lobby.exception.AlreadyInLobbyException;
 import pro.damjan.belabackend.lobby.exception.LobbyFullException;
@@ -8,8 +7,7 @@ import pro.damjan.belabackend.lobby.exception.LobbyNotFoundException;
 import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 import pro.damjan.belabackend.lobby.model.LobbyPlayerStatus;
-import pro.damjan.belabackend.lobby.ws.LobbyEventPublisher;
-import pro.damjan.belabackend.lobby.ws.dto.outgoing.LobbySnapshotEvent;
+import pro.damjan.belabackend.lobby.events.LobbyEventPublisher;
 import pro.damjan.belabackend.user.presence.PresenceService;
 
 import java.util.UUID;
@@ -82,6 +80,11 @@ public class LobbyService {
             throw new AlreadyInLobbyException();
         }
 
+        // Leave current lobby if in one
+        if (userPresence.getUserPresence(userId).getLobbyId() != null) {
+            this.leaveLobby(userId);
+        }
+
         LobbyPlayer[] players = lobby.getPlayers();
 
         for (int i = 0; i < Lobby.MAX_PLAYERS; i++) {
@@ -129,12 +132,19 @@ public class LobbyService {
                 }
 
                 if (lobby.getHost() == null) {
-                    lobby.assignNewHost();
+                    LobbyPlayer newHost = lobby.assignNewHost();
+
+                    if (newHost == null) {
+                        // This should never happen because we check if the lobby is empty above, but just in case
+                        lobbyRepository.delete(lobby);
+
+                        throw new IllegalStateException("Lobby has no host but is not empty");
+                    }
+                    lobbyEventPublisher.lobbyHostChanged(lobby, newHost.getUserId());
                 }
 
                 lobbyRepository.save(lobby);
                 lobbyEventPublisher.playerLeft(lobby, userId);
-                lobbyEventPublisher.lobbyHostChanged(lobby, userId);
 
                 break;
             }
@@ -145,6 +155,28 @@ public class LobbyService {
         Lobby lobby = lobbyRepository.findByInviteCode(code).orElseThrow(LobbyNotFoundException::new);
 
         this.joinLobby(userId, lobby);
+    }
+
+    public void onPlayerReady(String userId, boolean ready) throws LobbyNotFoundException {
+        String lobbyId = userPresence.getUserPresence(userId).getLobbyId();
+
+        if (lobbyId == null) {
+            throw new LobbyNotFoundException();
+        }
+
+        Lobby lobby = lobbyRepository.findById(lobbyId).orElseThrow(LobbyNotFoundException::new);
+
+        LobbyPlayer player = lobby.getPlayerById(userId);
+
+        if (player == null) {
+            throw new LobbyNotFoundException();
+        }
+
+        player.setStatus(LobbyPlayerStatus.READY);
+
+        lobbyRepository.save(lobby);
+
+        lobbyEventPublisher.playerStatusChanged(lobby, player);
     }
 
 }

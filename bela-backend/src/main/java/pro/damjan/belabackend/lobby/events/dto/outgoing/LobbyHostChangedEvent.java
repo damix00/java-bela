@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.lobby.ws.dto.outgoing;
+package pro.damjan.belabackend.lobby.events.dto.outgoing;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -10,7 +10,7 @@ public class LobbyHostChangedEvent extends OutgoingEvent {
     private String newHostId;
 
     public LobbyHostChangedEvent(String newHostId) {
-        super("lobbyHostUpdated");
+        super("lobby:hostUpdated");
         this.newHostId = newHostId;
     }
 

@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.lobby.ws.dto.outgoing;
+package pro.damjan.belabackend.lobby.events.dto.outgoing;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -14,7 +14,7 @@ public class LobbySnapshotEvent extends OutgoingEvent {
     private Lobby lobby;
 
     public LobbySnapshotEvent(Lobby lobby) {
-        super("lobbySnapshot");
+        super("lobby:snapshot");
         this.lobby = lobby;
     }
 }
