@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.auth.security;
+package pro.damjan.belabackend.auth.security.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

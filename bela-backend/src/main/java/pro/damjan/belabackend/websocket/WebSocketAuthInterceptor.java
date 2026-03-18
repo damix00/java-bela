@@ -9,7 +9,7 @@ import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
-import pro.damjan.belabackend.auth.security.JwtService;
+import pro.damjan.belabackend.auth.security.jwt.JwtService;
 
 import java.util.Map;
 

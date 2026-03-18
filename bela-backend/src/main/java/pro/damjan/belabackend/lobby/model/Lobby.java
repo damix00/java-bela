@@ -78,4 +78,17 @@ public class Lobby implements Serializable {
 
         return null;
     }
+
+    public boolean allPlayersReady() {
+        for (LobbyPlayer player : players) {
+            if (player != null && player.getStatus() != LobbyPlayerStatus.READY) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean isFull() {
+        return getLobbyPlayerCount() >= MAX_PLAYERS;
+    }
 }

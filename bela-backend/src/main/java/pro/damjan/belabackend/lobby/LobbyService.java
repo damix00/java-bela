@@ -157,6 +157,9 @@ public class LobbyService {
         this.joinLobby(userId, lobby);
     }
 
+    public void startGame(Lobby lobby) {
+    }
+
     public void onPlayerReady(String userId, boolean ready) throws LobbyNotFoundException {
         String lobbyId = userPresence.getUserPresence(userId).getLobbyId();
 
@@ -175,8 +178,13 @@ public class LobbyService {
         player.setStatus(LobbyPlayerStatus.READY);
 
         lobbyRepository.save(lobby);
-
         lobbyEventPublisher.playerStatusChanged(lobby, player);
+
+        // Check if all players are ready
+        // TODO: add actual matchmaking. For now only start if lobby is full and all players are ready
+        if (lobby.allPlayersReady() && lobby.isFull()) {
+            this.startGame(lobby);
+        }
     }
 
 }

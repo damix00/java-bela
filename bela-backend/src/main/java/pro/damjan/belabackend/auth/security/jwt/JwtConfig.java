@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.auth.security;
+package pro.damjan.belabackend.auth.security.jwt;
 
 import io.jsonwebtoken.security.Keys;
 import lombok.Getter;

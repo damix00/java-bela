@@ -1,9 +1,11 @@
 package pro.damjan.belabackend.auth;
 
 import jakarta.transaction.Transactional;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import pro.damjan.belabackend.auth.dto.request.RegisterRequest;
+import pro.damjan.belabackend.exception.ExceptionResponse;
 import pro.damjan.belabackend.user.User;
 import pro.damjan.belabackend.user.UserRepository;
 
@@ -23,11 +25,11 @@ public class AuthService {
     @Transactional
     public User register(RegisterRequest request) {
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-            throw new RuntimeException("Username already exists");
+            throw new ExceptionResponse(HttpStatus.BAD_REQUEST, "Username already exists");
         }
 
         else if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already exists");
+            throw new ExceptionResponse(HttpStatus.BAD_REQUEST, "Email already exists");
         }
 
         User user = new User();
