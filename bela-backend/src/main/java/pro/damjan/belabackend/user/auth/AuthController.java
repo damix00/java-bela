@@ -1,14 +1,14 @@
-package pro.damjan.belabackend.auth;
+package pro.damjan.belabackend.user.auth;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import pro.damjan.belabackend.auth.dto.response.AuthResponse;
-import pro.damjan.belabackend.auth.dto.request.LoginRequest;
-import pro.damjan.belabackend.auth.dto.request.RegisterRequest;
-import pro.damjan.belabackend.auth.dto.response.UserResponse;
-import pro.damjan.belabackend.auth.security.ratelimit.InternalSourceService;
-import pro.damjan.belabackend.auth.security.jwt.JwtService;
-import pro.damjan.belabackend.auth.security.ratelimit.RateLimit;
+import pro.damjan.belabackend.user.auth.dto.response.AuthResponse;
+import pro.damjan.belabackend.user.auth.dto.request.LoginRequest;
+import pro.damjan.belabackend.user.auth.dto.request.RegisterRequest;
+import pro.damjan.belabackend.user.auth.dto.response.UserResponse;
+import pro.damjan.belabackend.user.auth.security.ratelimit.InternalSourceService;
+import pro.damjan.belabackend.user.auth.security.jwt.JwtService;
+import pro.damjan.belabackend.user.auth.security.ratelimit.RateLimit;
 import pro.damjan.belabackend.user.User;
 
 @RestController

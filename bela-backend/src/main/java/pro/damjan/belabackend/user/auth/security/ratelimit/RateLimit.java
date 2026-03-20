@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.auth.security.ratelimit;
+package pro.damjan.belabackend.user.auth.security.ratelimit;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

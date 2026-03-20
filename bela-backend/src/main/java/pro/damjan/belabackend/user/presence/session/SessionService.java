@@ -29,7 +29,20 @@ public class SessionService {
         return sessionRepository.findByUserIdAndActiveTrue(userId).orElse(null);
     }
 
-    public void endActiveSession(String userId) {
+    public boolean userHasActiveSession(String userId) {
+        return getActiveSession(userId) != null;
+    }
+
+    public void lockSession(String sessionId) {
+        UserSession session = sessionRepository.findById(sessionId).orElse(null);
+
+        if (session != null) {
+            session.setActive(true);
+            sessionRepository.save(session);
+        }
+    }
+
+    public void unlockUserSessions(String userId) {
         UserSession session = sessionRepository.findByUserIdAndActiveTrue(userId).orElse(null);
         if (session != null) {
             session.setActive(false);
@@ -37,4 +50,7 @@ public class SessionService {
         }
     }
 
+    public void deleteSession(String sessionId) {
+        sessionRepository.deleteById(sessionId);
+    }
 }

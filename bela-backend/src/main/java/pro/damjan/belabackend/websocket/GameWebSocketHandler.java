@@ -7,6 +7,8 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import pro.damjan.belabackend.messaging.MessageBroker;
+import pro.damjan.belabackend.user.presence.session.SessionService;
+import pro.damjan.belabackend.user.presence.session.UserSession;
 import pro.damjan.belabackend.websocket.events.IncomingWebSocketMessage;
 import pro.damjan.belabackend.websocket.events.dto.OutgoingEvent;
 import pro.damjan.belabackend.websocket.events.WebSocketEventRegistry;
@@ -28,11 +30,13 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     private final MessageBroker messageBroker;
     private final WebSocketEventRegistry eventRegistry;
     private final ObjectMapper objectMapper;
+    private final SessionService sessionService;
 
-    public GameWebSocketHandler(MessageBroker messageBroker, WebSocketEventRegistry eventRegistry, ObjectMapper objectMapper) {
+    public GameWebSocketHandler(MessageBroker messageBroker, WebSocketEventRegistry eventRegistry, ObjectMapper objectMapper, SessionService sessionService) {
         this.messageBroker = messageBroker;
         this.eventRegistry = eventRegistry;
         this.objectMapper = objectMapper;
+        this.sessionService = sessionService;
     }
 
     @Override
@@ -73,11 +77,16 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         String userId = (String) session.getAttributes().get("userId");
+        UserSession userSession = (UserSession) session.getAttributes().get("userSession");
 
         Set<WebSocketSession> userSessions = sessions.get(userId);
 
         if (userSessions != null) {
             userSessions.remove(session);
+
+            // Clean up user session in the database
+            // This makes sure that there isn't a session lock and the user can continue from another device if they lose connection
+            sessionService.deleteSession(userSession.getId());
 
             if (userSessions.isEmpty()) {
                 // Unsubscribe from message broker when last session for this user disconnects

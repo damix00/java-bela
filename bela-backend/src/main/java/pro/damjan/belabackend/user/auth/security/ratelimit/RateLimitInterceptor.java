@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.auth.security.ratelimit;
+package pro.damjan.belabackend.user.auth.security.ratelimit;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.BucketConfiguration;

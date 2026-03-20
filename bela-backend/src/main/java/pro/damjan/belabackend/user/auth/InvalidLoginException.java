@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.auth;
+package pro.damjan.belabackend.user.auth;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

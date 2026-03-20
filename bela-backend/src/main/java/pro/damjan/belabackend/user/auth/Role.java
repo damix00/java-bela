@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.auth;
+package pro.damjan.belabackend.user.auth;
 
 public enum Role {
     USER,

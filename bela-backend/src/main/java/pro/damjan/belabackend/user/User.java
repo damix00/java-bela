@@ -10,8 +10,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import pro.damjan.belabackend.auth.AuthProvider;
-import pro.damjan.belabackend.auth.Role;
+import pro.damjan.belabackend.user.auth.AuthProvider;
+import pro.damjan.belabackend.user.auth.Role;
 
 import java.time.Instant;
 import java.util.Collection;

@@ -6,7 +6,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import pro.damjan.belabackend.auth.dto.request.RegisterRequest;
+import pro.damjan.belabackend.user.auth.AuthProvider;
+import pro.damjan.belabackend.user.auth.AuthService;
+import pro.damjan.belabackend.user.auth.InvalidLoginException;
+import pro.damjan.belabackend.user.auth.Role;
+import pro.damjan.belabackend.user.auth.dto.request.RegisterRequest;
 import pro.damjan.belabackend.user.User;
 import pro.damjan.belabackend.user.UserRepository;
 
