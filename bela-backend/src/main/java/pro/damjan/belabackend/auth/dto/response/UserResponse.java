@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 import pro.damjan.belabackend.user.User;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Getter
 @Builder
@@ -13,8 +13,8 @@ public class UserResponse {
     private String username;
     private String email;
     private String role;
-    private LocalDateTime createdAt;
-    private LocalDateTime lastLoginAt;
+    private Instant createdAt;
+    private Instant lastLoginAt;
 
     public static UserResponse fromUser(User user) {
         return UserResponse.builder()

@@ -9,7 +9,7 @@ import pro.damjan.belabackend.exception.ExceptionResponse;
 import pro.damjan.belabackend.user.User;
 import pro.damjan.belabackend.user.UserRepository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Service
 public class AuthService {
@@ -51,7 +51,7 @@ public class AuthService {
             throw new InvalidLoginException("Invalid login");
         }
 
-        user.setLastLoginAt(LocalDateTime.now());
+        user.setLastLoginAt(Instant.now());
         userRepository.save(user);
 
         return user;

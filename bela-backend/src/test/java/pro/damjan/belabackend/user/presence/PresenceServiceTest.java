@@ -7,9 +7,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
-import pro.damjan.belabackend.user.presence.model.UserPresence;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -36,7 +35,7 @@ class PresenceServiceTest {
 
     @Test
     void getUserPresence_returnsPresence_whenExists() {
-        UserPresence expected = new UserPresence(LocalDateTime.now(), "lobby-1", "game-1");
+        UserPresence expected = new UserPresence(Instant.now(), "lobby-1", "game-1");
         when(valueOperations.get(PRESENCE_KEY)).thenReturn(expected);
 
         UserPresence result = presenceService.getUserPresence(USER_ID);
@@ -56,7 +55,7 @@ class PresenceServiceTest {
 
     @Test
     void setUserPresence_storesWithTtl() {
-        UserPresence presence = new UserPresence(LocalDateTime.now(), "lobby-1", null);
+        UserPresence presence = new UserPresence(Instant.now(), "lobby-1", null);
 
         presenceService.setUserPresence(USER_ID, presence);
 
@@ -65,7 +64,7 @@ class PresenceServiceTest {
 
     @Test
     void isUserOnline_returnsTrue_whenPresenceExistsAndOnline() {
-        UserPresence presence = new UserPresence(LocalDateTime.now(), null, null);
+        UserPresence presence = new UserPresence(Instant.now(), null, null);
         when(valueOperations.get(PRESENCE_KEY)).thenReturn(presence);
 
         assertTrue(presenceService.isUserOnline(USER_ID));
@@ -74,7 +73,7 @@ class PresenceServiceTest {
     @Test
     void isUserOnline_returnsFalse_whenPresenceExistsButOffline() {
         // lastOnline more than 30 seconds ago → offline
-        UserPresence presence = new UserPresence(LocalDateTime.now().minusMinutes(5), null, null);
+        UserPresence presence = new UserPresence(Instant.now().minusSeconds(5 * 60), null, null);
         when(valueOperations.get(PRESENCE_KEY)).thenReturn(presence);
 
         assertFalse(presenceService.isUserOnline(USER_ID));
@@ -89,7 +88,7 @@ class PresenceServiceTest {
 
     @Test
     void presenceKeepAlive_refreshesTtl_whenPresenceExists() {
-        UserPresence existing = new UserPresence(LocalDateTime.now(), "lobby-1", "game-1");
+        UserPresence existing = new UserPresence(Instant.now(), "lobby-1", "game-1");
         when(valueOperations.get(PRESENCE_KEY)).thenReturn(existing);
 
         presenceService.presenceKeepAlive(USER_ID);

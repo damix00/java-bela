@@ -4,6 +4,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 import pro.damjan.belabackend.lobby.LobbyService;
 import pro.damjan.belabackend.lobby.events.dto.incoming.LobbyReadyCommand;
+import pro.damjan.belabackend.user.User;
+import pro.damjan.belabackend.user.presence.session.UserSession;
 import pro.damjan.belabackend.websocket.events.OnEvent;
 
 @Component
@@ -16,7 +18,7 @@ public class LobbyEventHandler {
     }
 
     @OnEvent("lobby:ready")
-    public void onLobbyReady(WebSocketSession session, String userId, LobbyReadyCommand command) {
-        lobbyService.onPlayerReady(userId, command.isReady());
+    public void onLobbyReady(UserSession session, User user, LobbyReadyCommand command) {
+        lobbyService.onPlayerReady(user.getId(), command.isReady());
     }
 }

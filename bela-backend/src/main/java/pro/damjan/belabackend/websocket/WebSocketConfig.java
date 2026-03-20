@@ -19,7 +19,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(handler, "/events")
+        registry.addHandler(handler, "/ws")
                 .addInterceptors(webSocketAuthInterceptor)
                 .setAllowedOrigins("*"); // TODO: tighten in production
     }

@@ -2,10 +2,9 @@ package pro.damjan.belabackend.user.presence;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import pro.damjan.belabackend.user.presence.model.UserPresence;
 import tools.jackson.databind.ObjectMapper;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Service for managing user presence in the application.
@@ -33,7 +32,7 @@ public class PresenceService {
     }
 
     public void setUserPresence(String userId, UserPresence presence) {
-        presence.setLastPing(LocalDateTime.now()); // Update last ping time whenever we set the presence
+        presence.setLastPing(Instant.now()); // Update last ping time whenever we set the presence
         redisTemplate.opsForValue().set(PRESENCE_KEY_PREFIX + userId, presence, UserPresence.ttl);
     }
 
@@ -49,7 +48,9 @@ public class PresenceService {
             redisTemplate.opsForValue().set(PRESENCE_KEY_PREFIX + userId, presence, UserPresence.ttl);
         } else {
             // Presence doesn't exist, we will create a new one with default values.
-            setUserPresence(userId, new UserPresence(LocalDateTime.now(), null, null));
+            setUserPresence(userId, new UserPresence(Instant.now(), null, null));
+
+            // TODO: Send a socket event to friends about the presence update
         }
     }
 
@@ -57,7 +58,7 @@ public class PresenceService {
         UserPresence presence = getUserPresence(userId);
 
         if (presence == null) {
-            presence = new UserPresence(LocalDateTime.now(), lobbyId, null);
+            presence = new UserPresence(Instant.now(), lobbyId, null);
         } else {
             presence.setLobbyId(lobbyId);
         }

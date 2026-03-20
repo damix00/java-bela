@@ -5,6 +5,8 @@ import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
+import pro.damjan.belabackend.user.User;
+import pro.damjan.belabackend.user.presence.session.UserSession;
 import pro.damjan.belabackend.websocket.events.dto.IncomingEvent;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -60,11 +62,11 @@ public class WebSocketEventRegistry implements SmartInitializingSingleton {
         for (int i = 0; i < paramTypes.length; i++) {
             Class<?> type = paramTypes[i];
 
-            if (WebSocketSession.class.isAssignableFrom(type)) {
-                args[i] = session;
-            } else if (type == String.class) {
+            if (UserSession.class.isAssignableFrom(type)) {
+                args[i] = session.getAttributes().get("userSession");
+            } else if (User.class.isAssignableFrom(type)) {
                 // String parameter receives the userId from the session
-                args[i] = session.getAttributes().get("userId");
+                args[i] = session.getAttributes().get("user");
             } else if (IncomingEvent.class.isAssignableFrom(type)) {
                 args[i] = objectMapper.treeToValue(body, type);
             } else {

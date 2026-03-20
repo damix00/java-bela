@@ -13,7 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import pro.damjan.belabackend.auth.AuthProvider;
 import pro.damjan.belabackend.auth.Role;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 
@@ -46,14 +46,14 @@ public class User implements UserDetails {
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @LastModifiedDate
     @Column(nullable = false)
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     @Column(nullable = true)
-    private LocalDateTime lastLoginAt;
+    private Instant lastLoginAt;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

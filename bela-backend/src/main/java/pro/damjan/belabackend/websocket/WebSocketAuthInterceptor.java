@@ -1,5 +1,6 @@
 package pro.damjan.belabackend.websocket;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -10,18 +11,23 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 import pro.damjan.belabackend.auth.security.jwt.JwtService;
+import pro.damjan.belabackend.user.User;
+import pro.damjan.belabackend.user.UserRepository;
+import pro.damjan.belabackend.user.UserService;
+import pro.damjan.belabackend.user.presence.session.SessionMetadata;
+import pro.damjan.belabackend.user.presence.session.SessionService;
+import pro.damjan.belabackend.user.presence.session.UserSession;
 
 import java.util.Map;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class WebSocketAuthInterceptor implements HandshakeInterceptor {
 
     private final JwtService jwtService;
-
-    public WebSocketAuthInterceptor(JwtService jwtService) {
-        this.jwtService = jwtService;
-    }
+    private final SessionService sessionService;
+    private final UserService userService;
 
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
@@ -30,6 +36,7 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
             String authHeader = servletRequest.getServletRequest().getHeader(HttpHeaders.AUTHORIZATION);
 
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                log.warn("Authorization header not found");
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
                 return false;
             }
@@ -41,7 +48,32 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
                 String userId = jwtService.getIdFromToken(token);
 
                 if (userId != null) {
+                    User user = userService.getUserById(userId);
+
+                    if (user == null) {
+                        log.warn("WebSocket connection attempt with non-existent user ID [{}]", userId);
+                        response.setStatusCode(HttpStatus.UNAUTHORIZED);
+                        return false;
+                    }
+
+                    // Create a new session
+                    UserSession userSession = sessionService.createSession(
+                            userId,
+                            SessionMetadata.builder()
+                                    .userAgent(servletRequest.getServletRequest().getHeader("User-Agent"))
+                                    .ipAddress(servletRequest.getServletRequest().getRemoteAddr())
+                                    .build()
+                    );
+
+                    if (userSession == null) {
+                        throw new Exception("Something went wrong while creating user session");
+                    }
+
                     attributes.put("userId", userId);
+                    attributes.put("user", user);
+
+                    attributes.put("userSession", userSession);
+
                     return true;
                 }
                 else {
