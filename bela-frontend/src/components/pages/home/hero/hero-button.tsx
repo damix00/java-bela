@@ -7,12 +7,12 @@ export default function HeroButton() {
         <>
             <div className="hidden sm:flex">
                 <Button variant="filled" size="lg">
-                    Join the action
+                    Join the Action
                 </Button>
             </div>
             <div className="flex sm:hidden">
                 <Button variant="filled" size="md">
-                    Join the action
+                    Join the Action
                 </Button>
             </div>
         </>

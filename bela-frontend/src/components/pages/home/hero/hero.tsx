@@ -6,7 +6,7 @@ import HeroButton from "./hero-button";
 
 export default function HomeHero() {
     return (
-        <div className="pt-titlebar relative min-h-svh w-full flex flex-col items-center justify-center gap-6 px-4 sm:px-6 md:px-8">
+        <div className="py-titlebar relative min-h-svh w-full flex flex-col items-center justify-center gap-6 px-4 sm:px-6 md:px-8">
             <HeroBackground />
             <motion.div
                 initial={{ opacity: 0, y: 30 }}
