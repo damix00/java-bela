@@ -140,14 +140,12 @@ public class LobbyService {
             return;
         }
 
-        // 1. Domain Logic
         boolean hostChanged = lobby.removePlayer(userId);
         int remainingPlayers = lobby.getLobbyPlayerCount();
 
-        // 2. Presence/Session Cleanup (Always happens)
         cleanUpUserPresence(userId);
 
-        // 3. Persistence & Events
+        // Persistence and events
         if (remainingPlayers == 0) {
             lobbyRepository.delete(lobby);
         } else {
