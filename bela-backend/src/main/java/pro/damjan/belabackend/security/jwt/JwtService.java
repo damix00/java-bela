@@ -1,10 +1,9 @@
-package pro.damjan.belabackend.user.auth.security.jwt;
+package pro.damjan.belabackend.security.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pro.damjan.belabackend.user.User;
 
 @Slf4j
 @Service
@@ -16,9 +15,9 @@ public class JwtService {
         this.jwtConfig = jwtConfig;
     }
 
-    public String generateToken(User user) {
+    public String generateToken(String userId) {
         return Jwts.builder()
-                .subject(user.getId())
+                .subject(userId)
                 .signWith(jwtConfig.getJwtKey())
                 .compact();
     }

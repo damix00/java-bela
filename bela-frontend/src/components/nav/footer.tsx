@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { GlobeIcon, Share2Icon } from "lucide-react";
+import Button from "../input/button";
 
 export default function Footer() {
     return (
@@ -37,14 +38,10 @@ export default function Footer() {
                         </Link>
                     </div>
 
-                    {/* Right: Icons */}
                     <div className="flex items-center gap-3">
-                        <button className="w-10 h-10 rounded-md bg-background-secondary hover:bg-white/10 flex items-center justify-center transition-colors text-foreground-muted hover:text-foreground">
-                            <GlobeIcon size={18} />
-                        </button>
-                        <button className="w-10 h-10 rounded-md bg-background-secondary hover:bg-white/10 flex items-center justify-center transition-colors text-foreground-muted hover:text-foreground">
-                            <Share2Icon size={18} />
-                        </button>
+                        <Button variant="text">
+                            <GlobeIcon className="w-4 h-4" />
+                        </Button>
                     </div>
                 </div>
             </div>

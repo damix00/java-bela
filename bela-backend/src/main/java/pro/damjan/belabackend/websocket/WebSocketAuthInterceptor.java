@@ -10,7 +10,7 @@ import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
-import pro.damjan.belabackend.user.auth.security.jwt.JwtService;
+import pro.damjan.belabackend.security.jwt.JwtService;
 import pro.damjan.belabackend.user.User;
 import pro.damjan.belabackend.user.UserService;
 import pro.damjan.belabackend.user.presence.session.SessionMetadata;

@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.user.auth.security.ratelimit;
+package pro.damjan.belabackend.security.ratelimit;
 
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;

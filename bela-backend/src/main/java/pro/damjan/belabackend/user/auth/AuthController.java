@@ -6,9 +6,9 @@ import pro.damjan.belabackend.user.auth.dto.response.AuthResponse;
 import pro.damjan.belabackend.user.auth.dto.request.LoginRequest;
 import pro.damjan.belabackend.user.auth.dto.request.RegisterRequest;
 import pro.damjan.belabackend.user.auth.dto.response.UserResponse;
-import pro.damjan.belabackend.user.auth.security.ratelimit.InternalSourceService;
-import pro.damjan.belabackend.user.auth.security.jwt.JwtService;
-import pro.damjan.belabackend.user.auth.security.ratelimit.RateLimit;
+import pro.damjan.belabackend.security.ratelimit.InternalSourceService;
+import pro.damjan.belabackend.security.jwt.JwtService;
+import pro.damjan.belabackend.security.ratelimit.RateLimit;
 import pro.damjan.belabackend.user.User;
 
 @RestController
@@ -28,7 +28,7 @@ public class AuthController {
     @PostMapping("/register")
     public AuthResponse register(@RequestBody RegisterRequest request) {
         User user = authService.register(request);
-        String jwt = jwtService.generateToken(user);
+        String jwt = jwtService.generateToken(user.getId());
 
         return AuthResponse.fromUserAndToken(
                 user,
@@ -51,7 +51,7 @@ public class AuthController {
     )
     public AuthResponse login(@RequestBody LoginRequest request) {
         User user = authService.login(request.getUsernameOrEmail(), request.getPassword());
-        String jwt = jwtService.generateToken(user);
+        String jwt = jwtService.generateToken(user.getId());
 
         return AuthResponse.fromUserAndToken(
                 user,
@@ -61,7 +61,7 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public AuthResponse refresh(@AuthenticationPrincipal User user) {
-        String jwt = jwtService.generateToken(user);
+        String jwt = jwtService.generateToken(user.getId());
 
         return AuthResponse.fromUserAndToken(
                 user,

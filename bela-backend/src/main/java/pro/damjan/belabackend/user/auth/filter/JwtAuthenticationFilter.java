@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.user.auth.security.jwt;
+package pro.damjan.belabackend.user.auth.filter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import pro.damjan.belabackend.security.jwt.JwtService;
 
 import java.io.IOException;
 

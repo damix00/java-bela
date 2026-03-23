@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.user.auth.security.jwt;
+package pro.damjan.belabackend.user.auth.filter;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

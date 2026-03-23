@@ -23,6 +23,7 @@ public class JpaConfig {
         template.setDefaultSerializer(serializer);
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(serializer);
+        template.setEnableTransactionSupport(true);
 
         template.afterPropertiesSet();
         return template;
