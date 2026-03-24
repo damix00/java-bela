@@ -1,15 +1,27 @@
-export default function AuthPattern() {
-    const color = "var(--foreground-muted)";
+import { cn } from "@/app/lib/utils";
 
+export type AuthPatternVariant = "default" | "primary";
+
+export default function AuthPattern({
+    variant = "default",
+}: {
+    variant?: AuthPatternVariant;
+}) {
+    const color =
+        variant === "primary"
+            ? "var(--color-primary)"
+            : "var(--foreground-muted)";
     return (
         <svg
-            className="absolute inset-0 w-full h-full -rotate-30 scale-200 opacity-10 select-none"
+            className={cn(
+                `absolute inset-0 w-full h-full -rotate-30 scale-200 opacity-10 select-none`,
+            )}
             viewBox="0 0 500 500"
             preserveAspectRatio="xMidYMid slice"
             xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <pattern
-                    id="card-suits"
+                    id={`card-suits-${variant}`}
                     width="80"
                     height="56"
                     patternUnits="userSpaceOnUse">
@@ -31,7 +43,11 @@ export default function AuthPattern() {
                     </text>
                 </pattern>
             </defs>
-            <rect width="100%" height="100%" fill="url(#card-suits)" />
+            <rect
+                width="100%"
+                height="100%"
+                fill={`url(#card-suits-${variant})`}
+            />
         </svg>
     );
 }

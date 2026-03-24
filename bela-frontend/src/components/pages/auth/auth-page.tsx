@@ -1,4 +1,4 @@
-import AuthPattern from "./bg/auth-pattern";
+import AuthPattern, { type AuthPatternVariant } from "./bg/auth-pattern";
 import BackToHome from "./back-to-home";
 import AuthBgText from "./bg/auth-bg-text";
 import { cn } from "@/app/lib/utils";
@@ -6,18 +6,28 @@ import { cn } from "@/app/lib/utils";
 export default function AuthPage({
     className,
     children,
+    eyebrow,
+    headline,
+    patternVariant = "default",
 }: {
     className?: string;
     children: React.ReactNode;
+    eyebrow: string;
+    headline: string;
+    patternVariant?: AuthPatternVariant;
 }) {
     return (
         <div className="min-h-screen flex w-full">
             {/* Left half (not visible on mobile) */}
-            <div className="hidden md:flex w-1/2 bg-background-secondary flex-col items-start justify-end pb-12 relative overflow-hidden">
+            <div
+                className={cn(
+                    "hidden md:flex w-1/2 bg-background-secondary flex-col items-start justify-end pb-12 relative overflow-hidden",
+                    patternVariant == "primary" && "bg-primary/5",
+                )}>
                 <BackToHome />
                 <div className="w-full max-w-2/3 px-8">
-                    <AuthBgText />
-                    <AuthPattern />
+                    <AuthBgText eyebrow={eyebrow} headline={headline} />
+                    <AuthPattern variant={patternVariant} />
                 </div>
             </div>
 
