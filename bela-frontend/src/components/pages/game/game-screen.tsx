@@ -1,5 +1,7 @@
 "use client";
 
+import { logout } from "@/actions/auth";
+import Button from "@/components/input/button";
 import { useAuth } from "@/context/auth-context";
 
 export default function GameScreen() {
@@ -12,6 +14,9 @@ export default function GameScreen() {
                     Welcome, {user?.username}!
                 </h1>
                 <p className="text-slate-400">Game screen coming soon...</p>
+                <Button onClick={logout} className="mt-6">
+                    Log Out
+                </Button>
             </div>
         </div>
     );

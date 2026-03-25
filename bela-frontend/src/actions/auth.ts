@@ -15,7 +15,7 @@ async function storeCookie(key: string, value: string) {
     });
 }
 
-async function storeData(data: AuthResponse) {
+export async function storeAuthData(data: AuthResponse) {
     await storeCookie("token", data.jwt);
     await storeCookie("user", JSON.stringify(data.user));
 }
@@ -47,51 +47,7 @@ export async function refreshToken(): Promise<AuthResponse | null> {
     });
 
     if (resp.data) {
-        await storeData(resp.data);
-
-        return resp.data;
-    }
-
-    return null;
-}
-
-export async function register(
-    username: string,
-    email: string,
-    password: string,
-): Promise<AuthResponse | null> {
-    const resp = await internalApiFetch<AuthResponse>("/auth/register", {
-        method: "POST",
-        body: JSON.stringify({
-            username,
-            email,
-            password,
-        }),
-    });
-
-    if (resp.data) {
-        await storeData(resp.data);
-
-        return resp.data;
-    }
-
-    return null;
-}
-
-export async function login(
-    email: string,
-    password: string,
-): Promise<AuthResponse | null> {
-    const resp = await internalApiFetch<AuthResponse>("/auth/login", {
-        method: "POST",
-        body: JSON.stringify({
-            usernameOrEmail: email,
-            password,
-        }),
-    });
-
-    if (resp.data) {
-        await storeData(resp.data);
+        await storeAuthData(resp.data);
 
         return resp.data;
     }
