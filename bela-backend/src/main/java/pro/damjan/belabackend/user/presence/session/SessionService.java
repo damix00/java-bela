@@ -12,7 +12,7 @@ public class SessionService {
     public UserSession createSession(String userId, SessionMetadata metadata) {
         UserSession session = new UserSession();
         session.setUserId(userId);
-        session.setActive(true);
+        session.setActive(false);
         session.setMetadata(metadata);
         return sessionRepository.save(session);
     }

@@ -1,7 +1,9 @@
 package pro.damjan.belabackend.user.presence;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import pro.damjan.belabackend.user.presence.session.SessionService;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
@@ -13,14 +15,12 @@ import java.time.Instant;
  * the user may still be in-game. We will just update the presence with the last seen time and set the online status to false.
 */
 @Service
-public class PresenceService {
+@RequiredArgsConstructor
+public class UserPresenceService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private static final String PRESENCE_KEY_PREFIX = "presence:";
-
-    public PresenceService(RedisTemplate<String, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
-    }
+    private final SessionService sessionService;
 
     public UserPresence getUserPresence(String userId) {
         Object object = redisTemplate.opsForValue().get(PRESENCE_KEY_PREFIX + userId);
@@ -45,6 +45,7 @@ public class PresenceService {
         UserPresence presence = getUserPresence(userId);
 
         if (presence != null) {
+            presence.setLastPing(Instant.now());
             redisTemplate.opsForValue().set(PRESENCE_KEY_PREFIX + userId, presence, UserPresence.ttl);
         } else {
             // Presence doesn't exist, we will create a new one with default values.
@@ -64,6 +65,11 @@ public class PresenceService {
         }
 
         setUserPresence(userId, presence);
+    }
+
+    public void cleanUpUser(String userId) {
+        setUserLobby(userId, null);
+        sessionService.unlockUserSessions(userId);
     }
 
     public void setUserGame(String userId, String gameId) {

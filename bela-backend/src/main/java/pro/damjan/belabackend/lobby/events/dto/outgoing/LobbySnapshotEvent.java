@@ -7,6 +7,7 @@ import pro.damjan.belabackend.websocket.events.dto.OutgoingEvent;
 
 /**
  * Sent to a user when they join a lobby, contains the full lobby snapshot.
+ * Should only be sent once, when the user first joins, and not on subsequent updates to the lobby.
  */
 @Getter @Setter
 public class LobbySnapshotEvent extends OutgoingEvent {

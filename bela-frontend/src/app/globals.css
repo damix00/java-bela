@@ -4,6 +4,7 @@
 :root {
     --background: #0e0e0e;
     --background-secondary: #181818;
+    --background-tertiary: #232323;
     --primary: #c5ff8b;
     --primary-muted: #232a1e;
     --on-primary: #000000;
@@ -14,6 +15,7 @@
 @theme inline {
     --color-background: var(--background);
     --color-background-secondary: var(--background-secondary);
+    --color-background-tertiary: var(--background-tertiary);
     --color-foreground-muted: var(--foreground-muted);
 
     --color-foreground: var(--foreground);

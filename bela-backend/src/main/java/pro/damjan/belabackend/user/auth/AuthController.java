@@ -50,7 +50,7 @@ public class AuthController {
             )
     )
     public AuthResponse login(@RequestBody LoginRequest request) {
-        User user = authService.login(request.getUsernameOrEmail(), request.getPassword());
+        User user = authService.login(request.getEmail(), request.getPassword());
         String jwt = jwtService.generateToken(user.getId());
 
         return AuthResponse.fromUserAndToken(

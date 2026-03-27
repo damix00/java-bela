@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class PresenceServiceTest {
+class UserPresenceServiceTest {
 
     @Mock
     private RedisTemplate<String, Object> redisTemplate;
@@ -22,7 +22,7 @@ class PresenceServiceTest {
     @Mock
     private ValueOperations<String, Object> valueOperations;
 
-    private PresenceService presenceService;
+    private UserPresenceService userPresenceService;
 
     private static final String USER_ID = "user-123";
     private static final String PRESENCE_KEY = "presence:" + USER_ID;
@@ -30,7 +30,7 @@ class PresenceServiceTest {
     @BeforeEach
     void setUp() {
         lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        presenceService = new PresenceService(redisTemplate);
+        userPresenceService = new UserPresenceService(redisTemplate);
     }
 
     @Test
@@ -38,7 +38,7 @@ class PresenceServiceTest {
         UserPresence expected = new UserPresence(Instant.now(), "lobby-1", "game-1");
         when(valueOperations.get(PRESENCE_KEY)).thenReturn(expected);
 
-        UserPresence result = presenceService.getUserPresence(USER_ID);
+        UserPresence result = userPresenceService.getUserPresence(USER_ID);
 
         assertEquals(expected, result);
         verify(valueOperations).get(PRESENCE_KEY);
@@ -48,7 +48,7 @@ class PresenceServiceTest {
     void getUserPresence_returnsNull_whenNotExists() {
         when(valueOperations.get(PRESENCE_KEY)).thenReturn(null);
 
-        UserPresence result = presenceService.getUserPresence(USER_ID);
+        UserPresence result = userPresenceService.getUserPresence(USER_ID);
 
         assertNull(result);
     }
@@ -57,7 +57,7 @@ class PresenceServiceTest {
     void setUserPresence_storesWithTtl() {
         UserPresence presence = new UserPresence(Instant.now(), "lobby-1", null);
 
-        presenceService.setUserPresence(USER_ID, presence);
+        userPresenceService.setUserPresence(USER_ID, presence);
 
         verify(valueOperations).set(PRESENCE_KEY, presence, UserPresence.ttl);
     }
@@ -67,7 +67,7 @@ class PresenceServiceTest {
         UserPresence presence = new UserPresence(Instant.now(), null, null);
         when(valueOperations.get(PRESENCE_KEY)).thenReturn(presence);
 
-        assertTrue(presenceService.isUserOnline(USER_ID));
+        assertTrue(userPresenceService.isUserOnline(USER_ID));
     }
 
     @Test
@@ -76,14 +76,14 @@ class PresenceServiceTest {
         UserPresence presence = new UserPresence(Instant.now().minusSeconds(5 * 60), null, null);
         when(valueOperations.get(PRESENCE_KEY)).thenReturn(presence);
 
-        assertFalse(presenceService.isUserOnline(USER_ID));
+        assertFalse(userPresenceService.isUserOnline(USER_ID));
     }
 
     @Test
     void isUserOnline_returnsFalse_whenPresenceNotExists() {
         when(valueOperations.get(PRESENCE_KEY)).thenReturn(null);
 
-        assertFalse(presenceService.isUserOnline(USER_ID));
+        assertFalse(userPresenceService.isUserOnline(USER_ID));
     }
 
     @Test
@@ -91,7 +91,7 @@ class PresenceServiceTest {
         UserPresence existing = new UserPresence(Instant.now(), "lobby-1", "game-1");
         when(valueOperations.get(PRESENCE_KEY)).thenReturn(existing);
 
-        presenceService.presenceKeepAlive(USER_ID);
+        userPresenceService.presenceKeepAlive(USER_ID);
 
         verify(valueOperations).set(PRESENCE_KEY, existing, UserPresence.ttl);
     }
@@ -100,7 +100,7 @@ class PresenceServiceTest {
     void presenceKeepAlive_createsNewPresence_whenPresenceNotExists() {
         when(valueOperations.get(PRESENCE_KEY)).thenReturn(null);
 
-        presenceService.presenceKeepAlive(USER_ID);
+        userPresenceService.presenceKeepAlive(USER_ID);
 
         verify(valueOperations).set(eq(PRESENCE_KEY), argThat(arg -> {
             UserPresence p = (UserPresence) arg;

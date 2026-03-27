@@ -1,4 +1,4 @@
-import { cn } from "@/app/lib/utils";
+import { cn } from "@/lib/utils";
 
 export type LogoSize = "sm" | "md" | "lg" | "xl";
 
@@ -11,7 +11,7 @@ export default function Logo({ size = "md", className }: LogoProps) {
     return (
         <span
             className={cn(
-                "font-heading uppercase font-black tracking-tight text-foreground",
+                "font-heading uppercase font-black tracking-tight text-foreground select-none",
                 size === "sm" && "text-lg",
                 size === "md" && "text-xl",
                 size === "lg" && "text-2xl",

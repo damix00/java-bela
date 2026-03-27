@@ -1,5 +1,6 @@
 package pro.damjan.belabackend.websocket;
 
+import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -17,6 +18,7 @@ import pro.damjan.belabackend.user.presence.session.SessionMetadata;
 import pro.damjan.belabackend.user.presence.session.SessionService;
 import pro.damjan.belabackend.user.presence.session.UserSession;
 
+import java.util.Arrays;
 import java.util.Map;
 
 @Slf4j
@@ -32,15 +34,13 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
                                    WebSocketHandler wsHandler, Map<String, Object> attributes) {
         if (request instanceof ServletServerHttpRequest servletRequest) {
-            String authHeader = servletRequest.getServletRequest().getHeader(HttpHeaders.AUTHORIZATION);
+            Cookie[] cookies = servletRequest.getServletRequest().getCookies();
 
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                log.warn("Authorization header not found");
-                response.setStatusCode(HttpStatus.UNAUTHORIZED);
-                return false;
-            }
-
-            String token = authHeader.substring(7);
+            String token = Arrays.stream(cookies != null ? cookies : new Cookie[0])
+                    .filter(c -> "token".equals(c.getName()))
+                    .findFirst()
+                    .map(Cookie::getValue)
+                    .orElse(null);
 
             try {
                 // Determine user ID (this might throw an exception if token is expired/invalid)

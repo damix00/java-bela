@@ -21,7 +21,7 @@ export default function LoginForm() {
                 const response = await apiFetch<AuthResponse>("/auth/login", {
                     method: "POST",
                     body: JSON.stringify({
-                        usernameOrEmail: value.email,
+                        email: value.email,
                         password: value.password,
                     }),
                 });

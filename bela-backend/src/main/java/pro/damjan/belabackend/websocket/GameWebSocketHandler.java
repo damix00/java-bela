@@ -1,18 +1,23 @@
 package pro.damjan.belabackend.websocket;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import pro.damjan.belabackend.messaging.MessageBroker;
+import pro.damjan.belabackend.user.presence.events.UserReconnectedEvent;
 import pro.damjan.belabackend.user.presence.session.SessionService;
 import pro.damjan.belabackend.user.presence.session.UserSession;
 import pro.damjan.belabackend.websocket.events.IncomingWebSocketMessage;
 import pro.damjan.belabackend.websocket.events.dto.OutgoingEvent;
 import pro.damjan.belabackend.websocket.events.WebSocketEventRegistry;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
 
 import java.io.IOException;
 import java.util.Map;
@@ -21,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class GameWebSocketHandler extends TextWebSocketHandler {
 
     private static final String CHANNEL_PREFIX = "user:";
@@ -31,17 +37,12 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     private final WebSocketEventRegistry eventRegistry;
     private final ObjectMapper objectMapper;
     private final SessionService sessionService;
-
-    public GameWebSocketHandler(MessageBroker messageBroker, WebSocketEventRegistry eventRegistry, ObjectMapper objectMapper, SessionService sessionService) {
-        this.messageBroker = messageBroker;
-        this.eventRegistry = eventRegistry;
-        this.objectMapper = objectMapper;
-        this.sessionService = sessionService;
-    }
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         String userId = (String) session.getAttributes().get("userId");
+        UserSession userSession = (UserSession) session.getAttributes().get("userSession");
 
         sessions.computeIfAbsent(userId, k -> {
             // Subscribe to message broker for this user when they first connect
@@ -60,6 +61,8 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
             });
             return ConcurrentHashMap.newKeySet();
         }).add(session);
+
+        applicationEventPublisher.publishEvent(new UserReconnectedEvent(userId, userSession.getId()));
 
         log.info("WebSocket connection established for user [{}]", userId);
     }

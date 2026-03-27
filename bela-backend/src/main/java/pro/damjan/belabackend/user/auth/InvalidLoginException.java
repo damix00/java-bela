@@ -5,8 +5,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import pro.damjan.belabackend.exception.ExceptionResponse;
 
 public class InvalidLoginException extends ExceptionResponse {
-    public InvalidLoginException(String message) {
-        super(HttpStatus.UNAUTHORIZED, message);
+    public InvalidLoginException() {
+        super(HttpStatus.UNAUTHORIZED, "Invalid email or password");
     }
 }
 

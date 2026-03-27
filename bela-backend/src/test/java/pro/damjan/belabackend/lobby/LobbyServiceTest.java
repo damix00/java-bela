@@ -9,7 +9,7 @@ import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 import pro.damjan.belabackend.lobby.model.LobbyPlayerStatus;
 import pro.damjan.belabackend.user.User;
-import pro.damjan.belabackend.user.presence.PresenceService;
+import pro.damjan.belabackend.user.presence.UserPresenceService;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -22,13 +22,13 @@ class LobbyServiceTest {
     private LobbyRepository lobbyRepository;
 
     @Mock
-    private PresenceService presenceService;
+    private UserPresenceService userPresenceService;
 
     private LobbyService lobbyService;
 
     @BeforeEach
     void setUp() {
-        lobbyService = new LobbyService(lobbyRepository, presenceService);
+        lobbyService = new LobbyService(lobbyRepository, userPresenceService);
     }
 
     @Test

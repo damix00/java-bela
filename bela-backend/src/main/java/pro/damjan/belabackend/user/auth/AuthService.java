@@ -42,13 +42,12 @@ public class AuthService {
         return userRepository.save(user);
     }
 
-    public User login(String usernameOrEmail, String password) throws InvalidLoginException {
-        User user = userRepository.findByUsername(usernameOrEmail)
-                .orElseGet(() -> userRepository.findByEmail(usernameOrEmail)
-                        .orElseThrow(() -> new InvalidLoginException("Invalid login")));
+    public User login(String email, String password) throws InvalidLoginException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(InvalidLoginException::new);
 
         if (!bCryptPasswordEncoder.matches(password, user.getPassword())) {
-            throw new InvalidLoginException("Invalid login");
+            throw new InvalidLoginException();
         }
 
         user.setLastLoginAt(Instant.now());

@@ -25,7 +25,7 @@ public class UserPresence implements Serializable {
         this.gameId = gameId;
     }
 
-    public static final Duration ttl = Duration.ofSeconds(60);
+    public static final Duration ttl = Duration.ofSeconds(30);
 
     public boolean isOnline() {
         // at least 30 seconds ago

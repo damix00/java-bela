@@ -1,5 +1,7 @@
 package pro.damjan.belabackend.lobby.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,6 +11,7 @@ import pro.damjan.belabackend.lobby.exception.LobbyFullException;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -22,16 +25,58 @@ public class Lobby implements Serializable {
     @Getter @Setter
     private String inviteCode;
 
+    @Getter @Setter
+    private LobbyStatus status;
+
+    @Getter @Setter
+    private String gameId;
+
     public static final int MAX_PLAYERS = 4;
 
     // List of players in the lobby (exactly 4)
-    @Getter @Setter
+
     private LobbyPlayer[] players = new LobbyPlayer[MAX_PLAYERS];
 
+    public List<LobbyPlayer> getPlayers() {
+        List<LobbyPlayer> playerList = new ArrayList<>();
+        int len = players == null ? 0 : players.length;
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+            if (i < len) {
+                playerList.add(players[i]);
+            } else {
+                playerList.add(null);
+            }
+        }
+        return playerList;
+    }
+
+    public void setPlayers(List<LobbyPlayer> playerList) {
+        if (playerList.size() > MAX_PLAYERS) {
+            throw new IllegalArgumentException("Cannot have more than " + MAX_PLAYERS + " players in the lobby.");
+        }
+        this.players = new LobbyPlayer[MAX_PLAYERS];
+        for (int i = 0; i < playerList.size(); i++) {
+            this.players[i] = playerList.get(i);
+        }
+    }
+
+    @JsonInclude
+    public List<LobbyPlayer> getNonNullPlayers() {
+        if (players == null) return Collections.emptyList();
+        List<LobbyPlayer> nonNullPlayers = new ArrayList<>();
+        for (LobbyPlayer player : players) {
+            if (player != null) {
+                nonNullPlayers.add(player);
+            }
+        }
+        return nonNullPlayers;
+    }
+
+    @JsonIgnore
     public int getLobbyPlayerCount() {
         int cnt = 0;
-
-        for (int i = 0; i < MAX_PLAYERS; i++) {
+        int len = players == null ? 0 : Math.min(players.length, MAX_PLAYERS);
+        for (int i = 0; i < len; i++) {
             if (players[i] != null) {
                 cnt++;
             }
@@ -40,8 +85,10 @@ public class Lobby implements Serializable {
         return cnt;
     }
 
+    @JsonIgnore
     public boolean isPlayerInLobby(String userId) {
-        for (int i = 0; i < MAX_PLAYERS; i++) {
+        int len = players == null ? 0 : Math.min(players.length, MAX_PLAYERS);
+        for (int i = 0; i < len; i++) {
             if (players[i] != null && players[i].getUserId().equals(userId)) {
                 return true;
             }
@@ -50,8 +97,10 @@ public class Lobby implements Serializable {
         return false;
     }
 
+    @JsonIgnore
     public LobbyPlayer getPlayerById(String userId) {
-        for (int i = 0; i < MAX_PLAYERS; i++) {
+        int len = players == null ? 0 : Math.min(players.length, MAX_PLAYERS);
+        for (int i = 0; i < len; i++) {
             if (players[i] != null && players[i].getUserId().equals(userId)) {
                 return players[i];
             }
@@ -60,7 +109,9 @@ public class Lobby implements Serializable {
         return null;
     }
 
+    @JsonIgnore
     public LobbyPlayer getHost() {
+        if (players == null) return null;
         for (LobbyPlayer player : players) {
             if (player != null && player.isHost()) {
                 return player;
@@ -69,7 +120,9 @@ public class Lobby implements Serializable {
         return null;
     }
 
+    @JsonIgnore
     public LobbyPlayer assignNewHost() {
+        if (players == null) return null;
         for (LobbyPlayer player : players) {
             if (player != null) {
                 player.setHost(true);
@@ -80,7 +133,9 @@ public class Lobby implements Serializable {
         return null;
     }
 
+    @JsonIgnore
     public boolean allPlayersReady() {
+        if (players == null) return true;
         for (LobbyPlayer player : players) {
             if (player != null && player.getStatus() != LobbyPlayerStatus.READY) {
                 return false;
@@ -89,11 +144,20 @@ public class Lobby implements Serializable {
         return true;
     }
 
+    @JsonIgnore
     public boolean isFull() {
         return getLobbyPlayerCount() >= MAX_PLAYERS;
     }
 
+    @JsonIgnore
     public void addPlayer(LobbyPlayer player) {
+        if (this.players == null || this.players.length < MAX_PLAYERS) {
+            LobbyPlayer[] newPlayers = new LobbyPlayer[MAX_PLAYERS];
+            if (this.players != null) {
+                System.arraycopy(this.players, 0, newPlayers, 0, this.players.length);
+            }
+            this.players = newPlayers;
+        }
         for (int i = 0; i < this.players.length; i++) {
             if (this.players[i] == null) {
                 this.players[i] = player;
@@ -105,8 +169,10 @@ public class Lobby implements Serializable {
         throw new LobbyFullException();
     }
 
+    @JsonIgnore
     // Returns true if host changed, false otherwise
     public boolean removePlayer(String userId) {
+        if (players == null) return false;
         boolean removed = false;
         for (int i = 0; i < players.length; i++) {
             if (players[i] != null && players[i].getUserId().equals(userId)) {

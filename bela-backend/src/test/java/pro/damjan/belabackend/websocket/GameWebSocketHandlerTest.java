@@ -30,9 +30,8 @@ class GameWebSocketHandlerTest {
 
     @BeforeEach
     void setUp() {
-        handler = new GameWebSocketHandler(messageBroker, eventRegistry, objectMapper);
+        handler = new GameWebSocketHandler(messageBroker, null, null, null, null);
     }
-        handler = new GameWebSocketHandler(messageBroker);
     private WebSocketSession mockSession(String userId) {
         WebSocketSession session = mock(WebSocketSession.class);
         Map<String, Object> attrs = new HashMap<>();

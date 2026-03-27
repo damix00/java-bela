@@ -1,5 +1,6 @@
 package pro.damjan.belabackend.websocket.events;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,10 @@ class WebSocketEventRegistryTest {
 
     @BeforeEach
     void setUp() {
-        objectMapper = JsonMapper.builder().build();
+        objectMapper = JsonMapper
+                .builder()
+                .changeDefaultPropertyInclusion(inc -> inc.withValueInclusion(JsonInclude.Include.ALWAYS))
+                .build();
     }
 
     private WebSocketEventRegistry createRegistry(Object... beans) {

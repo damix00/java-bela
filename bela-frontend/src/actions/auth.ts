@@ -3,6 +3,7 @@
 import { AUTH_DURATION, internalApiFetch } from "@/api/internal";
 import { AuthResponse } from "@/api/types/user";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 async function storeCookie(key: string, value: string) {
     const cookieStore = await cookies();

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
-import { getCurrentUser } from "@/actions/auth";
+import { getCurrentUser, refreshToken } from "@/actions/auth";
 import { Toaster } from "sonner";
 
 const inter = Inter({

@@ -1,4 +1,4 @@
-import { cn } from "@/app/lib/utils";
+import { cn } from "@/lib/utils";
 import Loader from "../ui/loader";
 import Link from "next/link";
 

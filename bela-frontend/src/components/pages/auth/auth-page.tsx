@@ -1,7 +1,7 @@
 import AuthPattern, { type AuthPatternVariant } from "./bg/auth-pattern";
 import BackToHome from "./back-to-home";
 import AuthBgText from "./bg/auth-bg-text";
-import { cn } from "@/app/lib/utils";
+import { cn } from "@/lib/utils";
 
 export default function AuthPage({
     className,

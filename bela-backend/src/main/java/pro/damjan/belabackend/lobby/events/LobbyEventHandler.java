@@ -1,13 +1,10 @@
 package pro.damjan.belabackend.lobby.events;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Component;
 import pro.damjan.belabackend.lobby.LobbyService;
-import pro.damjan.belabackend.lobby.dto.response.LobbyCreateResponse;
 import pro.damjan.belabackend.lobby.events.dto.incoming.JoinLobbyViaCodeCommand;
 import pro.damjan.belabackend.lobby.events.dto.incoming.LobbyReadyCommand;
-import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.user.User;
 import pro.damjan.belabackend.user.presence.session.UserSession;
 import pro.damjan.belabackend.websocket.events.OnEvent;

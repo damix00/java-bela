@@ -1,4 +1,4 @@
-import { cn } from "@/app/lib/utils";
+import { cn } from "@/lib/utils";
 
 interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label?: string;
