@@ -1,21 +1,18 @@
 package pro.damjan.belabackend.lobby.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.index.Indexed;
 import pro.damjan.belabackend.lobby.exception.LobbyFullException;
+import pro.damjan.belabackend.lobby.exception.PlayerNotInLobbyException;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
-@RedisHash("Lobby")
+@RedisHash(value = "Lobby", timeToLive = 3600) // 1 hour TTL
 public class Lobby implements Serializable {
     @Id
     @Getter @Setter
@@ -26,171 +23,143 @@ public class Lobby implements Serializable {
     private String inviteCode;
 
     @Getter @Setter
-    private LobbyStatus status;
+    private LobbyStatus status = LobbyStatus.IN_LOBBY;
 
     @Getter @Setter
     private String gameId;
 
     public static final int MAX_PLAYERS = 4;
 
-    // List of players in the lobby (exactly 4)
+    @Getter @Setter
+    private Map<Integer, LobbyPlayer> playerSeats = new HashMap<>();
 
-    private LobbyPlayer[] players = new LobbyPlayer[MAX_PLAYERS];
-
-    public List<LobbyPlayer> getPlayers() {
-        List<LobbyPlayer> playerList = new ArrayList<>();
-        int len = players == null ? 0 : players.length;
+    @JsonIgnore
+    public List<LobbyPlayer> getPlayersAsList() {
+        List<LobbyPlayer> list = new ArrayList<>(MAX_PLAYERS);
         for (int i = 0; i < MAX_PLAYERS; i++) {
-            if (i < len) {
-                playerList.add(players[i]);
-            } else {
-                playerList.add(null);
-            }
+            list.add(playerSeats.get(i)); // null if seat empty
         }
-        return playerList;
-    }
-
-    public void setPlayers(List<LobbyPlayer> playerList) {
-        if (playerList.size() > MAX_PLAYERS) {
-            throw new IllegalArgumentException("Cannot have more than " + MAX_PLAYERS + " players in the lobby.");
-        }
-        this.players = new LobbyPlayer[MAX_PLAYERS];
-        for (int i = 0; i < playerList.size(); i++) {
-            this.players[i] = playerList.get(i);
-        }
-    }
-
-    @JsonInclude
-    public List<LobbyPlayer> getNonNullPlayers() {
-        if (players == null) return Collections.emptyList();
-        List<LobbyPlayer> nonNullPlayers = new ArrayList<>();
-        for (LobbyPlayer player : players) {
-            if (player != null) {
-                nonNullPlayers.add(player);
-            }
-        }
-        return nonNullPlayers;
+        return list;
     }
 
     @JsonIgnore
-    public int getLobbyPlayerCount() {
-        int cnt = 0;
-        int len = players == null ? 0 : Math.min(players.length, MAX_PLAYERS);
-        for (int i = 0; i < len; i++) {
-            if (players[i] != null) {
-                cnt++;
-            }
-        }
-
-        return cnt;
+    public Collection<LobbyPlayer> getActivePlayers() {
+        return playerSeats.values();
     }
 
-    @JsonIgnore
-    public boolean isPlayerInLobby(String userId) {
-        int len = players == null ? 0 : Math.min(players.length, MAX_PLAYERS);
-        for (int i = 0; i < len; i++) {
-            if (players[i] != null && players[i].getUserId().equals(userId)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
+    // --- Query methods ---
 
     @JsonIgnore
-    public LobbyPlayer getPlayerById(String userId) {
-        int len = players == null ? 0 : Math.min(players.length, MAX_PLAYERS);
-        for (int i = 0; i < len; i++) {
-            if (players[i] != null && players[i].getUserId().equals(userId)) {
-                return players[i];
-            }
-        }
-
-        return null;
-    }
-
-    @JsonIgnore
-    public LobbyPlayer getHost() {
-        if (players == null) return null;
-        for (LobbyPlayer player : players) {
-            if (player != null && player.isHost()) {
-                return player;
-            }
-        }
-        return null;
-    }
-
-    @JsonIgnore
-    public LobbyPlayer assignNewHost() {
-        if (players == null) return null;
-        for (LobbyPlayer player : players) {
-            if (player != null) {
-                player.setHost(true);
-                return player;
-            }
-        }
-
-        return null;
-    }
-
-    @JsonIgnore
-    public boolean allPlayersReady() {
-        if (players == null) return true;
-        for (LobbyPlayer player : players) {
-            if (player != null && player.getStatus() != LobbyPlayerStatus.READY) {
-                return false;
-            }
-        }
-        return true;
+    public int getPlayerCount() {
+        return playerSeats.size();
     }
 
     @JsonIgnore
     public boolean isFull() {
-        return getLobbyPlayerCount() >= MAX_PLAYERS;
+        return playerSeats.size() >= MAX_PLAYERS;
     }
 
     @JsonIgnore
+    public boolean isPlayerInLobby(String userId) {
+        return playerSeats.values().stream().anyMatch(p -> p.getUserId().equals(userId));
+    }
+
+    @JsonIgnore
+    public Optional<LobbyPlayer> findPlayerById(String userId) {
+        return playerSeats.values().stream().filter(p -> p.getUserId().equals(userId)).findFirst();
+    }
+
+    @JsonIgnore
+    public Optional<LobbyPlayer> getHost() {
+        return playerSeats.values().stream().filter(LobbyPlayer::isHost).findFirst();
+    }
+
+    @JsonIgnore
+    public boolean allPlayersReady() {
+        return playerSeats.values().stream().allMatch(p -> p.getStatus() == LobbyPlayerStatus.READY);
+    }
+
+    @JsonIgnore
+    public int getTeam(int seat) {
+        return seat < 2 ? 0 : 1; // 0 = team A (seats 0,1), 1 = team B (seats 2,3)
+    }
+
+    @JsonIgnore
+    public int getTeam(LobbyPlayer player) {
+        return getTeam(player.getSeat());
+    }
+
+    @JsonIgnore
+    public List<LobbyPlayer> getTeamPlayers(int team) {
+        return playerSeats.entrySet().stream()
+                .filter(e -> getTeam(e.getKey()) == team)
+                .map(Map.Entry::getValue)
+                .toList();
+    }
+
+    // --- Mutation methods ---
+
+    @JsonIgnore
     public void addPlayer(LobbyPlayer player) {
-        if (this.players == null || this.players.length < MAX_PLAYERS) {
-            LobbyPlayer[] newPlayers = new LobbyPlayer[MAX_PLAYERS];
-            if (this.players != null) {
-                System.arraycopy(this.players, 0, newPlayers, 0, this.players.length);
-            }
-            this.players = newPlayers;
-        }
-        for (int i = 0; i < this.players.length; i++) {
-            if (this.players[i] == null) {
-                this.players[i] = player;
+        if (isFull()) throw new LobbyFullException();
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+            if (!playerSeats.containsKey(i)) {
+                player.setSeat(i);
+                playerSeats.put(i, player);
                 return;
             }
         }
-
-        // If the loop finishes without returning, the lobby is full.
         throw new LobbyFullException();
     }
 
     @JsonIgnore
-    // Returns true if host changed, false otherwise
-    public boolean removePlayer(String userId) {
-        if (players == null) return false;
-        boolean removed = false;
-        for (int i = 0; i < players.length; i++) {
-            if (players[i] != null && players[i].getUserId().equals(userId)) {
-                players[i] = null;
-                removed = true;
-                break;
-            }
+    public void swapSeats(String userId, int targetSeat) {
+        if (targetSeat < 0 || targetSeat >= MAX_PLAYERS) {
+            throw new IllegalArgumentException("Invalid seat: " + targetSeat);
         }
 
-        if (!removed) return false;
+        LobbyPlayer moving = findPlayerById(userId)
+                .orElseThrow(PlayerNotInLobbyException::new);
 
-        // Logic: If the lobby isn't empty and the host is gone, assign a new one
-        if (getLobbyPlayerCount() > 0 && getHost() == null) {
-            assignNewHost();
-            return true; // Host changed
+        int currentSeat = moving.getSeat();
+        if (currentSeat == targetSeat) return;
+
+        LobbyPlayer occupant = playerSeats.get(targetSeat); // null if empty
+
+        playerSeats.remove(currentSeat);
+        moving.setSeat(targetSeat);
+        playerSeats.put(targetSeat, moving);
+
+        if (occupant != null) {
+            occupant.setSeat(currentSeat);
+            playerSeats.put(currentSeat, occupant);
+        }
+    }
+
+    @JsonIgnore
+    public RemoveResult removePlayer(String userId) {
+        Optional<LobbyPlayer> found = findPlayerById(userId);
+        if (found.isEmpty()) return RemoveResult.NOT_FOUND;
+
+        playerSeats.remove(found.get().getSeat());
+
+        if (!playerSeats.isEmpty() && getHost().isEmpty()) {
+            playerSeats.values().iterator().next().setHost(true);
+            return RemoveResult.REMOVED_AND_HOST_CHANGED;
         }
 
-        return false; // Host did not change (or lobby is now empty)
+        return RemoveResult.REMOVED;
+    }
+
+    @JsonIgnore
+    public Optional<LobbyPlayer> assignNewHost() {
+        Optional<LobbyPlayer> next = playerSeats.values().stream().findFirst();
+        next.ifPresent(p -> p.setHost(true));
+        return next;
+    }
+
+    public enum RemoveResult {
+        NOT_FOUND, REMOVED, REMOVED_AND_HOST_CHANGED
     }
 
 }

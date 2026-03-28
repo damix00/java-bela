@@ -10,6 +10,7 @@ import pro.damjan.belabackend.user.presence.UserPresence;
 import pro.damjan.belabackend.user.presence.UserPresenceService;
 import pro.damjan.belabackend.user.presence.events.UserReconnectedEvent;
 import pro.damjan.belabackend.user.presence.session.SessionService;
+import pro.damjan.belabackend.user.presence.session.UserSession;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +24,10 @@ public class LobbyPresenceService {
     @EventListener
     public void handleReconnect(UserReconnectedEvent event) {
         UserPresence userPresence = userPresenceService.getUserPresence(event.userId());
+        UserSession session = sessionService.getActiveSession(event.userId());
+        if (session != null) {
+            return;
+        }
         String lobbyId = userPresence != null ? userPresence.getLobbyId() : null;
         if (lobbyId != null) {
             Lobby lobby = lobbyRepository.findById(lobbyId).orElse(null);

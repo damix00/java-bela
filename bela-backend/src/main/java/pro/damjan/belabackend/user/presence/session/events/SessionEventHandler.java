@@ -13,7 +13,7 @@ public class SessionEventHandler {
     private final SessionService sessionService;
     private final UserPresenceService userPresenceService;
 
-    @OnEvent("session:keep-alive")
+    @OnEvent("session:keepAlive")
     public void handleKeepAlive(UserSession session) {
         sessionService.keepAlive(session.getId());
         userPresenceService.presenceKeepAlive(session.getUserId());

@@ -1,3 +1,7 @@
+"use client";
+
+import { staticUser } from "@/context/auth-context";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 export async function apiFetch<T>(
@@ -6,10 +10,14 @@ export async function apiFetch<T>(
 ): Promise<{ status: number; data: T | null; error?: string }> {
     const url = `${API_URL}${endpoint}`;
 
-    const headers = {
+    const headers: any = {
         "Content-Type": "application/json",
         ...options.headers,
     };
+
+    if (staticUser.jwt) {
+        headers["Authorization"] = `Bearer ${staticUser.jwt}`;
+    }
 
     try {
         const response = await fetch(url, {

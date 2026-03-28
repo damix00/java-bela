@@ -17,6 +17,8 @@ import pro.damjan.belabackend.user.presence.session.exception.SessionLockExcepti
 
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -73,12 +75,11 @@ public class LobbyService {
         lobby.setInviteCode(generateInviteCode());
 
         // Get empty player list and set the first player as the creator
-        List<LobbyPlayer> players = lobby.getPlayers();
+        Map<Integer, LobbyPlayer> players = lobby.getPlayerSeats();
 
         // 1st player is the creator, set to not ready. Others are null.
         // No need to call lobby.setPlayers because this is a reference.
-        players.set(0, new LobbyPlayer(creatorId, true, LobbyPlayerStatus.NOT_READY));
-        lobby.setPlayers(players);
+        lobby.addPlayer(new LobbyPlayer(creatorId, true, LobbyPlayerStatus.NOT_READY));
 
         lobbyRepository.save(lobby);
         userPresenceService.setUserLobby(creatorId, lobby.getId());
@@ -116,7 +117,8 @@ public class LobbyService {
         LobbyPlayer newPlayer = new LobbyPlayer(
                 userId,
                 false,
-                LobbyPlayerStatus.NOT_READY
+                LobbyPlayerStatus.NOT_READY,
+                -1 // seat will be assigned in addPlayer
         );
 
         lobby.addPlayer(newPlayer);
@@ -139,8 +141,8 @@ public class LobbyService {
             return;
         }
 
-        boolean hostChanged = lobby.removePlayer(userId);
-        int remainingPlayers = lobby.getLobbyPlayerCount();
+        Lobby.RemoveResult removeResult = lobby.removePlayer(userId);
+        int remainingPlayers = lobby.getPlayerCount();
 
         userPresenceService.cleanUpUser(userId);
 
@@ -150,8 +152,13 @@ public class LobbyService {
         } else {
             lobbyRepository.save(lobby);
 
-            if (hostChanged) {
-                lobbyEventPublisher.lobbyHostChanged(lobby, lobby.getHost().getUserId());
+            if (removeResult != Lobby.RemoveResult.NOT_FOUND) {
+                LobbyPlayer host = lobby.getHost().orElse(null);
+                if (host == null) {
+                    // This should never happen because if there are remaining players there should be a host
+                    throw new IllegalStateException("Lobby has players but no host");
+                }
+                lobbyEventPublisher.lobbyHostChanged(lobby, host.getUserId());
             }
 
             lobbyEventPublisher.playerLeft(lobby, userId);
@@ -178,12 +185,7 @@ public class LobbyService {
 
         Lobby lobby = lobbyRepository.findById(lobbyId).orElseThrow(LobbyNotFoundException::new);
 
-        LobbyPlayer player = lobby.getPlayerById(userId);
-
-        if (player == null) {
-            throw new LobbyNotFoundException();
-        }
-
+        LobbyPlayer player = lobby.findPlayerById(userId).orElseThrow(LobbyNotFoundException::new);
         player.setStatus(ready ? LobbyPlayerStatus.READY : LobbyPlayerStatus.NOT_READY);
 
         lobbyRepository.save(lobby);

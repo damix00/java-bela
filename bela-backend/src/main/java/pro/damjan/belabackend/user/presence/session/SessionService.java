@@ -2,6 +2,10 @@ package pro.damjan.belabackend.user.presence.session;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import pro.damjan.belabackend.websocket.GameWebSocketHandler;
+import pro.damjan.belabackend.websocket.events.dto.OutgoingEvent;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -20,13 +24,23 @@ public class SessionService {
     public void keepAlive(String sessionId) {
         UserSession session = sessionRepository.findById(sessionId).orElse(null);
         if (session != null) {
-            session.setTtl(60); // Reset TTL to 60 seconds
+            session.setTtl(30);
             sessionRepository.save(session);
         }
     }
 
     public UserSession getActiveSession(String userId) {
-        return sessionRepository.findByUserIdAndActiveTrue(userId).orElse(null);
+        List<UserSession> sessions = sessionRepository.findByUserId(userId);
+
+        if (sessions != null) {
+            for (UserSession session : sessions) {
+                if (session.isActive()) {
+                    return session;
+                }
+            }
+        }
+
+        return null;
     }
 
     public boolean userHasActiveSession(String userId) {
@@ -43,7 +57,8 @@ public class SessionService {
     }
 
     public void unlockUserSessions(String userId) {
-        UserSession session = sessionRepository.findByUserIdAndActiveTrue(userId).orElse(null);
+        UserSession session = getActiveSession(userId);
+
         if (session != null) {
             session.setActive(false);
             sessionRepository.save(session);

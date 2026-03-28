@@ -8,15 +8,24 @@ export enum LobbyPlayerStatus {
     Ready = "READY",
 }
 
+export enum LobbyStatus {
+    InLobby = "IN_LOBBY",
+    InGame = "IN_GAME",
+}
+
 export type LobbyPlayer = {
     userId: string;
-    isHost: boolean;
+    host: boolean;
+    seat: number;
     status: LobbyPlayerStatus;
-};
+} | null;
 
 export type Lobby = {
     id: string;
-    players: LobbyPlayer[];
+    gameId: string | null;
+    inviteCode: string;
+    status: LobbyStatus;
+    playerSeats: { [key: number]: LobbyPlayer };
 };
 
 type LobbyContextType = {
@@ -35,8 +44,9 @@ export function LobbyProvider({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
 
-    useWsEvent<Lobby>("lobby:snapshot", (data) => {
-        setLobby(data);
+    useWsEvent<any>("lobby:initialState", (data) => {
+        console.log("Received lobby initial state:", data);
+        setLobby(data.lobby);
         if (!pathname.startsWith(`/play`)) {
             router.push(`/play`);
         }

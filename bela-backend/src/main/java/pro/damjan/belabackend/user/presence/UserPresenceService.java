@@ -33,7 +33,7 @@ public class UserPresenceService {
 
     public void setUserPresence(String userId, UserPresence presence) {
         presence.setLastPing(Instant.now()); // Update last ping time whenever we set the presence
-        redisTemplate.opsForValue().set(PRESENCE_KEY_PREFIX + userId, presence, UserPresence.ttl);
+        redisTemplate.opsForValue().set(PRESENCE_KEY_PREFIX + userId, presence, UserPresence.STALE_TTL);
     }
 
     public boolean isUserOnline(String userId) {
@@ -41,12 +41,17 @@ public class UserPresenceService {
         return presence != null && presence.isOnline();
     }
 
+    public boolean isUserStale(String userId) {
+        UserPresence presence = getUserPresence(userId);
+        return presence != null && presence.isStale();
+    }
+
     public void presenceKeepAlive(String userId) {
         UserPresence presence = getUserPresence(userId);
 
         if (presence != null) {
             presence.setLastPing(Instant.now());
-            redisTemplate.opsForValue().set(PRESENCE_KEY_PREFIX + userId, presence, UserPresence.ttl);
+            redisTemplate.opsForValue().set(PRESENCE_KEY_PREFIX + userId, presence, UserPresence.STALE_TTL);
         } else {
             // Presence doesn't exist, we will create a new one with default values.
             setUserPresence(userId, new UserPresence(Instant.now(), null, null));

@@ -17,7 +17,6 @@ import pro.damjan.belabackend.websocket.events.IncomingWebSocketMessage;
 import pro.damjan.belabackend.websocket.events.dto.OutgoingEvent;
 import pro.damjan.belabackend.websocket.events.WebSocketEventRegistry;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.SerializationFeature;
 
 import java.io.IOException;
 import java.util.Map;
@@ -30,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GameWebSocketHandler extends TextWebSocketHandler {
 
     private static final String CHANNEL_PREFIX = "user:";
+    private static final String SESSION_ID_ATTRIBUTE = ":session:";
 
     private final Map<String, Set<WebSocketSession>> sessions = new ConcurrentHashMap<>();
 
@@ -46,9 +46,10 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
 
         sessions.computeIfAbsent(userId, k -> {
             // Subscribe to message broker for this user when they first connect
+
             messageBroker.subscribe(CHANNEL_PREFIX + userId, (channel, message) -> {
-                // Send message to all sessions of this user
                 Set<WebSocketSession> userSessions = sessions.get(userId);
+                // Send message to all sessions of this user
                 if (userSessions != null) {
                     for (WebSocketSession s : userSessions) {
                         try {
@@ -61,6 +62,20 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
             });
             return ConcurrentHashMap.newKeySet();
         }).add(session);
+
+        messageBroker.subscribe(CHANNEL_PREFIX + userId + SESSION_ID_ATTRIBUTE + userSession.getId(), (channel, message) -> {
+            for (WebSocketSession s : sessions.getOrDefault(userId, Set.of())) {
+                String sSessionId = ((UserSession) s.getAttributes().get("userSession")).getId();
+                if (userSession.getId().equals(sSessionId)) {
+                    try {
+                        s.sendMessage(new TextMessage(message));
+                    } catch (IOException e) {
+                        log.error("Failed to send message to user [{}] session [{}]", userId, userSession.getId(), e);
+                    }
+                    break;
+                }
+            }
+        });
 
         applicationEventPublisher.publishEvent(new UserReconnectedEvent(userId, userSession.getId()));
 
@@ -91,6 +106,8 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
             // This makes sure that there isn't a session lock and the user can continue from another device if they lose connection
             sessionService.deleteSession(userSession.getId());
 
+            messageBroker.unsubscribe(CHANNEL_PREFIX + userId + SESSION_ID_ATTRIBUTE + userSession.getId());
+
             if (userSessions.isEmpty()) {
                 // Unsubscribe from message broker when last session for this user disconnects
                 messageBroker.unsubscribe(CHANNEL_PREFIX + userId);
@@ -108,7 +125,14 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     public void sendToUser(String userId, OutgoingEvent event) {
         messageBroker.publish(
                 CHANNEL_PREFIX + userId,
-                objectMapper.writeValueAsString(event)
+                objectMapper.writeValueAsString(Map.of("event", event.getEventName(), "data", event))
+        );
+    }
+
+    public void sendToUserSession(String userId, String sessionId, OutgoingEvent event) {
+        messageBroker.publish(
+                CHANNEL_PREFIX + userId + SESSION_ID_ATTRIBUTE + sessionId,
+                objectMapper.writeValueAsString(Map.of("event", event.getEventName(), "data", event))
         );
     }
 }

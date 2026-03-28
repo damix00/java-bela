@@ -60,7 +60,9 @@ export default async function RootLayout({
                         },
                     }}
                 />
-                <AuthProvider initialUser={authData?.user ?? null}>
+                <AuthProvider
+                    initialUser={authData?.user ?? null}
+                    initialToken={authData?.jwt ?? ""}>
                     {children}
                 </AuthProvider>
             </body>

@@ -43,7 +43,7 @@ class LobbyServiceTest {
 
         assertNotNull(lobby.getId());
 
-        LobbyPlayer firstPlayer = lobby.getPlayers().get(0);
+        LobbyPlayer firstPlayer = lobby.getPlayerSeats().get(0);
         assertNotNull(firstPlayer);
         assertEquals("user-1", firstPlayer.getUserId());
         assertTrue(firstPlayer.isHost());
@@ -51,7 +51,7 @@ class LobbyServiceTest {
 
         // Remaining 3 slots should be null
         for (int i = 1; i < 4; i++) {
-            assertNull(lobby.getPlayers().get(i));
+            assertNull(lobby.getPlayerSeats().get(i));
         }
 
         verify(lobbyRepository).save(lobby);
@@ -84,7 +84,7 @@ class LobbyServiceTest {
 
         Lobby lobby = lobbyService.createLobby(creator);
 
-        assertEquals(4, lobby.getPlayers().size());
+        assertEquals(4, lobby.getPlayerSeats().size());
     }
 }
 

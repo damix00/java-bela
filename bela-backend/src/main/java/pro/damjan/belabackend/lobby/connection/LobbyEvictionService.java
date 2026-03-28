@@ -20,8 +20,8 @@ public class LobbyEvictionService {
     @Scheduled(fixedRate = 10_000) // Every 10 seconds
     public void evictOfflineLobbyPlayers() {
         for (Lobby lobby : lobbyRepository.findAll()) {
-            for (LobbyPlayer player : lobby.getNonNullPlayers()) {
-                if (!userPresenceService.isUserOnline(player.getUserId())) {
+            for (LobbyPlayer player : lobby.getActivePlayers()) {
+                if (userPresenceService.isUserStale(player.getUserId())) {
                     lobbyService.leaveLobby(player.getUserId());
                 }
             }

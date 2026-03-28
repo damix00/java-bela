@@ -10,12 +10,12 @@ import pro.damjan.belabackend.websocket.events.dto.OutgoingEvent;
  * Should only be sent once, when the user first joins, and not on subsequent updates to the lobby.
  */
 @Getter @Setter
-public class LobbySnapshotEvent extends OutgoingEvent {
+public class LobbyInitialStateEvent extends OutgoingEvent {
 
     private Lobby lobby;
 
-    public LobbySnapshotEvent(Lobby lobby) {
-        super("lobby:snapshot");
+    public LobbyInitialStateEvent(Lobby lobby) {
+        super("lobby:initialState");
         this.lobby = lobby;
     }
 }

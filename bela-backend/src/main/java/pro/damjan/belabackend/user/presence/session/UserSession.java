@@ -9,7 +9,7 @@ import org.springframework.data.redis.core.index.Indexed;
 
 import java.io.Serializable;
 
-@RedisHash("UserSession")
+@RedisHash(value = "UserSession", timeToLive = 30) // 30 seconds TTL for each session
 @Getter @Setter
 public class UserSession implements Serializable {
 
@@ -24,10 +24,8 @@ public class UserSession implements Serializable {
     // Whether this session is the current session for the joined game
     // This is because the user can only join one game on one device, but they can have multiple sessions (e.g. on mobile and desktop)
     // So we prevent the user from joining multiple games at the same time
-    @Indexed
     private boolean active;
 
     @TimeToLive
-    private long ttl = 60; // 60 seconds
-
+    private long ttl = 30; // Default TTL of 30 seconds
 }

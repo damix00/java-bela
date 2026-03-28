@@ -1,18 +1,20 @@
 "use client";
 
+import Loader from "@/components/ui/loader";
 import { useLobby } from "@/context/lobby-context";
+import LobbyScreen from "@/components/pages/lobby/lobby-screen";
 
 export default function LobbyPage() {
-    const lobby = useLobby();
+    const { lobby } = useLobby();
 
-    if (!lobby.lobby) {
+    if (!lobby) {
         console.warn("Lobby data is not available. Rendering null.");
-        return null;
+        return (
+            <div className="flex min-h-screen w-screen items-center justify-center">
+                <Loader />
+            </div>
+        );
     }
 
-    return (
-        <div className="flex h-full w-full items-center justify-center">
-            <h1 className="text-2xl font-bold">Lobby Page</h1>
-        </div>
-    );
+    return <LobbyScreen />;
 }

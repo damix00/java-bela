@@ -68,9 +68,9 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
         ws.onmessage = (event) => {
             try {
                 const message: WebSocketMessage = JSON.parse(event.data);
+                const handlers = listenersRef.current.get(message.event);
                 // @ts-ignore
-                const handlers = listenersRef.current.get(message.eventName);
-                handlers?.forEach((handler) => handler(message.body));
+                handlers?.forEach((handler) => handler(message.data));
             } catch {
                 console.error("Failed to parse WebSocket message");
             }
@@ -118,8 +118,8 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
     );
 
     useInterval(() => {
-        send("session:keep-alive", null);
-    }, 10000);
+        send("session:keepAlive", null);
+    }, 5000);
 
     if (!auth.user) {
         throw new Error("WebSocketProvider requires an authenticated user");
