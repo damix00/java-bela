@@ -1,6 +1,6 @@
 "use client";
 
-import GameScreen from "@/components/pages/game/game-screen";
+import GameHomeScreen from "@/components/pages/game/game-home-screen";
 import LandingPage from "@/components/pages/home/landing-page";
 import { useAuth } from "@/context/auth-context";
 import { redirect } from "next/navigation";

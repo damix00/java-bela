@@ -214,4 +214,19 @@ public class LobbyService {
         }
     }
 
+    public void swapSeats(String userId, int targetSeat) throws LobbyNotFoundException {
+        String lobbyId = getUserLobbyId(userId);
+
+        if (lobbyId == null) {
+            throw new LobbyNotFoundException();
+        }
+
+        Lobby lobby = lobbyRepository.findById(lobbyId).orElseThrow(LobbyNotFoundException::new);
+
+        lobby.swapSeats(userId, targetSeat);
+        lobbyRepository.save(lobby);
+
+        lobbyEventPublisher.seatsSwapped(lobby);
+    }
+
 }

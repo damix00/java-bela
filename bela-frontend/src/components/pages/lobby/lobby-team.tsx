@@ -5,11 +5,13 @@ interface LobbyTeamProps {
     teamName: string;
     players: (LobbyPlayer | undefined)[];
     className?: string;
+    teamNumber: number;
 }
 
 export function LobbyTeam({
     teamName,
     players,
+    teamNumber,
     className = "",
 }: LobbyTeamProps) {
     return (
@@ -19,8 +21,8 @@ export function LobbyTeam({
                 {teamName}
             </h2>
             <div className="flex flex-col gap-4">
-                <PlayerCard player={players[0]} />
-                <PlayerCard player={players[1]} />
+                <PlayerCard slot={teamNumber * 2} player={players[0]} />
+                <PlayerCard slot={teamNumber * 2 + 1} player={players[1]} />
             </div>
         </div>
     );

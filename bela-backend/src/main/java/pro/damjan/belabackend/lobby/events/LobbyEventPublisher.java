@@ -2,17 +2,16 @@ package pro.damjan.belabackend.lobby.events;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import pro.damjan.belabackend.lobby.events.dto.outgoing.*;
 import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
-import pro.damjan.belabackend.lobby.events.dto.outgoing.LobbyHostChangedEvent;
-import pro.damjan.belabackend.lobby.events.dto.outgoing.LobbyPlayerJoinedEvent;
-import pro.damjan.belabackend.lobby.events.dto.outgoing.LobbyPlayerLeftEvent;
-import pro.damjan.belabackend.lobby.events.dto.outgoing.LobbyPlayerStatusChangeEvent;
-import pro.damjan.belabackend.lobby.events.dto.outgoing.LobbyInitialStateEvent;
 import pro.damjan.belabackend.user.presence.session.SessionService;
 import pro.damjan.belabackend.user.presence.session.UserSession;
 import pro.damjan.belabackend.websocket.GameWebSocketHandler;
 import pro.damjan.belabackend.websocket.events.dto.OutgoingEvent;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -64,5 +63,17 @@ public class LobbyEventPublisher {
 
     public void playerStatusChanged(Lobby lobby, LobbyPlayer player) {
         broadcastToLobby(lobby, new LobbyPlayerStatusChangeEvent(player.getUserId(), player.getStatus()));
+    }
+
+    public void seatsSwapped(Lobby lobby) {
+        Map<Integer, String> userSeatsIds = new HashMap<>();
+
+        lobby.getPlayerSeats().forEach((playerId, lobbyPlayer) -> {
+            if (lobbyPlayer != null) {
+                userSeatsIds.put(playerId, lobbyPlayer.getUserId());
+            }
+        });
+
+        broadcastToLobby(lobby, new LobbySeatsUpdatedEvent(userSeatsIds));
     }
 }

@@ -8,7 +8,7 @@ import CompeteOnlineCard from "./compete-online-card";
 import { useRef, useState } from "react";
 import TextInput from "@/components/input/text-input";
 
-export default function GameScreen() {
+export default function GameHomeScreen() {
     const { user } = useAuth();
     const { status } = useWebSocket();
     const [matchmaking, setMatchmaking] = useState(false);

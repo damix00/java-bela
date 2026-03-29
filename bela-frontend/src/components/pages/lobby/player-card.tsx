@@ -1,42 +1,41 @@
-import { apiFetch } from "@/api/client";
+"use client";
+
 import { User } from "@/api/types/user";
 import { LobbyPlayer, LobbyPlayerStatus } from "@/context/lobby-context";
-import { PublicUserData } from "@/lib/user-cache";
+import { useWebSocket } from "@/context/ws-context";
+import { getUserData, PublicUserData } from "@/lib/user-cache";
 import { UserIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
-export function PlayerCard({ player }: { player?: LobbyPlayer }) {
+export function PlayerCard({
+    player,
+    slot,
+}: {
+    player?: LobbyPlayer;
+    slot: number;
+}) {
     const [playerData, setPlayerData] = useState<PublicUserData | null>(null);
+    const ws = useWebSocket();
 
     useEffect(() => {
         async function fetchPlayerData() {
             if (player) {
-                try {
-                    const response = await apiFetch<PublicUserData>(
-                        `/users/${player.userId}`,
-                    );
-                    if (!response.error) {
-                        setPlayerData(response.data);
-                    } else {
-                        console.error(
-                            `Failed to fetch user data for ${player.userId}`,
-                        );
-                    }
-                } catch (error) {
-                    console.error(
-                        `Error fetching user data for ${player.userId}:`,
-                        error,
-                    );
-                }
+                setPlayerData(await getUserData(player.userId));
             }
         }
 
         fetchPlayerData();
     }, [player]);
 
+    const handleSlotClick = () => {
+        ws.send("lobby:swapSeats", { seat: slot });
+    };
+
     if (!player) {
         return (
-            <div className="flex items-center gap-4 rounded-lg border-2 border-dashed border-white/10 bg-background-tertiary p-4 opacity-50">
+            <div
+                onClick={handleSlotClick}
+                className="select-none flex cursor-pointer items-center gap-4 rounded-lg border-2 border-dashed border-white/10 bg-background-tertiary p-4 opacity-50 hover:bg-white/5 transition-colors">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-black">
                     <UserIcon size={24} />
                 </div>
@@ -51,7 +50,9 @@ export function PlayerCard({ player }: { player?: LobbyPlayer }) {
 
     if (!playerData) {
         return (
-            <div className="flex items-center gap-4 rounded-lg border-2 border-dashed border-white/10 bg-background-tertiary p-4">
+            <div
+                onClick={handleSlotClick}
+                className="flex select-none cursor-pointer items-center gap-4 rounded-lg border-2 border-dashed border-white/10 bg-background-tertiary p-4 hover:bg-white/5 transition-colors">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-black">
                     <UserIcon size={24} />
                 </div>
@@ -63,7 +64,9 @@ export function PlayerCard({ player }: { player?: LobbyPlayer }) {
     }
 
     return (
-        <div className="flex items-center gap-4 rounded-lg bg-background-tertiary border border-white/10 p-4 shadow-sm">
+        <div
+            onClick={handleSlotClick}
+            className="select-none flex items-center gap-4 rounded-lg bg-background-tertiary border border-white/10 p-4 shadow-sm">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-black">
                 <UserIcon size={24} />
             </div>

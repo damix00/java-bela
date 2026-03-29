@@ -1,5 +1,5 @@
-import GameScreen from "@/components/pages/game/game-screen";
+import GameHomeScreen from "@/components/pages/game/game-home-screen";
 
 export default function GameHomepage() {
-    return <GameScreen />;
+    return <GameHomeScreen />;
 }

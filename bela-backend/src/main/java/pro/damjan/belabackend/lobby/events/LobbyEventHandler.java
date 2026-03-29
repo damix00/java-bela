@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import pro.damjan.belabackend.lobby.LobbyService;
 import pro.damjan.belabackend.lobby.events.dto.incoming.JoinLobbyViaCodeCommand;
 import pro.damjan.belabackend.lobby.events.dto.incoming.LobbyReadyCommand;
+import pro.damjan.belabackend.lobby.events.dto.incoming.SwapSeatsCommand;
 import pro.damjan.belabackend.user.User;
 import pro.damjan.belabackend.user.presence.session.UserSession;
 import pro.damjan.belabackend.websocket.events.OnEvent;
@@ -15,10 +16,7 @@ public class LobbyEventHandler {
 
     private final LobbyService lobbyService;
 
-    @OnEvent("lobby:ready")
-    public void onLobbyReady(UserSession session, User user, LobbyReadyCommand command) {
-        lobbyService.onPlayerReady(user.getId(), command.isReady());
-    }
+    // Joining/leaving lobbies
 
     @OnEvent("lobby:create")
     public void createLobby(UserSession session, User user) {
@@ -33,5 +31,17 @@ public class LobbyEventHandler {
     @OnEvent("lobby:leave")
     public void leaveLobby(UserSession session, User user) {
         lobbyService.leaveLobby(user.getId());
+    }
+
+    // Managing lobby state
+
+    @OnEvent("lobby:ready")
+    public void onLobbyReady(UserSession session, User user, LobbyReadyCommand command) {
+        lobbyService.onPlayerReady(user.getId(), command.isReady());
+    }
+
+    @OnEvent("lobby:swapSeats")
+    public void swapSeats(UserSession session, User user, SwapSeatsCommand command) {
+        lobbyService.swapSeats(user.getId(), command.getSeat());
     }
 }

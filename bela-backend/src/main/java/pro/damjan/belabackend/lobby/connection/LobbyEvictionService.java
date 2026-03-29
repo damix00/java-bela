@@ -20,6 +20,7 @@ public class LobbyEvictionService {
     @Scheduled(fixedRate = 10_000) // Every 10 seconds
     public void evictOfflineLobbyPlayers() {
         for (Lobby lobby : lobbyRepository.findAll()) {
+            if (lobby == null) continue; // For some reason, the lobby can be null, skip it
             for (LobbyPlayer player : lobby.getActivePlayers()) {
                 if (userPresenceService.isUserStale(player.getUserId())) {
                     System.out.println(player.getSeat() + " is stale, evicting from lobby " + lobby.getInviteCode());
