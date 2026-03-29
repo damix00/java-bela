@@ -22,7 +22,8 @@ public class LobbyEvictionService {
         for (Lobby lobby : lobbyRepository.findAll()) {
             for (LobbyPlayer player : lobby.getActivePlayers()) {
                 if (userPresenceService.isUserStale(player.getUserId())) {
-                    lobbyService.leaveLobby(player.getUserId());
+                    System.out.println(player.getSeat() + " is stale, evicting from lobby " + lobby.getInviteCode());
+                    lobbyService.evictPlayer(player.getUserId(), lobby);
                 }
             }
         }

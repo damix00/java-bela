@@ -2,6 +2,7 @@ package pro.damjan.belabackend.lobby;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pro.damjan.belabackend.lobby.exception.AlreadyInLobbyException;
 import pro.damjan.belabackend.lobby.exception.LobbyFullException;
@@ -21,6 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class LobbyService {
@@ -93,7 +95,6 @@ public class LobbyService {
         return lobby;
     }
 
-    @Transactional
     protected void joinLobby(String userId, String sessionId, Lobby lobby)
             throws AlreadyInLobbyException, LobbyFullException, SessionLockException {
 
@@ -117,8 +118,7 @@ public class LobbyService {
         LobbyPlayer newPlayer = new LobbyPlayer(
                 userId,
                 false,
-                LobbyPlayerStatus.NOT_READY,
-                -1 // seat will be assigned in addPlayer
+                LobbyPlayerStatus.NOT_READY
         );
 
         lobby.addPlayer(newPlayer);
@@ -129,6 +129,18 @@ public class LobbyService {
         userPresenceService.setUserLobby(userId, lobby.getId());
 
         lobbyEventPublisher.playerJoined(lobby, newPlayer);
+    }
+
+    public void evictPlayer(String userId, Lobby lobby) {
+        if (!lobby.isPlayerInLobby(userId)) {
+            return;
+        }
+
+        lobby.removePlayer(userId);
+        lobbyRepository.save(lobby);
+        userPresenceService.cleanUpUser(userId);
+
+        lobbyEventPublisher.playerLeft(lobby, userId);
     }
 
     public void leaveLobby(String userId) {
@@ -149,6 +161,7 @@ public class LobbyService {
         // Persistence and events
         if (remainingPlayers == 0) {
             lobbyRepository.delete(lobby);
+            log.info("Lobby {} deleted because the last player left", lobby.getId());
         } else {
             lobbyRepository.save(lobby);
 
@@ -165,7 +178,6 @@ public class LobbyService {
         }
     }
 
-    @Transactional
     public void joinLobbyViaCode(String userId, String sessionId, String code)
             throws LobbyNotFoundException, AlreadyInLobbyException, LobbyFullException, SessionLockException {
         Lobby lobby = lobbyRepository.findByInviteCode(code).orElseThrow(LobbyNotFoundException::new);

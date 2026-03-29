@@ -1,16 +1,68 @@
 "use client";
 
 import { useAuth } from "@/context/auth-context";
-import { Lobby, useLobby, LobbyPlayerStatus } from "@/context/lobby-context";
+import {
+    Lobby,
+    useLobby,
+    LobbyPlayerStatus,
+    LobbyPlayer,
+} from "@/context/lobby-context";
 import { useMemo } from "react";
 import { LobbyTeam } from "./lobby-team";
 import Button from "@/components/input/button";
+import { useWsEvent } from "@/hooks/ws/use-event";
+import { useWebSocket } from "@/context/ws-context";
 
 export default function LobbyScreen() {
     const l = useLobby();
     const auth = useAuth();
+    const ws = useWebSocket();
 
     const lobby: Lobby = l.lobby as Lobby;
+
+    useWsEvent("lobby:playerJoined", (data: any) => {
+        console.log("Player joined:", data.player);
+        l.setLobby((prevLobby: Lobby | null) => {
+            if (!prevLobby) return prevLobby; // If lobby is not loaded yet, do nothing
+
+            let seat = data.player.seat;
+
+            // Create a new player object from the data received
+            const newPlayer: LobbyPlayer = {
+                userId: data.player.userId,
+                host: data.player.host,
+                seat,
+                status: LobbyPlayerStatus.NotReady, // Default to NotReady when a player joins
+            };
+
+            // Find the first available seat (null) and assign the new player to it
+            const updatedPlayerSeats = prevLobby.playerSeats;
+
+            // Ensure the seat number is within the valid range (0-3)
+            if (seat >= 0 && seat < 4) {
+                updatedPlayerSeats[seat] = newPlayer;
+            } else {
+                console.warn(
+                    `Received invalid seat number ${seat} for player ${data.player.userId}`,
+                );
+            }
+
+            // Return the updated lobby state with the new player added
+            return {
+                ...prevLobby,
+                playerSeats: updatedPlayerSeats,
+            } as Lobby;
+        });
+    });
+    useWsEvent("lobby:playerLeft", (data: any) => {
+        console.log("Player left:", data);
+    });
+    useWsEvent("lobby:playerReadyStatusChanged", (data: any) => {
+        console.log("Player ready status changed:", data.userId, data.status);
+    });
+    useWsEvent("lobby:hostUpdated", (data: any) => {
+        console.log("Lobby host updated:", data.userId);
+    });
 
     // Updated to iterate over the values of the playerSeats object
     const isReady = useMemo(() => {
@@ -62,6 +114,14 @@ export default function LobbyScreen() {
 
             <div className="mt-12 flex flex-col items-center gap-4">
                 <Button size="lg">{isReady ? "Unready" : "Ready"}</Button>
+                <Button
+                    variant="textPrimary"
+                    onClick={() => {
+                        ws.send("lobby:leave", null);
+                        window.location.href = "/"; // Redirect to home page after leaving lobby
+                    }}>
+                    Leave Lobby
+                </Button>
                 <p className="text-sm text-foreground-muted">
                     Waiting for all players to be ready...
                 </p>

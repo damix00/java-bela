@@ -43,7 +43,7 @@ public class UserPresenceService {
 
     public boolean isUserStale(String userId) {
         UserPresence presence = getUserPresence(userId);
-        return presence != null && presence.isStale();
+        return presence == null || presence.isStale();
     }
 
     public void presenceKeepAlive(String userId) {

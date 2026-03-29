@@ -29,4 +29,9 @@ public class LobbyEventHandler {
     public void joinLobbyByCode(UserSession session, User user, JoinLobbyViaCodeCommand command) {
         lobbyService.joinLobbyViaCode(user.getId(), session.getId(), command.getInviteCode());
     }
+
+    @OnEvent("lobby:leave")
+    public void leaveLobby(UserSession session, User user) {
+        lobbyService.leaveLobby(user.getId());
+    }
 }
