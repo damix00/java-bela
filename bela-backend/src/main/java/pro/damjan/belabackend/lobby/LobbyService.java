@@ -163,9 +163,15 @@ public class LobbyService {
             lobbyRepository.delete(lobby);
             log.info("Lobby {} deleted because the last player left", lobby.getId());
         } else {
-            lobbyRepository.save(lobby);
+            if (removeResult == Lobby.RemoveResult.NOT_FOUND) {
+                log.warn("Player {} was not found in lobby {} when trying to leave", userId, lobby.getId());
+                return;
+            }
 
-            if (removeResult != Lobby.RemoveResult.NOT_FOUND) {
+            lobbyRepository.save(lobby);
+            lobbyEventPublisher.playerLeft(lobby, userId);
+
+            if (removeResult == Lobby.RemoveResult.REMOVED_AND_HOST_CHANGED) {
                 LobbyPlayer host = lobby.getHost().orElse(null);
                 if (host == null) {
                     // This should never happen because if there are remaining players there should be a host
@@ -173,8 +179,6 @@ public class LobbyService {
                 }
                 lobbyEventPublisher.lobbyHostChanged(lobby, host.getUserId());
             }
-
-            lobbyEventPublisher.playerLeft(lobby, userId);
         }
     }
 

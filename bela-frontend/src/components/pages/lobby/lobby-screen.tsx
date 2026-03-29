@@ -55,13 +55,33 @@ export default function LobbyScreen() {
         });
     });
     useWsEvent("lobby:playerLeft", (data: any) => {
-        console.log("Player left:", data);
+        console.log("Player left:", data.userId);
+
+        l.setLobby((prevLobby: Lobby) => {
+            if (!prevLobby) return prevLobby;
+
+            for (const seat in prevLobby.playerSeats) {
+                const player = prevLobby.playerSeats[seat];
+                if (player?.userId === data.userId) {
+                    // Set the seat to null when a player leaves
+                    return {
+                        ...prevLobby,
+                        playerSeats: {
+                            ...prevLobby.playerSeats,
+                            [seat]: null,
+                        },
+                    } as Lobby;
+                }
+            }
+
+            return prevLobby; // If player not found, return unchanged lobby
+        });
     });
     useWsEvent("lobby:playerReadyStatusChanged", (data: any) => {
         console.log("Player ready status changed:", data.userId, data.status);
     });
     useWsEvent("lobby:hostUpdated", (data: any) => {
-        console.log("Lobby host updated:", data.userId);
+        console.log("Lobby host updated:", data);
     });
 
     // Updated to iterate over the values of the playerSeats object
