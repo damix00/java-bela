@@ -45,14 +45,14 @@ export default function GameHomeScreen() {
             </div>
 
             {/* Quick Actions */}
-            <div className="space-y-4 max-w-2xl flex-col md:flex-row flex-wrap">
+            <div className="space-y-4 max-w-2xl flex flex-col md:flex-row flex-wrap">
                 <CompeteOnlineCard
                     onQuickMatch={handleQuickMatch}
                     loading={matchmaking}
                 />
 
                 {/* Join lobby via code */}
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4 w-full">
                     <p className="text-foreground-muted text-sm">
                         Or join an existing lobby:
                     </p>
