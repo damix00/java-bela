@@ -148,7 +148,34 @@ export default function LoginForm() {
                 Don't have an account?{" "}
                 <a href="/signup" className="text-primary hover:underline">
                     Sign Up
-                </a>
+                </a>{" "}
+                or{" "}
+                <span
+                    onClick={async () => {
+                        const response = await apiFetch<AuthResponse>(
+                            "/auth/login/anonymous",
+                            {
+                                method: "POST",
+                            },
+                        );
+
+                        if (!response.data) {
+                            throw new Error(
+                                response.error ||
+                                    "Login failed. Please check your credentials.",
+                            );
+                        }
+
+                        await storeAuthData(response.data);
+
+                        window.location.href = "/";
+
+                        console.log("Logged in user:", response.data);
+                    }}
+                    className="text-primary hover:underline select-none cursor-pointer">
+                    Continue as Guest
+                </span>
+                .
             </p>
         </div>
     );

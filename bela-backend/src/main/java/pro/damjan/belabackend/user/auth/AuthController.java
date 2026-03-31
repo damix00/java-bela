@@ -26,6 +26,18 @@ public class AuthController {
     }
 
     @PostMapping("/register")
+    @RateLimit(
+            keyPrefix = "register",
+            user = @RateLimit.Limit(
+                    enabled = false
+            ),
+            ip = @RateLimit.Limit(
+                    enabled = true,
+                    limit = 5,
+                    windowSeconds = 3600,
+                    limitSuccess = true
+            )
+    )
     public AuthResponse register(@RequestBody RegisterRequest request) {
         User user = authService.register(request);
         String jwt = jwtService.generateToken(user.getId());
@@ -51,6 +63,29 @@ public class AuthController {
     )
     public AuthResponse login(@RequestBody LoginRequest request) {
         User user = authService.login(request.getEmail(), request.getPassword());
+        String jwt = jwtService.generateToken(user.getId());
+
+        return AuthResponse.fromUserAndToken(
+                user,
+                jwt
+        );
+    }
+
+    @PostMapping("/login/anonymous")
+    @RateLimit(
+            keyPrefix = "login_anonymous",
+            user = @RateLimit.Limit(
+                    enabled = false
+            ),
+            ip = @RateLimit.Limit(
+                    enabled = true,
+                    limit = 5,
+                    windowSeconds = 3600,
+                    limitSuccess = true
+            )
+    )
+    public AuthResponse loginAnonymous() {
+        User user = authService.loginAnonymous();
         String jwt = jwtService.generateToken(user.getId());
 
         return AuthResponse.fromUserAndToken(

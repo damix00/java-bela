@@ -42,6 +42,16 @@ public class AuthService {
         return userRepository.save(user);
     }
 
+    @Transactional
+    public User loginAnonymous() {
+        User user = new User();
+        user.setUsername("guest-" + Instant.now().toEpochMilli());
+        user.setRole(Role.USER);
+        user.setAuthProvider(AuthProvider.ANONYMOUS);
+
+        return userRepository.save(user);
+    }
+
     public User login(String email, String password) throws InvalidLoginException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(InvalidLoginException::new);
