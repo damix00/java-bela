@@ -4,13 +4,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
+import pro.damjan.belabackend.exception.ExceptionResponse;
 import pro.damjan.belabackend.user.User;
 import pro.damjan.belabackend.user.presence.session.UserSession;
 import pro.damjan.belabackend.websocket.events.dto.IncomingEvent;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -74,7 +78,29 @@ public class WebSocketEventRegistry implements SmartInitializingSingleton {
             }
         }
 
-        method.invoke(handler.bean(), args);
+        try {
+            log.info("Dispatching event '{}' to handler {}.{} with args: {}",
+                    event, handler.bean().getClass().getSimpleName(), method.getName(), args);
+            method.invoke(handler.bean(), args);
+        } catch (InvocationTargetException e) {
+            if (e.getCause() instanceof ExceptionResponse response) {
+                log.error("Error handling event '{}': {}", event, response.getMessage());
+
+                // if the exception is an ExceptionResponse, send an error message back to the client
+                session.sendMessage(new TextMessage(objectMapper.writeValueAsString(Map.of(
+                        "event", "error:" + event,
+                        "message", response.getMessage(),
+                        "status", response.getStatus().value()
+                ))));
+            } else {
+                log.error("Unexpected error handling event '{}'", event, e);
+                session.sendMessage(new TextMessage(objectMapper.writeValueAsString(Map.of(
+                        "event", "error:" + event,
+                        "message", "An unexpected error occurred while processing the event.",
+                        "status", 500
+                ))));
+            }
+        }
     }
 
     private record EventHandler(Object bean, Method method) {}

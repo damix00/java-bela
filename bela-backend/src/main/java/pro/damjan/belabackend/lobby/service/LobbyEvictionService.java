@@ -1,10 +1,9 @@
-package pro.damjan.belabackend.lobby.connection;
+package pro.damjan.belabackend.lobby.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import pro.damjan.belabackend.lobby.LobbyRepository;
-import pro.damjan.belabackend.lobby.LobbyService;
+import pro.damjan.belabackend.lobby.repository.LobbyRepository;
 import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 import pro.damjan.belabackend.user.presence.UserPresenceService;

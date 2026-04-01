@@ -1,9 +1,13 @@
-package pro.damjan.belabackend.lobby;
+package pro.damjan.belabackend.lobby.service;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import pro.damjan.belabackend.game.model.BeloteGame;
+import pro.damjan.belabackend.game.service.BeloteGameService;
+import pro.damjan.belabackend.lobby.exception.LobbyNotJoinableException;
+import pro.damjan.belabackend.lobby.model.LobbyStatus;
+import pro.damjan.belabackend.lobby.repository.LobbyRepository;
 import pro.damjan.belabackend.lobby.exception.AlreadyInLobbyException;
 import pro.damjan.belabackend.lobby.exception.LobbyFullException;
 import pro.damjan.belabackend.lobby.exception.LobbyNotFoundException;
@@ -17,9 +21,7 @@ import pro.damjan.belabackend.user.presence.session.SessionService;
 import pro.damjan.belabackend.user.presence.session.exception.SessionLockException;
 
 import java.security.SecureRandom;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -35,6 +37,7 @@ public class LobbyService {
     private final UserPresenceService userPresenceService;
     private final LobbyEventPublisher lobbyEventPublisher;
     private final SessionService sessionService;
+    private final BeloteGameService beloteGameService;
 
     private String generateLobbyId() {
         String id;
@@ -115,6 +118,10 @@ public class LobbyService {
             throw new LobbyFullException();
         }
 
+        if (!lobby.isJoinable()) {
+            throw new LobbyNotJoinableException();
+        }
+
         LobbyPlayer newPlayer = new LobbyPlayer(
                 userId,
                 false,
@@ -189,7 +196,18 @@ public class LobbyService {
         joinLobby(userId, sessionId, lobby);
     }
 
-    public void startGame(Lobby lobby) {
+    public void createGame(Lobby lobby) {
+        BeloteGame game = beloteGameService.createGame(lobby.getPlayersAsList());
+
+        lobby.setGameId(game.getId());
+        lobby.setStatus(LobbyStatus.IN_GAME);
+        lobby.setJoinable(false);
+        lobbyRepository.save(lobby);
+
+        for (LobbyPlayer player : lobby.getPlayersAsList()) {
+            userPresenceService.setUserGame(player.getUserId(), game.getId());
+        }
+        lobbyEventPublisher.gameCreated(lobby, game);
     }
 
     public void onPlayerReady(String userId, boolean ready) throws LobbyNotFoundException {
@@ -210,7 +228,7 @@ public class LobbyService {
         // Check if all players are ready
         // TODO: add actual matchmaking. For now only start if lobby is full and all players are ready
         if (lobby.allPlayersReady() && lobby.isFull()) {
-            startGame(lobby);
+            createGame(lobby);
         }
     }
 

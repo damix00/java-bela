@@ -2,12 +2,14 @@ package pro.damjan.belabackend.lobby.events;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import pro.damjan.belabackend.game.model.BeloteGame;
 import pro.damjan.belabackend.lobby.events.dto.outgoing.*;
 import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 import pro.damjan.belabackend.user.presence.session.SessionService;
 import pro.damjan.belabackend.user.presence.session.UserSession;
 import pro.damjan.belabackend.websocket.GameWebSocketHandler;
+import pro.damjan.belabackend.websocket.events.WebSocketPublisher;
 import pro.damjan.belabackend.websocket.events.dto.OutgoingEvent;
 
 import java.util.HashMap;
@@ -17,22 +19,15 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class LobbyEventPublisher {
 
-    private final GameWebSocketHandler ws;
     private final SessionService sessionService;
-
-    public void sendToActiveSession(String userId, OutgoingEvent event) {
-        UserSession session = sessionService.getActiveSession(userId);
-        if (session != null) {
-            ws.sendToUserSession(userId, session.getId(), event);
-        }
-    }
+    private final WebSocketPublisher webSocketPublisher;
 
     private void broadcastToLobbyExcept(Lobby lobby, String excludedUserId, OutgoingEvent event) {
         for (LobbyPlayer player : lobby.getPlayersAsList()) {
             if (player == null) continue;
             if (player.getUserId().equals(excludedUserId)) continue;
 
-            sendToActiveSession(player.getUserId(), event);
+            webSocketPublisher.sendToActiveSession(player.getUserId(), event);
         }
     }
 
@@ -40,12 +35,12 @@ public class LobbyEventPublisher {
         for (LobbyPlayer player : lobby.getPlayersAsList()) {
             if (player == null) continue;
 
-            sendToActiveSession(player.getUserId(), event);
+            webSocketPublisher.sendToActiveSession(player.getUserId(), event);
         }
     }
 
     public void playerJoined(Lobby lobby, LobbyPlayer player) {
-        sendToActiveSession(player.getUserId(), new LobbyInitialStateEvent(lobby));
+        webSocketPublisher.sendToActiveSession(player.getUserId(), new LobbyInitialStateEvent(lobby));
         broadcastToLobbyExcept(lobby, player.getUserId(), new LobbyPlayerJoinedEvent(player));
     }
 
@@ -54,7 +49,7 @@ public class LobbyEventPublisher {
     }
 
     public void sendSnapshot(Lobby lobby, String userId) {
-        sendToActiveSession(userId, new LobbyInitialStateEvent(lobby));
+        webSocketPublisher.sendToActiveSession(userId, new LobbyInitialStateEvent(lobby));
     }
 
     public void lobbyHostChanged(Lobby lobby, String newHostUserId) {
@@ -75,5 +70,9 @@ public class LobbyEventPublisher {
         });
 
         broadcastToLobby(lobby, new LobbySeatsUpdatedEvent(userSeatsIds));
+    }
+
+    public void gameCreated(Lobby lobby, BeloteGame game) {
+        broadcastToLobby(lobby, new LobbyGameCreatedEvent(game));
     }
 }

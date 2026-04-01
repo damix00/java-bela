@@ -8,4 +8,3 @@ public class PlayerNotInLobbyException extends ExceptionResponse {
         super(HttpStatus.BAD_REQUEST, "Player is not in a lobby");
     }
 }
-

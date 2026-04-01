@@ -28,6 +28,9 @@ public class Lobby implements Serializable {
     @Getter @Setter
     private String gameId;
 
+    @Getter @Setter
+    private boolean joinable = true;
+
     public static final int MAX_PLAYERS = 4;
 
     @Getter @Setter

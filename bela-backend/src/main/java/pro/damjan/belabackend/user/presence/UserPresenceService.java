@@ -63,11 +63,9 @@ public class UserPresenceService {
     public void setUserLobby(String userId, String lobbyId) {
         UserPresence presence = getUserPresence(userId);
 
-        if (presence == null) {
-            presence = new UserPresence(Instant.now(), lobbyId, null);
-        } else {
-            presence.setLobbyId(lobbyId);
-        }
+        // Game ID deletion is intentional
+        // When user changes lobby, we need to reset the game ID
+        presence = new UserPresence(Instant.now(), lobbyId, null);
 
         setUserPresence(userId, presence);
     }

@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.lobby;
+package pro.damjan.belabackend.lobby.repository;
 
 import org.springframework.data.repository.CrudRepository;
 import pro.damjan.belabackend.lobby.model.Lobby;

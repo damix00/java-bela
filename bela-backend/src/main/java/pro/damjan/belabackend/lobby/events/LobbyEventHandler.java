@@ -2,7 +2,7 @@ package pro.damjan.belabackend.lobby.events;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import pro.damjan.belabackend.lobby.LobbyService;
+import pro.damjan.belabackend.lobby.service.LobbyService;
 import pro.damjan.belabackend.lobby.events.dto.incoming.JoinLobbyViaCodeCommand;
 import pro.damjan.belabackend.lobby.events.dto.incoming.LobbyReadyCommand;
 import pro.damjan.belabackend.lobby.events.dto.incoming.SwapSeatsCommand;

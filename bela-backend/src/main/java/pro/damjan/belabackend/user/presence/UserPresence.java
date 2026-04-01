@@ -12,6 +12,9 @@ import java.time.Instant;
 public class UserPresence implements Serializable {
     private Instant lastPing;
     private String lobbyId;
+
+    // Even though game ID can be fetched from lobby, we store it here so we don't have to
+    // tightly couple presence with lobby. This is used to show user as "in game" to others.
     private String gameId;
 
     public UserPresence(
