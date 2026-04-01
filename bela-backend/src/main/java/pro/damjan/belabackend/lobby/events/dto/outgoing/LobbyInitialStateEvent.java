@@ -2,6 +2,7 @@ package pro.damjan.belabackend.lobby.events.dto.outgoing;
 
 import lombok.Getter;
 import lombok.Setter;
+import pro.damjan.belabackend.game.model.BeloteGame;
 import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.websocket.events.dto.OutgoingEvent;
 
@@ -13,9 +14,16 @@ import pro.damjan.belabackend.websocket.events.dto.OutgoingEvent;
 public class LobbyInitialStateEvent extends OutgoingEvent {
 
     private Lobby lobby;
+    private BeloteGame game;
 
     public LobbyInitialStateEvent(Lobby lobby) {
         super("lobby:initialState");
         this.lobby = lobby;
+    }
+
+    public LobbyInitialStateEvent(Lobby lobby, BeloteGame game) {
+        super("lobby:initialState");
+        this.lobby = lobby;
+        this.game = game;
     }
 }

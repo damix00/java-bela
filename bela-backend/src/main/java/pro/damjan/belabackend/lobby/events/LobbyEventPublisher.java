@@ -52,6 +52,10 @@ public class LobbyEventPublisher {
         webSocketPublisher.sendToActiveSession(userId, new LobbyInitialStateEvent(lobby));
     }
 
+    public void sendSnapshot(Lobby lobby, BeloteGame game, String userId) {
+        webSocketPublisher.sendToActiveSession(userId, new LobbyInitialStateEvent(lobby, game));
+    }
+
     public void lobbyHostChanged(Lobby lobby, String newHostUserId) {
         broadcastToLobby(lobby, new LobbyHostChangedEvent(newHostUserId));
     }
