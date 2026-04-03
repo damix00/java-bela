@@ -5,6 +5,8 @@ import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
+
 @Slf4j
 @Service
 public class JwtService {
@@ -25,9 +27,8 @@ public class JwtService {
     public String getIdFromToken(String token) {
         try {
             Claims claims = Jwts.parser()
-                    .setSigningKey(jwtConfig.getJwtKey())
-                    .build()
-                    .parseClaimsJws(token).getBody();
+                    .verifyWith((SecretKey) jwtConfig.getJwtKey())
+                    .build().parseSignedClaims(token).getPayload();
 
             return claims.getSubject();
         } catch (Exception e) {

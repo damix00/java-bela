@@ -10,6 +10,7 @@ import { useWebSocket } from "./ws-context";
 import { useWsEvent } from "@/hooks/ws/use-event";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "./auth-context";
+import { BeloteGame } from "@/types/game";
 
 export enum LobbyPlayerStatus {
     NotReady = "NOT_READY",
@@ -38,26 +39,42 @@ export type Lobby = {
 
 type LobbyContextType = {
     lobby: Lobby | null;
-    setLobby: Dispatch<SetStateAction<Lobby | null>>; // Updated type for setLobby
+    setLobby: Dispatch<SetStateAction<Lobby | null>>;
+    // Holds the game snapshot received from lobby:initialState before GameProvider mounts
+    pendingGame: BeloteGame | null;
+    clearPendingGame: () => void;
 };
 
 const LobbyContext = createContext<LobbyContextType>({
     lobby: null,
     setLobby: () => {},
+    pendingGame: null,
+    clearPendingGame: () => {},
 });
 
 export function LobbyProvider({ children }: { children: React.ReactNode }) {
     const ws = useWebSocket();
     const auth = useAuth();
     const [lobby, setLobby] = useState<Lobby | null>(null);
+    const [pendingGame, setPendingGame] = useState<BeloteGame | null>(null);
     const pathname = usePathname();
     const router = useRouter();
 
     useWsEvent<any>("lobby:initialState", (data) => {
         console.log("Received lobby initial state:", data);
         setLobby(data.lobby);
-        if (!pathname.startsWith(`/play`)) {
-            router.push(`/play`);
+
+        // If the lobby has an active game, go to the game view
+        if (data.lobby?.status === LobbyStatus.InGame || data.game) {
+            // Store the game so GameProvider can pick it up after mounting
+            if (data.game) {
+                setPendingGame(data.game);
+            }
+            if (!pathname.startsWith("/game")) {
+                router.push("/game");
+            }
+        } else if (!pathname.startsWith("/play")) {
+            router.push("/play");
         }
     });
 
@@ -179,6 +196,19 @@ export function LobbyProvider({ children }: { children: React.ReactNode }) {
         });
     });
 
+    useWsEvent("lobby:gameCreated", (data: any) => {
+        console.log("Game created:", data);
+        setLobby((prevLobby: Lobby | null) => {
+            if (!prevLobby) return prevLobby;
+            return {
+                ...prevLobby,
+                gameId: data.game?.id ?? null,
+                status: LobbyStatus.InGame,
+            };
+        });
+        router.push("/game");
+    });
+
     useWsEvent("lobby:seatsUpdated", (data: any) => {
         // returns seat map:
         // Map<int, string> where key is seat number and value is userId of player sitting in that seat
@@ -220,7 +250,7 @@ export function LobbyProvider({ children }: { children: React.ReactNode }) {
     });
 
     return (
-        <LobbyContext.Provider value={{ lobby, setLobby }}>
+        <LobbyContext.Provider value={{ lobby, setLobby, pendingGame, clearPendingGame: () => setPendingGame(null) }}>
             {children}
         </LobbyContext.Provider>
     );

@@ -7,10 +7,13 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisKeyValueAdapter;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+
+import java.util.List;
 
 @Configuration
 @EnableJpaAuditing
@@ -44,6 +47,19 @@ public class RedisConfig {
 
         template.afterPropertiesSet();
         return template;
+    }
+
+    @Bean
+    public RedisScript<List> popDueTasksScript() {
+        String script = """
+            local ids = redis.call('ZRANGEBYSCORE', KEYS[1], 0, ARGV[1])
+            if #ids > 0 then
+                redis.call('ZREM', KEYS[1], unpack(ids))
+            end
+            return ids
+            """;
+
+        return RedisScript.of(script, List.class);
     }
 
 }

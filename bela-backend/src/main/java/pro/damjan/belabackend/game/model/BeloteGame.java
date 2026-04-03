@@ -28,12 +28,6 @@ public class BeloteGame implements Serializable {
     @Setter
     private GameStatus status;
 
-    // How many players have loaded the game and are ready to play.
-    // Once this reaches 4, the game can start.
-    @SuppressWarnings("UnusedAssignment")
-    @Setter
-    private int loadedPlayersCount = 0;
-
     @SuppressWarnings("UnusedAssignment")
     @Setter
     private int currentRoundNumber = -1; // 0-based index for rounds, -1 means no rounds started yet.
@@ -77,5 +71,9 @@ public class BeloteGame implements Serializable {
         rounds.add(round);
         currentRound = round;
         return round;
+    }
+
+    public void startGame() {
+        status = GameStatus.IN_PROGRESS;
     }
 }

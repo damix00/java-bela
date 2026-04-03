@@ -66,12 +66,20 @@ public class LobbyService {
         return presence != null ? presence.getLobbyId() : null;
     }
 
+    private Lobby getUserLobby(String userId)  {
+        String lobbyId = getUserLobbyId(userId);
+        if (lobbyId == null) {
+            return null;
+        }
+        return lobbyRepository.findById(lobbyId).orElse(null);
+    }
+
     public Lobby createLobby(String creatorId, String sessionId) {
         if (sessionService.userHasActiveSession(creatorId)) {
             throw new SessionLockException();
         }
 
-        if (getUserLobbyId(creatorId) != null) {
+        if (getUserLobby(creatorId) != null) {
             throw new AlreadyInLobbyException();
         }
 
@@ -110,7 +118,7 @@ public class LobbyService {
         }
 
         // If the user is already in a lobby
-        if (getUserLobbyId(userId) != null) {
+        if (getUserLobby(userId) != null) {
             throw new AlreadyInLobbyException();
         }
 
@@ -151,10 +159,8 @@ public class LobbyService {
     }
 
     public void leaveLobby(String userId) {
-        String lobbyId = getUserLobbyId(userId);
-        if (lobbyId == null) return;
+        Lobby lobby = getUserLobby(userId);
 
-        Lobby lobby = lobbyRepository.findById(lobbyId).orElse(null);
         if (lobby == null) {
             userPresenceService.cleanUpUser(userId);
             return;
@@ -165,7 +171,7 @@ public class LobbyService {
 
         userPresenceService.cleanUpUser(userId);
 
-        // Persistence and events
+        // Persistence and tasks
         if (remainingPlayers == 0) {
             lobbyRepository.delete(lobby);
             log.info("Lobby {} deleted because the last player left", lobby.getId());
@@ -207,17 +213,20 @@ public class LobbyService {
         for (LobbyPlayer player : lobby.getPlayersAsList()) {
             userPresenceService.setUserGame(player.getUserId(), game.getId());
         }
+
         lobbyEventPublisher.gameCreated(lobby, game);
     }
 
     public void onPlayerReady(String userId, boolean ready) throws LobbyNotFoundException {
-        String lobbyId = getUserLobbyId(userId);
+        Lobby lobby = getUserLobby(userId);
 
-        if (lobbyId == null) {
+        if (lobby == null) {
             throw new LobbyNotFoundException();
         }
 
-        Lobby lobby = lobbyRepository.findById(lobbyId).orElseThrow(LobbyNotFoundException::new);
+        if (lobby.getGameId() != null) {
+            throw new IllegalStateException("Player in lobby " + lobby.getId() + " tried to change ready status but game has already started");
+        }
 
         LobbyPlayer player = lobby.findPlayerById(userId).orElseThrow(LobbyNotFoundException::new);
         player.setStatus(ready ? LobbyPlayerStatus.READY : LobbyPlayerStatus.NOT_READY);
@@ -233,13 +242,11 @@ public class LobbyService {
     }
 
     public void swapSeats(String userId, int targetSeat) throws LobbyNotFoundException {
-        String lobbyId = getUserLobbyId(userId);
+        Lobby lobby = getUserLobby(userId);
 
-        if (lobbyId == null) {
+        if (lobby == null) {
             throw new LobbyNotFoundException();
         }
-
-        Lobby lobby = lobbyRepository.findById(lobbyId).orElseThrow(LobbyNotFoundException::new);
 
         lobby.swapSeats(userId, targetSeat);
         lobbyRepository.save(lobby);

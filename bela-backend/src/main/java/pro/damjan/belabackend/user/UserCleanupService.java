@@ -1,5 +1,6 @@
 package pro.damjan.belabackend.user;
 
+import jakarta.transaction.Transactional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import pro.damjan.belabackend.user.auth.AuthProvider;
@@ -17,6 +18,7 @@ public class UserCleanupService {
     }
 
     @Scheduled(fixedRate = 60 * 60 * 1000) // Run once per hour
+    @Transactional
     public void cleanupAnonymousUsers() {
         // Clean up anonymous users that are older than 24 hours
         Instant cutoffTime = Instant.now().minus(Duration.ofHours(24));

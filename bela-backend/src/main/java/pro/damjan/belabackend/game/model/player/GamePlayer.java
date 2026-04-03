@@ -12,12 +12,15 @@ import java.util.List;
 @Getter
 public class GamePlayer implements Serializable {
 
-    private final String userId;
+    private String userId;
 
     @Setter
     private int seatIndex; // 0-3, determines turn order and team (0,2 - team1, 1,3 - team2)
 
     private List<Card> hand = new ArrayList<>();
+
+    // Used only for serialization/deserialization
+    public GamePlayer() {}
 
     public GamePlayer(String userId) {
         this.userId = userId;

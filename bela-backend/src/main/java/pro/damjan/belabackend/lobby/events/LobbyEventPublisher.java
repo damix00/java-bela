@@ -77,6 +77,6 @@ public class LobbyEventPublisher {
     }
 
     public void gameCreated(Lobby lobby, BeloteGame game) {
-        broadcastToLobby(lobby, new LobbyGameCreatedEvent(game));
+        broadcastToLobby(lobby, new LobbyGameCreatedEvent(lobby, game));
     }
 }
