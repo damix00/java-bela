@@ -75,8 +75,25 @@ public class UserPresenceService {
         sessionService.unlockUserSessions(userId);
     }
 
+    public void cancelUserGame(String userId) {
+        UserPresence presence = getUserPresence(userId);
+
+        if (presence == null) {
+            return;
+        }
+
+        presence.setGameId(null);
+
+        setUserPresence(userId, presence);
+    }
+
     public void setUserGame(String userId, String gameId) {
         UserPresence presence = getUserPresence(userId);
+
+        if (gameId == null) {
+            cancelUserGame(userId);
+            return;
+        }
 
         if (presence == null) {
             throw new IllegalStateException("User presence not found for userId: " + userId);

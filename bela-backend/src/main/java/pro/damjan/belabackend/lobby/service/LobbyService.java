@@ -15,10 +15,15 @@ import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 import pro.damjan.belabackend.lobby.model.LobbyPlayerStatus;
 import pro.damjan.belabackend.lobby.events.LobbyEventPublisher;
+import pro.damjan.belabackend.user.UserRepository;
+import pro.damjan.belabackend.user.UserService;
 import pro.damjan.belabackend.user.presence.UserPresence;
 import pro.damjan.belabackend.user.presence.UserPresenceService;
 import pro.damjan.belabackend.user.presence.session.SessionService;
 import pro.damjan.belabackend.user.presence.session.exception.SessionLockException;
+
+import pro.damjan.belabackend.user.User;
+import pro.damjan.belabackend.user.auth.Role;
 
 import java.security.SecureRandom;
 import java.util.Map;
@@ -38,6 +43,8 @@ public class LobbyService {
     private final LobbyEventPublisher lobbyEventPublisher;
     private final SessionService sessionService;
     private final BeloteGameService beloteGameService;
+    private final UserService userService;
+    private final UserRepository userRepository;
 
     private String generateLobbyId() {
         String id;
@@ -211,7 +218,7 @@ public class LobbyService {
         lobbyRepository.save(lobby);
 
         for (LobbyPlayer player : lobby.getPlayersAsList()) {
-            userPresenceService.setUserGame(player.getUserId(), game.getId());
+            if (!player.isBot()) userPresenceService.setUserGame(player.getUserId(), game.getId());
         }
 
         lobbyEventPublisher.gameCreated(lobby, game);
@@ -251,7 +258,39 @@ public class LobbyService {
         lobby.swapSeats(userId, targetSeat);
         lobbyRepository.save(lobby);
 
-        lobbyEventPublisher.seatsSwapped(lobby);
+        lobbyEventPublisher.seatsUpdated(lobby);
+    }
+
+    public void startWithBots(String userId) {
+        User user = userService.getUserById(userId);
+
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+
+        // TODO: For now allow anyone to start with bots, but maybe restrict this to admins in the future
+//        if (user.getRole() != Role.ADMIN) {
+//            throw new IllegalStateException("Only admins can start games with bots");
+//        }
+
+        Lobby lobby = getUserLobby(userId);
+        if (lobby == null) {
+            throw new LobbyNotFoundException();
+        }
+
+        if (lobby.getGameId() != null) {
+            throw new IllegalStateException("Game already started");
+        }
+
+        // Fill empty seats with bots
+        while (!lobby.isFull()) {
+            lobby.addPlayer(LobbyPlayer.createBot());
+        }
+
+        lobbyRepository.save(lobby);
+        lobbyEventPublisher.seatsUpdated(lobby); // notify clients of new seat state
+
+        createGame(lobby);
     }
 
 }

@@ -17,9 +17,9 @@ export default function RoundStartOverlay() {
     return () => clearTimeout(timer);
   }, [phase, setPhase]);
 
-  if (phase !== "round_starting") return null;
+  if (phase !== "round_starting" || !game?.currentRound) return null;
 
-  const roundNumber = (game?.currentRoundNumber ?? 0) + 1;
+  const roundNumber = game.currentRound.roundNumber + 1;
 
   return (
     <motion.div

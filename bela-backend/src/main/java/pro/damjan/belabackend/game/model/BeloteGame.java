@@ -1,5 +1,6 @@
 package pro.damjan.belabackend.game.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Id;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,6 +12,7 @@ import pro.damjan.belabackend.game.model.round.BeloteRound;
 import pro.damjan.belabackend.game.model.round.RoundStatus;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 @RedisHash(value = "BeloteGame", timeToLive = 3600)
@@ -28,12 +30,21 @@ public class BeloteGame implements Serializable {
     @Setter
     private GameStatus status;
 
-    @SuppressWarnings("UnusedAssignment")
     @Setter
+    @Builder.Default
     private int currentRoundNumber = -1; // 0-based index for rounds, -1 means no rounds started yet.
 
-    private List<BeloteRound> rounds;
+    @Builder.Default
+    private List<BeloteRound> rounds = new ArrayList<>();
     private BeloteRound currentRound;
+
+    private List<BeloteRound> roundsOrEmpty() {
+        if (rounds == null) {
+            rounds = new ArrayList<>();
+        }
+
+        return rounds;
+    }
 
     public GamePlayer getPlayer(int index)
     {
@@ -57,6 +68,7 @@ public class BeloteGame implements Serializable {
         return index == 0 ? team1 : team2;
     }
 
+    @JsonIgnore
     public List<GamePlayer> getPlayers() {
         return List.of(
                 team1.getPlayers().get(0),
@@ -68,7 +80,7 @@ public class BeloteGame implements Serializable {
 
     public BeloteRound createNewRound() {
         BeloteRound round = new BeloteRound(++currentRoundNumber, RoundStatus.CHOOSING_TRUMP);
-        rounds.add(round);
+        roundsOrEmpty().add(round);
         currentRound = round;
         return round;
     }

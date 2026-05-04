@@ -17,6 +17,8 @@ public class GamePlayer implements Serializable {
     @Setter
     private int seatIndex; // 0-3, determines turn order and team (0,2 - team1, 1,3 - team2)
 
+    private boolean bot;
+
     private List<Card> hand = new ArrayList<>();
 
     // Used only for serialization/deserialization
@@ -29,6 +31,12 @@ public class GamePlayer implements Serializable {
     public GamePlayer(String userId, int seatIndex) {
         this.userId = userId;
         this.seatIndex = seatIndex;
+    }
+
+    public GamePlayer(String userId, int seatIndex, boolean bot) {
+        this.userId = userId;
+        this.seatIndex = seatIndex;
+        this.bot = bot;
     }
 
     public void receiveCards(List<Card> cards) {

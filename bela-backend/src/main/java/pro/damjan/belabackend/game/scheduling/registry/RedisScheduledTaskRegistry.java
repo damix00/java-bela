@@ -4,13 +4,9 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
 import pro.damjan.belabackend.game.scheduling.tasks.ScheduledGameTask;
 import tools.jackson.databind.ObjectMapper;
-
-import java.time.Instant;
-import java.util.List;
 
 @Getter @Setter
 @Service
@@ -29,6 +25,8 @@ public class RedisScheduledTaskRegistry implements ScheduledTaskRegistry {
 
     @Override
     public void registerTask(ScheduledGameTask task) {
+        task.ensureTaskId();
+
         // Store the task in Redis with a score representing the execution time (current time + delay)
         long executionTime = System.currentTimeMillis() + task.getDelay().toMillis();
 
@@ -44,6 +42,10 @@ public class RedisScheduledTaskRegistry implements ScheduledTaskRegistry {
 
     @Override
     public void removeTask(ScheduledGameTask task) {
+        if (task == null || task.getTaskId() == null) {
+            return;
+        }
+
         redisTemplate.opsForZSet().remove(ZSET_KEY, task.getTaskId());
         redisTemplate.delete(PAYLOAD_KEY_PREFIX + task.getTaskId());
         redisTemplate.opsForSet().remove(getGameIndexKey(task.getGameId()), task.getTaskId());
@@ -67,5 +69,17 @@ public class RedisScheduledTaskRegistry implements ScheduledTaskRegistry {
             redisTemplate.delete(gameIndexKey);
         }
     }
+
+    @Override
+    public ScheduledGameTask getTaskById(String taskId) {
+        String payload = redisTemplate.opsForValue().get(PAYLOAD_KEY_PREFIX + taskId);
+
+        if (payload != null) {
+            return objectMapper.readValue(payload, ScheduledGameTask.class);
+        }
+
+        return null;
+    }
+
 
 }

@@ -4,7 +4,7 @@ import { apiFetch } from "@/api/client";
 export interface PublicUserData {
     id: string;
     username: string;
-    avatarUrl: string;
+    avatarUrl: string | null;
     createdAt: string;
 }
 

@@ -1,16 +1,11 @@
 "use client";
 
 import { useAuth } from "@/context/auth-context";
-import {
-    Lobby,
-    useLobby,
-    LobbyPlayerStatus,
-    LobbyPlayer,
-} from "@/context/lobby-context";
+import { useLobby } from "@/context/lobby-context";
+import { Lobby, LobbyPlayerStatus } from "@/types/lobby";
 import { useMemo } from "react";
 import { LobbyTeam } from "./lobby-team";
 import Button from "@/components/input/button";
-import { useWsEvent } from "@/hooks/ws/use-event";
 import { useWebSocket } from "@/context/ws-context";
 
 export default function LobbyScreen() {
@@ -74,13 +69,21 @@ export default function LobbyScreen() {
             </div>
 
             <div className="mt-12 flex flex-col items-center gap-4">
-                <Button
-                    size="lg"
-                    onClick={() => {
-                        ws.send("lobby:ready", { ready: !isReady });
-                    }}>
-                    {isReady ? "Unready" : "Ready"}
-                </Button>
+                <div className="flex flex-row gap-2">
+                    <Button
+                        size="lg"
+                        onClick={() => {
+                            ws.send("lobby:ready", { ready: !isReady });
+                        }}>
+                        {isReady ? "Unready" : "Ready"}
+                    </Button>
+                    <Button
+                        onClick={() => {
+                            ws.send("lobby:startWithBots", null);
+                        }}>
+                        start with bots
+                    </Button>
+                </div>
                 <Button
                     variant="textPrimary"
                     onClick={() => {

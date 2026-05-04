@@ -16,4 +16,6 @@ public interface ScheduledTaskRegistry {
     void removeTasksForGame(ScheduledGameTask task);
     void removeTasksForGame(String gameId);
 
+    ScheduledGameTask getTaskById(String taskId);
+
 }

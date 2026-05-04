@@ -29,6 +29,9 @@ public class WebSocketPublisher {
         );
     }
 
+    /**
+     * Send a message to a specific user session, when targeting a specific connection when a user has multiple sessions.
+     */
     public void sendToUserSession(String userId, String sessionId, OutgoingEvent event) {
         messageBroker.publish(
                 WebSocketChannels.CHANNEL_PREFIX + userId + WebSocketChannels.SESSION_ID_ATTRIBUTE + sessionId,
@@ -36,6 +39,10 @@ public class WebSocketPublisher {
         );
     }
 
+    /**
+     * Send to session where user is playing the game or in a lobby
+     * This is to prevent joining on multiple devices
+     */
     public void sendToActiveSession(String userId, OutgoingEvent event) {
         UserSession session = sessionService.getActiveSession(userId);
         if (session != null) {

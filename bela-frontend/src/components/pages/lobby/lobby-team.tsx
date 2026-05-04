@@ -1,4 +1,4 @@
-import { LobbyPlayer } from "@/context/lobby-context";
+import { LobbyPlayer } from "@/types/lobby";
 import { PlayerCard } from "./player-card";
 
 interface LobbyTeamProps {

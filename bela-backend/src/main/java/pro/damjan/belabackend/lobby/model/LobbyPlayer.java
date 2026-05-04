@@ -14,6 +14,7 @@ public class LobbyPlayer implements Serializable {
     private boolean isHost;
     private LobbyPlayerStatus status;
     private int seat;
+    private boolean bot;
 
     public LobbyPlayer() {}
 
@@ -28,6 +29,15 @@ public class LobbyPlayer implements Serializable {
         this.isHost = isHost;
         this.status = status;
         this.seat = seat;
+    }
+
+    public static LobbyPlayer createBot() {
+        LobbyPlayer bot = new LobbyPlayer();
+        bot.setUserId("bot-" + java.util.UUID.randomUUID().toString().substring(0, 8));
+        bot.setHost(false);
+        bot.setStatus(LobbyPlayerStatus.READY);
+        bot.setBot(true);
+        return bot;
     }
 
 }

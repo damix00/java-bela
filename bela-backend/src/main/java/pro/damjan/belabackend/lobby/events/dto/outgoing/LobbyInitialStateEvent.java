@@ -14,16 +14,10 @@ import pro.damjan.belabackend.websocket.events.dto.OutgoingEvent;
 public class LobbyInitialStateEvent extends OutgoingEvent {
 
     private Lobby lobby;
-    private BeloteGame game;
 
     public LobbyInitialStateEvent(Lobby lobby) {
         super("lobby:initialState");
         this.lobby = lobby;
     }
 
-    public LobbyInitialStateEvent(Lobby lobby, BeloteGame game) {
-        super("lobby:initialState");
-        this.lobby = lobby;
-        this.game = game;
-    }
 }

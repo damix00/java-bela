@@ -1,11 +1,12 @@
 "use client";
 
-import { User } from "@/api/types/user";
-import { LobbyPlayer, LobbyPlayerStatus } from "@/context/lobby-context";
+import { LobbyPlayer, LobbyPlayerStatus } from "@/types/lobby";
 import { useWebSocket } from "@/context/ws-context";
 import { getUserData, PublicUserData } from "@/lib/user-cache";
-import { UserIcon } from "lucide-react";
+import { BotIcon, UserIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+
+const BOT_NAMES = ["Alpha", "Beta", "Gamma", "Delta"];
 
 export function PlayerCard({
     player,
@@ -18,14 +19,25 @@ export function PlayerCard({
     const ws = useWebSocket();
 
     useEffect(() => {
-        async function fetchPlayerData() {
-            if (player) {
-                setPlayerData(await getUserData(player.userId));
-            }
+        if (!player) {
+            setPlayerData(null);
+            return;
         }
 
-        fetchPlayerData();
-    }, [player]);
+        console.log(player);
+
+        if (player.bot) {
+            setPlayerData({
+                id: player.userId,
+                username: `Bot ${BOT_NAMES[slot] ?? slot + 1}`,
+                avatarUrl: null,
+                createdAt: new Date().toISOString(),
+            });
+            return;
+        }
+
+        getUserData(player.userId).then(setPlayerData);
+    }, [player, slot]);
 
     const handleSlotClick = () => {
         ws.send("lobby:swapSeats", { seat: slot });
@@ -63,18 +75,27 @@ export function PlayerCard({
         );
     }
 
+    const isBot = !!player.bot;
+    const Icon = isBot ? BotIcon : UserIcon;
+
     return (
         <div
             onClick={handleSlotClick}
             className="select-none flex items-center gap-4 rounded-lg bg-background-tertiary border border-white/10 p-4 shadow-sm">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-black">
-                <UserIcon size={24} />
+            <div
+                className={`flex h-12 w-12 items-center justify-center rounded-full ${isBot ? "bg-blue-500" : "bg-primary"} text-black`}>
+                <Icon size={24} />
             </div>
             <div className="flex-1">
                 <p className="font-semibold text-white">
                     {playerData.username}
                 </p>
                 <div className="flex items-center gap-2 text-sm">
+                    {isBot && (
+                        <span className="rounded bg-blue-500/20 px-2 py-0.5 text-xs font-medium text-blue-400">
+                            Bot
+                        </span>
+                    )}
                     {player.host && (
                         <span className="rounded bg-primary/20 px-2 py-0.5 text-xs font-medium text-primary">
                             Host

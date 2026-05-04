@@ -44,4 +44,9 @@ public class LobbyEventHandler {
     public void swapSeats(UserSession session, User user, SwapSeatsCommand command) {
         lobbyService.swapSeats(user.getId(), command.getSeat());
     }
+
+    @OnEvent("lobby:startWithBots")
+    public void startWithBots(UserSession session, User user) {
+        lobbyService.startWithBots(user.getId());
+    }
 }

@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useMemo } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useGame } from "@/context/game-context";
-import { getPlayersInSeatOrder, GamePlayer } from "@/types/game";
+import { getPlayersInSeatOrder, RoundStatus } from "@/types/game";
 import Loader from "@/components/ui/loader";
 import ScoreBoard from "./score-board";
 import TrumpDisplay from "./trump-display";
@@ -13,9 +13,10 @@ import PlayerHand from "./player-hand";
 import CenterTrick from "./center-trick";
 import GameCountdown from "./game-countdown";
 import RoundStartOverlay from "./round-start-overlay";
+import TrumpChooser from "./trump-chooser";
 
 export default function GameView() {
-  const { game, phase } = useGame();
+  const { game, phase, trumpChoice, chooseTrump, passTrump } = useGame();
   const { user } = useAuth();
 
   // Map seat indices to visual positions relative to current user
@@ -32,7 +33,16 @@ export default function GameView() {
         };
 
       const players = getPlayersInSeatOrder(game);
-      const myIndex = players.findIndex((p) => p.userId === user.id);
+      const myIndex = players.findIndex((p) => p?.userId === user.id);
+      if (myIndex === -1 || players.some((player) => !player)) {
+        return {
+          topPlayer: null,
+          rightPlayer: null,
+          bottomPlayer: null,
+          leftPlayer: null,
+          seatMapping: {} as Record<number, number>,
+        };
+      }
 
       // Rotate so current user is always at bottom (visual position 2)
       // Order: bottom(me), right, top(partner), left
@@ -72,6 +82,9 @@ export default function GameView() {
 
   // Current turn check
   const currentTurnSeatIndex = game?.currentRound?.currentTurnIndex ?? -1;
+  const isChoosingTrump =
+    game?.currentRound?.roundStatus === RoundStatus.CHOOSING_TRUMP &&
+    trumpChoice !== null;
 
   const trumpSuite = game?.currentRound?.trumpSuite ?? null;
   const playedCards = game?.currentRound?.currentTrick?.playedCards ?? [];
@@ -164,11 +177,28 @@ export default function GameView() {
           />
         )}
 
+        <AnimatePresence>
+          {bottomPlayer && isChoosingTrump && trumpChoice && (
+            <TrumpChooser
+              key="trump-chooser"
+              currentTurnIndex={trumpChoice.currentTurnIndex}
+              mySeatIndex={bottomPlayer.seatIndex}
+              roundNumber={trumpChoice.roundNumber}
+              timeoutSeconds={trumpChoice.timeoutSeconds}
+              startedAt={trumpChoice.startedAt}
+              onChoose={chooseTrump}
+              onPass={passTrump}
+            />
+          )}
+        </AnimatePresence>
+
         {/* Hand */}
         {bottomPlayer && (
           <PlayerHand
             cards={bottomPlayer.hand ?? []}
-            interactive={bottomPlayer.seatIndex === currentTurnSeatIndex}
+            interactive={
+              !isChoosingTrump && bottomPlayer.seatIndex === currentTurnSeatIndex
+            }
             onCardClick={(card, index) => {
               // TODO: send play card event to backend
               console.log("Card clicked:", card, index);

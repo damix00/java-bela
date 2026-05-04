@@ -10,6 +10,7 @@ import pro.damjan.belabackend.game.model.round.trick.Trick;
 import pro.damjan.belabackend.game.model.round.trick.TrickValidator;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -29,12 +30,50 @@ public class BeloteRound implements Serializable {
     private List<Trick> tricks; // List of tricks played in this round, in order
     private Trick currentTrick;
 
+    private List<Trick> tricksOrEmpty() {
+        if (tricks == null) {
+            tricks = new ArrayList<>();
+        }
+
+        return tricks;
+    }
+
     public BeloteRound(int roundNumber, RoundStatus roundStatus) {
         this.roundNumber = roundNumber;
         this.roundStatus = roundStatus;
 
         this.currentTurnIndex = roundNumber % 4;
     }
+
+    public boolean isChoosingTrump() {
+        return roundStatus == RoundStatus.CHOOSING_TRUMP;
+    }
+
+    public boolean isLastTrumpChooser() {
+        return currentTurnIndex == (roundNumber + 3) % 4;
+    }
+
+    public void passTrumpChoice() {
+        if (!isChoosingTrump()) {
+            throw new IllegalStateException("Cannot pass trump choice outside trump choosing phase");
+        }
+
+        if (isLastTrumpChooser()) {
+            throw new IllegalStateException("Cannot pass trump choice for the last chooser");
+        }
+
+        advanceTurn();
+    }
+
+    public void chooseTrump(Suite suite) {
+        if (!isChoosingTrump()) {
+            throw new IllegalStateException("Cannot choose trump outside trump choosing phase");
+        }
+
+        this.trumpSuite = suite;
+        this.roundStatus = RoundStatus.DECLARATIONS;
+    }
+
     public void advanceTurn() {
         currentTurnIndex = (currentTurnIndex + 1) % 4;
     }
@@ -43,7 +82,7 @@ public class BeloteRound implements Serializable {
         currentTrick = new Trick();
         currentTrick.setTrickNumber(++currentTrickNumber);
 
-        tricks.add(currentTrick);
+        tricksOrEmpty().add(currentTrick);
     }
 
     public boolean throwCard(GamePlayer gamePlayer, Card card) {
