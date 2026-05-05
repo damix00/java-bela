@@ -65,10 +65,10 @@ export default function CenterTrick({
     : playedCards;
 
   return (
-    <div className="relative flex h-52 w-52 items-center justify-center md:h-64 md:w-64">
+    <div className="relative flex h-[clamp(9.25rem,43vw,13rem)] w-[clamp(9.25rem,43vw,13rem)] items-center justify-center md:h-64 md:w-64">
       <motion.div
         ref={dropTargetRef}
-        className="absolute inset-6 rounded-[2rem] border border-white/10 bg-white/5 backdrop-blur-[2px]"
+        className="absolute inset-4 rounded-[1.5rem] border border-white/10 bg-white/5 backdrop-blur-[2px] md:inset-6 md:rounded-[2rem]"
         animate={{
           scale: isDropTargetActive ? 1.04 : 1,
           borderColor: isDropTargetActive

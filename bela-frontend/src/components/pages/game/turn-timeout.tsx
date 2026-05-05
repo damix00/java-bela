@@ -46,17 +46,17 @@ export default function TurnTimeout({
 
   return (
     <motion.div
-      className="pointer-events-none relative w-full max-w-sm overflow-hidden rounded-2xl border border-white/10 bg-background-secondary/78 px-4 py-3 shadow-[0_18px_45px_rgba(0,0,0,0.22)] backdrop-blur-md"
-      initial={{ opacity: 0, y: 18, scale: 0.96 }}
+      className="pointer-events-none relative w-full overflow-hidden rounded-lg border border-white/10 bg-background-secondary/82 px-3 py-2 shadow-[0_12px_30px_rgba(0,0,0,0.2)] backdrop-blur-md"
+      initial={{ opacity: 0, y: -12, scale: 0.98 }}
       animate={{
         opacity: 1,
         y: 0,
         scale: 1,
         boxShadow: urgent
-          ? "0 18px 45px rgba(220, 38, 38, 0.16)"
-          : "0 18px 45px rgba(0,0,0,0.22)",
+          ? "0 12px 30px rgba(220, 38, 38, 0.14)"
+          : "0 12px 30px rgba(0,0,0,0.2)",
       }}
-      exit={{ opacity: 0, y: 12, scale: 0.98 }}
+      exit={{ opacity: 0, y: -10, scale: 0.98 }}
       transition={{ type: "spring", stiffness: 250, damping: 24 }}
     >
       <motion.div
@@ -76,8 +76,8 @@ export default function TurnTimeout({
         }}
       />
 
-      <div className="relative flex items-center gap-3">
-        <div className="relative flex h-11 w-11 shrink-0 items-center justify-center">
+      <div className="relative flex items-center gap-2.5">
+        <div className="relative flex h-9 w-9 shrink-0 items-center justify-center">
           <svg className="h-full w-full -rotate-90" viewBox="0 0 44 44">
             <circle
               cx="22"
@@ -101,7 +101,7 @@ export default function TurnTimeout({
             />
           </svg>
           <motion.span
-            className={`absolute text-sm font-black tabular-nums ${
+            className={`absolute text-xs font-black tabular-nums ${
               urgent ? "text-red-300" : "text-primary"
             }`}
             animate={urgent ? { scale: [1, 1.08, 1] } : { scale: 1 }}
@@ -116,17 +116,17 @@ export default function TurnTimeout({
         </div>
 
         <div className="min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground-muted">
+          <p className="text-[9px] font-bold uppercase tracking-[0.24em] text-foreground-muted">
             Turn Timer
           </p>
-          <p className="truncate text-sm font-semibold text-foreground">
+          <p className="truncate text-xs font-semibold text-foreground">
             {label}
           </p>
         </div>
 
-        <div className="ml-auto hidden min-w-[4.5rem] justify-end md:flex">
+        <div className="ml-auto hidden min-w-[3.75rem] justify-end md:flex">
           <span
-            className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.22em] ${
+            className={`rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.16em] ${
               isMyTurn
                 ? "border-primary/35 bg-primary/10 text-primary"
                 : "border-white/10 bg-white/5 text-foreground-muted"
@@ -137,7 +137,7 @@ export default function TurnTimeout({
         </div>
       </div>
 
-      <div className="relative mt-3 h-1.5 overflow-hidden rounded-full bg-white/8">
+      <div className="relative mt-2 h-1 overflow-hidden rounded-full bg-white/8">
         <motion.div
           className={`h-full rounded-full ${
             urgent ? "bg-red-400" : "bg-primary"

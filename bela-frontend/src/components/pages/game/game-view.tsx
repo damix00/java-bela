@@ -168,7 +168,7 @@ export default function GameView() {
   // Loading state
   if (!game || phase === "loading") {
     return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-background">
+      <div className="flex h-dvh w-full items-center justify-center overflow-hidden bg-background">
         <div className="flex flex-col items-center gap-4">
           <Loader />
           <motion.p
@@ -184,7 +184,7 @@ export default function GameView() {
   }
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-background overflow-hidden select-none">
+    <div className="relative flex h-dvh max-h-dvh w-full flex-col overflow-hidden bg-background pb-[env(safe-area-inset-bottom)] select-none">
       {/* Overlays */}
       <AnimatePresence>
         {phase === "countdown" && <GameCountdown key="countdown" />}
@@ -192,19 +192,68 @@ export default function GameView() {
       </AnimatePresence>
 
       {/* Top bar: Score + Trump */}
-      <div className="relative z-10 flex items-start justify-between p-4 md:p-6">
+      <div className="relative z-10 flex items-start justify-between gap-3 p-3 md:p-6">
         <ScoreBoard team1Score={team1Score} team2Score={team2Score} />
         <TrumpDisplay suite={trumpSuite} />
       </div>
 
+      <div className="absolute left-1/2 top-3 z-30 w-[min(30rem,calc(100%-1rem))] -translate-x-1/2 md:top-4">
+        <AnimatePresence mode="wait">
+          {bottomPlayer && isChoosingTrump && trumpChoice && (
+            <TrumpChooser
+              key="trump-chooser"
+              currentTurnIndex={trumpChoice.currentTurnIndex}
+              mySeatIndex={bottomPlayer.seatIndex}
+              roundNumber={trumpChoice.roundNumber}
+              timeoutSeconds={trumpChoice.timeoutSeconds}
+              startedAt={trumpChoice.startedAt}
+              onChoose={chooseTrump}
+              onPass={passTrump}
+            />
+          )}
+
+          {bottomPlayer && !isChoosingTrump && nextTrickPending && (
+            <NextTrickIndicator
+              key={`${nextTrickPending.kind}-${nextTrickPending.roundNumber}-${nextTrickPending.completedTrickNumber}-${nextTrickPending.startedAt}`}
+              title={
+                nextTrickPending.kind === "round"
+                  ? "Round Complete"
+                  : "Trick Complete"
+              }
+              message={
+                nextTrickPending.kind === "round"
+                  ? `Round ${nextRoundNumber} starts next`
+                  : `${nextTrickWinningLabel} starts next`
+              }
+              timeoutSeconds={nextTrickPending.timeoutSeconds}
+              startedAt={nextTrickPending.startedAt}
+            />
+          )}
+
+          {bottomPlayer && !isChoosingTrump && !nextTrickPending && turnTimer && (
+            <TurnTimeout
+              key={`${turnTimer.roundNumber}-${turnTimer.trickNumber}-${turnTimer.currentTurnIndex}-${turnTimer.startedAt}`}
+              label={
+                turnTimer.currentTurnIndex === bottomPlayer.seatIndex
+                  ? "Throw your card"
+                  : `Seat ${turnTimer.currentTurnIndex + 1} is up`
+              }
+              timeoutSeconds={turnTimer.timeoutSeconds}
+              startedAt={turnTimer.startedAt}
+              isMyTurn={turnTimer.currentTurnIndex === bottomPlayer.seatIndex}
+            />
+          )}
+        </AnimatePresence>
+      </div>
+
       <LayoutGroup id="game-table">
         {/* Game table area */}
-        <div className="flex flex-1 flex-col items-center justify-center relative">
+        <div className="relative flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden px-12 py-4 md:px-20 md:py-6">
           {/* Subtle table felt effect */}
           <div className="absolute inset-0 bg-gradient-radial from-background-secondary/30 via-transparent to-transparent pointer-events-none" />
 
           {/* Top player (partner) */}
-          <div className="absolute top-2 md:top-4 left-1/2 -translate-x-1/2 z-10">
+          <div className="absolute left-1/2 top-0 z-10 -translate-x-1/2 md:top-4">
             {topPlayer && (
               <PlayerSeat
                 player={topPlayer}
@@ -215,7 +264,7 @@ export default function GameView() {
           </div>
 
           {/* Left player */}
-          <div className="absolute left-3 md:left-8 top-1/2 -translate-y-1/2 z-10">
+          <div className="absolute left-1 top-1/2 z-10 -translate-y-1/2 md:left-8">
             {leftPlayer && (
               <PlayerSeat
                 player={leftPlayer}
@@ -226,7 +275,7 @@ export default function GameView() {
           </div>
 
           {/* Right player */}
-          <div className="absolute right-3 md:right-8 top-1/2 -translate-y-1/2 z-10">
+          <div className="absolute right-1 top-1/2 z-10 -translate-y-1/2 md:right-8">
             {rightPlayer && (
               <PlayerSeat
                 player={rightPlayer}
@@ -248,7 +297,7 @@ export default function GameView() {
         </div>
 
       {/* Bottom: current player's hand */}
-      <div className="relative z-10 pb-6 pt-2 md:pb-8 flex flex-col items-center gap-2">
+      <div className="relative z-10 flex shrink-0 flex-col items-center gap-1 pb-3 pt-1 md:gap-2 md:pb-5 md:pt-1">
         {/* Bottom player info */}
         {bottomPlayer && (
           <PlayerSeat
@@ -257,57 +306,6 @@ export default function GameView() {
             isCurrentTurn={bottomPlayer.seatIndex === currentTurnSeatIndex}
           />
         )}
-
-        <AnimatePresence>
-          {bottomPlayer && isChoosingTrump && trumpChoice && (
-            <TrumpChooser
-              key="trump-chooser"
-              currentTurnIndex={trumpChoice.currentTurnIndex}
-              mySeatIndex={bottomPlayer.seatIndex}
-              roundNumber={trumpChoice.roundNumber}
-              timeoutSeconds={trumpChoice.timeoutSeconds}
-              startedAt={trumpChoice.startedAt}
-              onChoose={chooseTrump}
-              onPass={passTrump}
-            />
-          )}
-        </AnimatePresence>
-
-        <div className="flex min-h-[6.75rem] w-full items-center justify-center px-4">
-          <AnimatePresence mode="wait">
-            {bottomPlayer && !isChoosingTrump && nextTrickPending && (
-              <NextTrickIndicator
-                key={`${nextTrickPending.kind}-${nextTrickPending.roundNumber}-${nextTrickPending.completedTrickNumber}-${nextTrickPending.startedAt}`}
-                title={
-                  nextTrickPending.kind === "round"
-                    ? "Round Complete"
-                    : "Trick Complete"
-                }
-                message={
-                  nextTrickPending.kind === "round"
-                    ? `Round ${nextRoundNumber} starts next`
-                    : `${nextTrickWinningLabel} starts next`
-                }
-                timeoutSeconds={nextTrickPending.timeoutSeconds}
-                startedAt={nextTrickPending.startedAt}
-              />
-            )}
-
-            {bottomPlayer && !isChoosingTrump && !nextTrickPending && turnTimer && (
-              <TurnTimeout
-                key={`${turnTimer.roundNumber}-${turnTimer.trickNumber}-${turnTimer.currentTurnIndex}-${turnTimer.startedAt}`}
-                label={
-                  turnTimer.currentTurnIndex === bottomPlayer.seatIndex
-                    ? "Throw your card"
-                    : `Seat ${turnTimer.currentTurnIndex + 1} is up`
-                }
-                timeoutSeconds={turnTimer.timeoutSeconds}
-                startedAt={turnTimer.startedAt}
-                isMyTurn={turnTimer.currentTurnIndex === bottomPlayer.seatIndex}
-              />
-            )}
-          </AnimatePresence>
-        </div>
 
         {/* Hand */}
         {bottomPlayer && (

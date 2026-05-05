@@ -52,7 +52,7 @@ export default function PlayerSeat({
 
     return (
         <motion.div
-            className="flex min-h-[6.25rem] flex-col items-center gap-1.5"
+            className="flex min-h-[4.75rem] max-w-[5.75rem] flex-col items-center gap-1 md:min-h-[6.25rem] md:max-w-none md:gap-1.5"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{
@@ -64,7 +64,7 @@ export default function PlayerSeat({
             {/* Avatar */}
             <div className="relative">
                 <div
-                    className={`w-12 h-12 md:w-14 md:h-14 rounded-lg flex items-center justify-center text-sm font-bold ${
+                    className={`flex h-10 w-10 items-center justify-center rounded-lg text-xs font-bold md:h-14 md:w-14 md:text-sm ${
                         isCurrentTurn
                             ? "bg-primary text-on-primary ring-2 ring-primary ring-offset-2 ring-offset-background"
                             : "bg-background-tertiary text-foreground-muted"
@@ -82,7 +82,7 @@ export default function PlayerSeat({
 
                 {/* Card count badge */}
                 {position !== "bottom" && cardCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-background-secondary border border-background-tertiary rounded-full flex items-center justify-center text-[10px] font-bold text-foreground-muted">
+                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full border border-background-tertiary bg-background-secondary text-[9px] font-bold text-foreground-muted md:h-5 md:w-5 md:text-[10px]">
                         {cardCount}
                     </span>
                 )}
@@ -90,7 +90,7 @@ export default function PlayerSeat({
 
             {/* Name plate */}
             <div
-                className={`px-3 py-1 rounded text-xs font-semibold uppercase tracking-wider ${
+                className={`max-w-full truncate rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide md:px-3 md:py-1 md:text-xs md:tracking-wider ${
                     isCurrentTurn
                         ? "bg-background-tertiary text-primary"
                         : "bg-background-tertiary/60 text-foreground-muted"
@@ -100,7 +100,7 @@ export default function PlayerSeat({
 
             {/* Turn indicator */}
             <motion.div
-                className="h-3 text-[10px] font-bold uppercase leading-3 tracking-widest text-primary"
+                className="h-3 text-[9px] font-bold uppercase leading-3 tracking-wide text-primary md:text-[10px] md:tracking-widest"
                 initial={{ opacity: 0 }}
                 animate={isCurrentTurn ? { opacity: [1, 0.35, 1] } : { opacity: 0 }}
                 transition={{

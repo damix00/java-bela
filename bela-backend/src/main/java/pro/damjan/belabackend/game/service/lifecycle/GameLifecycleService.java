@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.game.service;
+package pro.damjan.belabackend.game.service.lifecycle;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -14,6 +14,8 @@ import pro.damjan.belabackend.game.model.player.TeamPair;
 import pro.damjan.belabackend.game.scheduling.registry.ScheduledTaskRegistry;
 import pro.damjan.belabackend.game.scheduling.tasks.ScheduledGameTask;
 import pro.damjan.belabackend.game.scheduling.tasks.ScheduledTaskType;
+import pro.damjan.belabackend.game.service.access.GameAccessService;
+import pro.damjan.belabackend.game.service.play.TrumpPhaseService;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 import pro.damjan.belabackend.user.presence.UserPresenceService;
 

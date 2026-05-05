@@ -1,9 +1,10 @@
-package pro.damjan.belabackend.game.service;
+package pro.damjan.belabackend.game.service.lifecycle;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pro.damjan.belabackend.game.events.BeloteGameEventPublisher;
 import pro.damjan.belabackend.game.model.BeloteGame;
+import pro.damjan.belabackend.game.service.BeloteGameService;
 import pro.damjan.belabackend.user.presence.UserPresence;
 import pro.damjan.belabackend.user.presence.UserPresenceService;
 import pro.damjan.belabackend.user.presence.events.UserReconnectedEvent;

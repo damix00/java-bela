@@ -40,10 +40,10 @@ export default function NextTrickIndicator({
 
   return (
     <motion.div
-      className="pointer-events-none relative w-full max-w-sm overflow-hidden rounded-2xl border border-primary/20 bg-background-secondary/82 px-4 py-3 shadow-[0_18px_45px_rgba(0,0,0,0.24)] backdrop-blur-md"
-      initial={{ opacity: 0, y: 16, scale: 0.97 }}
+      className="pointer-events-none relative w-full overflow-hidden rounded-lg border border-primary/20 bg-background-secondary/82 px-3 py-2 shadow-[0_12px_30px_rgba(0,0,0,0.2)] backdrop-blur-md"
+      initial={{ opacity: 0, y: -12, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 10, scale: 0.98 }}
+      exit={{ opacity: 0, y: -10, scale: 0.98 }}
       transition={{ type: "spring", stiffness: 260, damping: 24 }}
     >
       <motion.div
@@ -56,22 +56,22 @@ export default function NextTrickIndicator({
         }}
       />
 
-      <div className="relative flex items-center gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-primary/25 bg-primary/10 text-sm font-black tabular-nums text-primary">
+      <div className="relative flex items-center gap-2.5">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-primary/25 bg-primary/10 text-xs font-black tabular-nums text-primary">
           {remainingSeconds}
         </div>
 
         <div className="min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground-muted">
+          <p className="text-[9px] font-bold uppercase tracking-[0.24em] text-foreground-muted">
             {title}
           </p>
-          <p className="truncate text-sm font-semibold text-foreground">
+          <p className="truncate text-xs font-semibold text-foreground">
             {message}
           </p>
         </div>
       </div>
 
-      <div className="relative mt-3 h-1.5 overflow-hidden rounded-full bg-white/8">
+      <div className="relative mt-2 h-1 overflow-hidden rounded-full bg-white/8">
         <motion.div
           className="h-full rounded-full bg-primary"
           animate={{ width: `${progress * 100}%` }}

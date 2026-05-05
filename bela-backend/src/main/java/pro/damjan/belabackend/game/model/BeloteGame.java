@@ -79,7 +79,10 @@ public class BeloteGame implements Serializable {
     }
 
     public BeloteRound createNewRound() {
-        BeloteRound round = new BeloteRound(++currentRoundNumber, RoundStatus.CHOOSING_TRUMP);
+        BeloteRound curr = getCurrentRound();
+        int startingPlayerIndex = curr == null ? 0 : (curr.getStartingPlayerIndex() + 1) % 4;
+
+        BeloteRound round = new BeloteRound(++currentRoundNumber, startingPlayerIndex, RoundStatus.CHOOSING_TRUMP);
         roundsOrEmpty().add(round);
         currentRound = round;
         return round;

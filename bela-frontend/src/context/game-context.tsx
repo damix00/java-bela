@@ -69,6 +69,7 @@ type TrumpChosenData = {
     chosenByTurnIndex: number;
     trumpSuite: Suite;
     roundStatus: RoundStatus;
+    hand: Card[];
     revealedCards: Card[];
 };
 
@@ -411,7 +412,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
                     return {
                         ...player,
-                        hand: merged,
+                        hand: data.hand?.length ? data.hand : merged,
                     };
                 }),
             });

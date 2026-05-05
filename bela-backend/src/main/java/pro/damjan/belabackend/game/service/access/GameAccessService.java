@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.game.service;
+package pro.damjan.belabackend.game.service.access;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

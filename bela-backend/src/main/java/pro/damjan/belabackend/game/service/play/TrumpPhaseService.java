@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.game.service;
+package pro.damjan.belabackend.game.service.play;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -7,10 +7,12 @@ import pro.damjan.belabackend.game.model.BeloteGame;
 import pro.damjan.belabackend.game.model.card.Card;
 import pro.damjan.belabackend.game.model.card.Suite;
 import pro.damjan.belabackend.game.model.player.GamePlayer;
+import pro.damjan.belabackend.game.model.round.BeloteRound;
 import pro.damjan.belabackend.game.model.round.RoundStatus;
 import pro.damjan.belabackend.game.scheduling.registry.ScheduledTaskRegistry;
 import pro.damjan.belabackend.game.scheduling.tasks.ScheduledGameTask;
 import pro.damjan.belabackend.game.scheduling.tasks.ScheduledTaskType;
+import pro.damjan.belabackend.game.service.access.GameAccessService;
 
 import java.time.Duration;
 import java.util.Comparator;
@@ -124,15 +126,18 @@ public class TrumpPhaseService {
             );
         }
 
-        game.getCurrentRound().chooseTrump(suite);
+        BeloteRound round = game.getCurrentRound();
+
+        round.chooseTrump(suite);
 
         for (GamePlayer player : game.getPlayers()) {
             player.getHand().forEach(card -> card.setHidden(false));
             player.updateTrumpSuite(suite);
         }
 
-        game.getCurrentRound().setRoundStatus(RoundStatus.PLAYING);
-        game.getCurrentRound().startNewTrick();
+        round.setRoundStatus(RoundStatus.PLAYING);
+        round.setCurrentTurnIndex(round.getStartingPlayerIndex());
+        round.startNewTrick();
 
         gameAccessService.save(game);
         gamePublisher.trumpChosen(game, chosenByTurnIndex, suite, RoundStatus.PLAYING, revealedCardsByUserId);

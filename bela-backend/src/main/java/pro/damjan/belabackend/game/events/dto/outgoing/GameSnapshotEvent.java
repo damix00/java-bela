@@ -5,6 +5,7 @@ import lombok.Setter;
 import pro.damjan.belabackend.game.model.BeloteGame;
 import pro.damjan.belabackend.game.model.GameStatus;
 import pro.damjan.belabackend.game.model.card.Card;
+import pro.damjan.belabackend.game.model.card.CardOrdering;
 import pro.damjan.belabackend.game.model.card.Suite;
 import pro.damjan.belabackend.game.model.player.GamePlayer;
 import pro.damjan.belabackend.game.model.round.BeloteRound;
@@ -77,7 +78,7 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
             boolean isSelf = player.getUserId().equals(perspectiveUserId);
 
             List<Card> hand = isSelf
-                    ? player.getHand().stream().filter(c -> !c.isHidden()).toList()
+                    ? CardOrdering.sortForClient(player.getHand().stream().filter(c -> !c.isHidden()).toList())
                     : null;
 
             return new PlayerSnapshot(

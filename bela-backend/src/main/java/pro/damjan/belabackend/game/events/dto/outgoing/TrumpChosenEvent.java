@@ -15,6 +15,7 @@ public class TrumpChosenEvent extends PerspectiveOutgoingEvent {
     private int chosenByTurnIndex;
     private Suite trumpSuite;
     private RoundStatus roundStatus;
+    private List<Card> hand;
     private List<Card> revealedCards;
 
     public TrumpChosenEvent(
@@ -23,6 +24,7 @@ public class TrumpChosenEvent extends PerspectiveOutgoingEvent {
             int chosenByTurnIndex,
             Suite trumpSuite,
             RoundStatus roundStatus,
+            List<Card> hand,
             List<Card> revealedCards
     ) {
         super("game:trumpChosen", perspectiveUserId);
@@ -30,6 +32,7 @@ public class TrumpChosenEvent extends PerspectiveOutgoingEvent {
         this.chosenByTurnIndex = chosenByTurnIndex;
         this.trumpSuite = trumpSuite;
         this.roundStatus = roundStatus;
+        this.hand = hand;
         this.revealedCards = revealedCards;
     }
 }

@@ -11,14 +11,18 @@ export default function PlayPage() {
 
     if (!lobby) {
         return (
-            <div className="flex min-h-screen w-screen items-center justify-center">
+            <div className="flex h-dvh w-screen items-center justify-center overflow-hidden">
                 <Loader />
             </div>
         );
     }
 
     if (lobby.status === LobbyStatus.InGame) {
-        return <GameView />;
+        return (
+            <div className="fixed inset-0 overflow-hidden">
+                <GameView />
+            </div>
+        );
     }
 
     return <LobbyScreen />;

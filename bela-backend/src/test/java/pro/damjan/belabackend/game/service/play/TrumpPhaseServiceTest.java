@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.game.service;
+package pro.damjan.belabackend.game.service.play;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +15,7 @@ import pro.damjan.belabackend.game.model.round.RoundStatus;
 import pro.damjan.belabackend.game.scheduling.registry.ScheduledTaskRegistry;
 import pro.damjan.belabackend.game.scheduling.tasks.ScheduledGameTask;
 import pro.damjan.belabackend.game.scheduling.tasks.ScheduledTaskType;
+import pro.damjan.belabackend.game.service.access.GameAccessService;
 
 import java.time.Duration;
 import java.util.List;
@@ -55,6 +56,7 @@ class TrumpPhaseServiceTest {
         var round = game.getCurrentRound();
         assertThat(round.getRoundStatus()).isEqualTo(RoundStatus.PLAYING);
         assertThat(round.getTrumpSuite()).isEqualTo(Suite.HEARTS);
+        assertThat(round.getCurrentTurnIndex()).isEqualTo(0);
         assertThat(round.getCurrentTrickNumber()).isEqualTo(0);
         assertThat(round.getCurrentTrick()).isNotNull();
         assertThat(game.getPlayers())
@@ -67,6 +69,22 @@ class TrumpPhaseServiceTest {
         verify(gamePublisher).trumpChosen(eq(game), eq(0), eq(Suite.HEARTS), eq(RoundStatus.PLAYING), any(Map.class));
         verify(gamePublisher).cardTurnStarted(game, 30L);
         verify(cardPlayService).playBotTurnOrSchedule(game);
+    }
+
+    @Test
+    void chosenTrumpCallerDoesNotChangeFirstTrickLeader() {
+        BeloteGame game = choosingTrumpGame();
+        game.getCurrentRound().advanceTurn();
+        game.getCurrentRound().advanceTurn();
+        when(gameAccessService.requireUserGame("p2")).thenReturn(game);
+
+        trumpPhaseService.chooseTrump("p2", Suite.ACORN);
+
+        var round = game.getCurrentRound();
+        assertThat(round.getRoundStatus()).isEqualTo(RoundStatus.PLAYING);
+        assertThat(round.getCurrentTurnIndex()).isEqualTo(0);
+        assertThat(round.getCurrentTrickNumber()).isEqualTo(0);
+        verify(gamePublisher).trumpChosen(eq(game), eq(2), eq(Suite.ACORN), eq(RoundStatus.PLAYING), any(Map.class));
     }
 
     @Test

@@ -1,13 +1,14 @@
-package pro.damjan.belabackend.lobby.service;
+package pro.damjan.belabackend.lobby.service.lifecycle;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import pro.damjan.belabackend.game.service.GameEvictionService;
+import pro.damjan.belabackend.game.service.lifecycle.GameEvictionService;
 import pro.damjan.belabackend.lobby.model.LobbyStatus;
 import pro.damjan.belabackend.lobby.repository.LobbyRepository;
 import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
+import pro.damjan.belabackend.lobby.service.LobbyService;
 import pro.damjan.belabackend.user.presence.UserPresenceService;
 
 import java.util.List;

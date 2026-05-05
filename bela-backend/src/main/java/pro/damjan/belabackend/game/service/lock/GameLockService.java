@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.game.service;
+package pro.damjan.belabackend.game.service.lock;
 
 import org.springframework.stereotype.Service;
 

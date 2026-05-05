@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.game.service;
+package pro.damjan.belabackend.game.service.lifecycle;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +15,8 @@ import pro.damjan.belabackend.game.model.round.RoundStatus;
 import pro.damjan.belabackend.game.scheduling.registry.ScheduledTaskRegistry;
 import pro.damjan.belabackend.game.scheduling.tasks.ScheduledGameTask;
 import pro.damjan.belabackend.game.scheduling.tasks.ScheduledTaskType;
+import pro.damjan.belabackend.game.service.access.GameAccessService;
+import pro.damjan.belabackend.game.service.play.TrumpPhaseService;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 import pro.damjan.belabackend.lobby.model.LobbyPlayerStatus;
 import pro.damjan.belabackend.user.presence.UserPresenceService;
@@ -133,6 +135,17 @@ class GameLifecycleServiceTest {
         verify(gamePublisher).roundStarted(game);
         verify(gamePublisher).trumpChoosingStarted(game, 10L);
         verify(trumpPhaseService).chooseBotTrumpOrSchedule(game);
+    }
+
+    @Test
+    void roundTrumpChooserRotatesInSeatOrder() {
+        BeloteGame game = game();
+
+        assertThat(game.createNewRound().getCurrentTurnIndex()).isEqualTo(0);
+        assertThat(game.createNewRound().getCurrentTurnIndex()).isEqualTo(1);
+        assertThat(game.createNewRound().getCurrentTurnIndex()).isEqualTo(2);
+        assertThat(game.createNewRound().getCurrentTurnIndex()).isEqualTo(3);
+        assertThat(game.createNewRound().getCurrentTurnIndex()).isEqualTo(0);
     }
 
     @Test

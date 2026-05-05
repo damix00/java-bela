@@ -13,6 +13,7 @@ import pro.damjan.belabackend.game.events.dto.outgoing.TrumpChosenEvent;
 import pro.damjan.belabackend.game.events.dto.outgoing.TrumpChoosingStartedEvent;
 import pro.damjan.belabackend.game.model.BeloteGame;
 import pro.damjan.belabackend.game.model.card.Card;
+import pro.damjan.belabackend.game.model.card.CardOrdering;
 import pro.damjan.belabackend.game.model.card.Suite;
 import pro.damjan.belabackend.game.model.player.GamePlayer;
 import pro.damjan.belabackend.game.model.round.BeloteRound;
@@ -72,6 +73,7 @@ public class BeloteGameEventPublisher {
             List<Card> visibleHand = player.getHand().stream()
                     .filter(card -> !card.isHidden())
                     .toList();
+            visibleHand = CardOrdering.sortForClient(visibleHand);
 
             webSocketPublisher.sendToActiveSession(
                     player.getUserId(),
@@ -132,7 +134,8 @@ public class BeloteGameEventPublisher {
                             chosenByTurnIndex,
                             trumpSuite,
                             roundStatus,
-                            revealedCardsByUserId.getOrDefault(player.getUserId(), List.of())
+                            CardOrdering.sortForClient(player.getHand()),
+                            CardOrdering.sortForClient(revealedCardsByUserId.getOrDefault(player.getUserId(), List.of()))
                     )
             );
         }

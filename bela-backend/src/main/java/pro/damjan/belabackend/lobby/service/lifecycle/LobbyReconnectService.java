@@ -1,9 +1,9 @@
-package pro.damjan.belabackend.lobby.service;
+package pro.damjan.belabackend.lobby.service.lifecycle;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import pro.damjan.belabackend.game.service.GameReconnectService;
+import pro.damjan.belabackend.game.service.lifecycle.GameReconnectService;
 import pro.damjan.belabackend.lobby.repository.LobbyRepository;
 import pro.damjan.belabackend.lobby.events.LobbyEventPublisher;
 import pro.damjan.belabackend.lobby.model.Lobby;

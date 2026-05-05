@@ -1,5 +1,6 @@
 package pro.damjan.belabackend.game.model.round;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import pro.damjan.belabackend.game.model.card.Card;
@@ -34,6 +35,8 @@ public class BeloteRound implements Serializable {
 
     private int currentTurnIndex; // index of the player whose turn it is to play (0-3)
 
+    private int startingPlayerIndex = 0; // index of the player who started the current round (0-3)
+
     private int currentTrickNumber = -1; // 0-based index for tricks within this round
     private List<Trick> tricks; // List of tricks played in this round, in order
     private Trick currentTrick;
@@ -46,11 +49,12 @@ public class BeloteRound implements Serializable {
         return tricks;
     }
 
-    public BeloteRound(int roundNumber, RoundStatus roundStatus) {
+    public BeloteRound(int roundNumber, int startingPlayerIndex, RoundStatus roundStatus) {
         this.roundNumber = roundNumber;
+        this.startingPlayerIndex = startingPlayerIndex;
         this.roundStatus = roundStatus;
 
-        this.currentTurnIndex = roundNumber % 4;
+        this.currentTurnIndex = startingPlayerIndex;
     }
 
     public boolean isChoosingTrump() {
@@ -58,7 +62,7 @@ public class BeloteRound implements Serializable {
     }
 
     public boolean isLastTrumpChooser() {
-        return currentTurnIndex == (roundNumber + 3) % 4;
+        return currentTurnIndex == (startingPlayerIndex + 3) % 4;
     }
 
     public void passTrumpChoice() {

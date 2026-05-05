@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.game.service;
+package pro.damjan.belabackend.game.service.play;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,6 +14,7 @@ import pro.damjan.belabackend.game.model.round.trick.TrickValidator;
 import pro.damjan.belabackend.game.scheduling.registry.ScheduledTaskRegistry;
 import pro.damjan.belabackend.game.scheduling.tasks.ScheduledGameTask;
 import pro.damjan.belabackend.game.scheduling.tasks.ScheduledTaskType;
+import pro.damjan.belabackend.game.service.access.GameAccessService;
 
 import java.time.Duration;
 import java.util.Map;
@@ -25,6 +26,7 @@ public class CardPlayService {
     private static final Duration BOT_THROW_DELAY = Duration.ofSeconds(1);
     private static final Duration CARD_THROW_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration NEXT_TRICK_DELAY = Duration.ofSeconds(3);
+    private static final Duration NEXT_ROUND_DELAY = Duration.ofSeconds(5);
 
     private final GameAccessService gameAccessService;
     private final BeloteGameEventPublisher gamePublisher;
@@ -93,6 +95,11 @@ public class CardPlayService {
                 result.winningPlayerIndex(),
                 timeoutSeconds
         );
+
+        if (round.getRoundStatus() == RoundStatus.FINISHED) {
+            scheduleNextRoundStart(game, roundNumber + 1);
+            return;
+        }
 
         if (round.getRoundStatus() != RoundStatus.PLAYING) {
             return;
@@ -204,6 +211,17 @@ public class CardPlayService {
                                 "completedTrickNumber", completedTrickNumber,
                                 "winningTurnIndex", winningTurnIndex
                         )
+                )
+        );
+    }
+
+    private void scheduleNextRoundStart(BeloteGame game, int nextRoundNumber) {
+        scheduledTaskRegistry.registerTask(
+                new ScheduledGameTask(
+                        ScheduledTaskType.ROUND_START_TASK,
+                        NEXT_ROUND_DELAY,
+                        game.getId(),
+                        Map.of("roundNumber", nextRoundNumber)
                 )
         );
     }

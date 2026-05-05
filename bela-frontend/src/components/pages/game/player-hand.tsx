@@ -40,6 +40,7 @@ export default function PlayerHand({
   const draggingCardKeyRef = useRef<string | null>(null);
   const [draggingCardKey, setDraggingCardKey] = useState<string | null>(null);
   const [pressedCardKey, setPressedCardKey] = useState<string | null>(null);
+  const [hoveredCardKey, setHoveredCardKey] = useState<string | null>(null);
   const visibleCards = pendingCardKey
     ? cards.filter((card) => getCardKey(card) !== pendingCardKey)
     : cards;
@@ -49,11 +50,12 @@ export default function PlayerHand({
     return () => {
       onDraggingChange?.(false);
       setPressedCardKey(null);
+      setHoveredCardKey(null);
     };
   }, [onDraggingChange]);
 
-  const maxSpread = Math.min(visibleCount * 3, 20);
-  const cardOverlap = visibleCount > 4 ? -20 : -10;
+  const maxSpread = Math.min(visibleCount * 2.6, 18);
+  const cardOverlap = visibleCount > 6 ? -30 : visibleCount > 4 ? -24 : -12;
 
   const handleThrow = (
     card: Card,
@@ -92,6 +94,7 @@ export default function PlayerHand({
       }
       setDraggingCardKey((current) => (current === cardKey ? null : current));
       setPressedCardKey((current) => (current === cardKey ? null : current));
+      setHoveredCardKey((current) => (current === cardKey ? null : current));
 
       if (suppressClickCardKeyRef.current === cardKey) {
         suppressClickCardKeyRef.current = null;
@@ -101,7 +104,7 @@ export default function PlayerHand({
 
   return (
     <motion.div
-      className="flex items-end justify-center px-4"
+      className="flex w-full items-end justify-center overflow-visible px-2 sm:px-4"
       initial={{ opacity: 0, y: 60 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 150, damping: 20, delay: 0.3 }}
@@ -119,16 +122,15 @@ export default function PlayerHand({
             layoutId={
               draggingCardKey === cardKey ? undefined : `table-card-${cardKey}`
             }
-            className="relative"
+            className={`relative shrink-0 pt-6 ${interactive ? "cursor-grab active:cursor-grabbing" : ""}`}
             style={{
               marginLeft: i === 0 ? 0 : cardOverlap,
-              zIndex: 20 + i,
+              zIndex: hoveredCardKey === cardKey ? 90 : 20 + i,
             }}
-            initial={{ opacity: 0, y: 80, rotate: 0 }}
+            initial={{ opacity: 0, y: 80 }}
             animate={{
               opacity: 1,
-              y: -yOffset,
-              rotate: rotation,
+              y: 0,
               transition: {
                 type: "spring",
                 stiffness: 220,
@@ -136,22 +138,6 @@ export default function PlayerHand({
                 delay: 0.4 + i * 0.05,
               },
             }}
-            whileHover={
-              interactive &&
-              draggingCardKey !== cardKey &&
-              pressedCardKey !== cardKey
-                ? {
-                    y: -20 - yOffset,
-                    rotate: rotation * 0.7,
-                    scale: 1.04,
-                    transition: {
-                      type: "spring",
-                      stiffness: 350,
-                      damping: 18,
-                    },
-                  }
-                : undefined
-            }
             whileDrag={{
               scale: 1.04,
               zIndex: 80,
@@ -176,21 +162,70 @@ export default function PlayerHand({
                 current === cardKey ? null : current,
               )
             }
+            onPointerEnter={() => {
+              if (interactive) {
+                setHoveredCardKey(cardKey);
+              }
+            }}
+            onPointerLeave={() => {
+              setHoveredCardKey((current) =>
+                current === cardKey ? null : current,
+              );
+              setPressedCardKey((current) =>
+                current === cardKey ? null : current,
+              );
+            }}
             onDragStart={() => handleDragStart(cardKey)}
             onDragEnd={(_, info) => handleDragEnd(card, i, info)}
-          >
-            <PlayingCard
-              card={card}
-              interactive={interactive}
-              className="origin-bottom"
-              onClick={() => {
-                if (suppressClickCardKeyRef.current === cardKey) {
-                  return;
-                }
+            onClick={() => {
+              if (suppressClickCardKeyRef.current === cardKey) {
+                return;
+              }
 
-                handleThrow(card, i, "click");
+              handleThrow(card, i, "click");
+            }}
+          >
+            <motion.div
+              className="pointer-events-none origin-bottom"
+              animate={{
+                y:
+                  hoveredCardKey === cardKey &&
+                  draggingCardKey !== cardKey &&
+                  pressedCardKey !== cardKey
+                    ? -18 - yOffset
+                    : -yOffset,
+                rotate:
+                  hoveredCardKey === cardKey &&
+                  draggingCardKey !== cardKey &&
+                  pressedCardKey !== cardKey
+                    ? rotation * 0.85
+                    : rotation,
+                scale:
+                  hoveredCardKey === cardKey &&
+                  draggingCardKey !== cardKey &&
+                  pressedCardKey !== cardKey
+                    ? 1.03
+                    : 1,
+                filter:
+                  hoveredCardKey === cardKey &&
+                  draggingCardKey !== cardKey &&
+                  pressedCardKey !== cardKey
+                    ? "drop-shadow(0 20px 28px rgba(0, 0, 0, 0.28))"
+                    : "drop-shadow(0 0 0 rgba(0, 0, 0, 0))",
               }}
-            />
+              transition={{
+                type: "spring",
+                stiffness: 420,
+                damping: 32,
+                mass: 0.6,
+              }}
+            >
+              <PlayingCard
+                card={card}
+                interactive={false}
+                className="origin-bottom shadow-[0_14px_24px_rgba(15,23,42,0.18)]"
+              />
+            </motion.div>
           </motion.div>
         );
       })}

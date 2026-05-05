@@ -1,4 +1,4 @@
-package pro.damjan.belabackend.game.service;
+package pro.damjan.belabackend.game.service.play;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +16,7 @@ import pro.damjan.belabackend.game.model.round.RoundStatus;
 import pro.damjan.belabackend.game.scheduling.registry.ScheduledTaskRegistry;
 import pro.damjan.belabackend.game.scheduling.tasks.ScheduledGameTask;
 import pro.damjan.belabackend.game.scheduling.tasks.ScheduledTaskType;
+import pro.damjan.belabackend.game.service.access.GameAccessService;
 
 import java.time.Duration;
 import java.util.List;
@@ -132,7 +133,7 @@ class CardPlayServiceTest {
     }
 
     @Test
-    void fourthCardOfFinalTrickFinishesRoundWithoutStartingAnotherTrick() {
+    void fourthCardOfFinalTrickFinishesRoundAndSchedulesNextRound() {
         BeloteGame game = playingGameWithHands(
                 List.of(card(Suite.HEARTS, Rank.SEVEN)),
                 List.of(card(Suite.HEARTS, Rank.EIGHT)),
@@ -152,7 +153,12 @@ class CardPlayServiceTest {
         assertThat(round.getCurrentTrick()).isSameAs(round.getTricks().get(0));
         assertThat(round.getCurrentTrick().isComplete()).isTrue();
 
-        verify(scheduledTaskRegistry, never()).registerTask(any(ScheduledGameTask.class));
+        verify(scheduledTaskRegistry).registerTask(org.mockito.ArgumentMatchers.argThat(task ->
+                task.getType() == ScheduledTaskType.ROUND_START_TASK
+                        && task.getDelay().equals(Duration.ofSeconds(5))
+                        && task.getGameId().equals("game-1")
+                        && task.getRequiredIntParameter("roundNumber") == 1
+        ));
         verify(gamePublisher, never()).cardTurnStarted(any(), any(Long.class));
         verify(gamePublisher).cardThrown(
                 eq(game),
