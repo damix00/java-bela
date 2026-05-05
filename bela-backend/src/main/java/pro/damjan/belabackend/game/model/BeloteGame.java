@@ -68,6 +68,15 @@ public class BeloteGame implements Serializable {
         return index == 0 ? team1 : team2;
     }
 
+    public void finishCurrentRoundScoring() {
+        if (currentRound == null || currentRound.getRoundStatus() != RoundStatus.FINISHED) {
+            throw new IllegalStateException("Current round is not finished");
+        }
+
+        team1.addScore(currentRound.getTeam1RoundScore());
+        team2.addScore(currentRound.getTeam2RoundScore());
+    }
+
     @JsonIgnore
     public List<GamePlayer> getPlayers() {
         return List.of(

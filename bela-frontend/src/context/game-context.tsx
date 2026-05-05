@@ -37,6 +37,8 @@ type GameSnapshotData = {
         currentTurnIndex: number;
         currentTrickNumber: number;
         currentTrickCards: PlayedCard[];
+        team1RoundPoints: number;
+        team2RoundPoints: number;
     } | null;
 };
 
@@ -49,6 +51,8 @@ type RoundStartData = {
     roundStatus: RoundStatus;
     currentTurnIndex: number;
     hand: Card[];
+    team1RoundPoints: number;
+    team2RoundPoints: number;
 };
 
 type TrumpChoosingStartedData = {
@@ -91,6 +95,10 @@ type CardThrownData = {
     winningPlayerIndex: number | null;
     nextTurnIndex: number;
     timeoutSeconds: number;
+    team1RoundPoints: number;
+    team2RoundPoints: number;
+    team1TotalScore: number;
+    team2TotalScore: number;
 };
 
 export type GamePhase =
@@ -245,6 +253,8 @@ function normalizeSnapshotRound(
         trumpSuite: round.trumpSuite,
         currentTurnIndex: round.currentTurnIndex,
         currentTrickNumber: round.currentTrickNumber,
+        team1RoundPoints: round.team1RoundPoints,
+        team2RoundPoints: round.team2RoundPoints,
         tricks: currentTrick ? [currentTrick] : [],
         currentTrick,
     };
@@ -301,6 +311,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 trumpSuite: null,
                 currentTurnIndex: data.currentTurnIndex,
                 currentTrickNumber: -1,
+                team1RoundPoints: data.team1RoundPoints,
+                team2RoundPoints: data.team2RoundPoints,
                 tricks: [],
                 currentTrick: null,
             };
@@ -576,6 +588,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     ? prev.currentRound.currentTurnIndex
                     : data.nextTurnIndex,
                 currentTrickNumber,
+                team1RoundPoints: data.team1RoundPoints,
+                team2RoundPoints: data.team2RoundPoints,
                 currentTrick,
                 tricks: updateTrickInHistory(
                     prev.currentRound.tricks,
@@ -588,12 +602,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 currentRound,
                 rounds: updateRoundInHistory(prev.rounds, currentRound),
                 team1: updateTeamHandsForThrownCard(
-                    prev.team1,
+                    {
+                        ...prev.team1,
+                        totalScore: data.team1TotalScore,
+                    },
                     data.playerIndex,
                     data.card,
                 ),
                 team2: updateTeamHandsForThrownCard(
-                    prev.team2,
+                    {
+                        ...prev.team2,
+                        totalScore: data.team2TotalScore,
+                    },
                     data.playerIndex,
                     data.card,
                 ),

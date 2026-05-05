@@ -1,10 +1,12 @@
 "use client";
 
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
+import { toast } from "sonner";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useGame } from "@/context/game-context";
 import { Card, getCardKey, getPlayersInSeatOrder, RoundStatus } from "@/types/game";
+import { getLegalMoveCardKeys } from "@/lib/game-rules";
 import Loader from "@/components/ui/loader";
 import ScoreBoard from "./score-board";
 import TrumpDisplay from "./trump-display";
@@ -95,9 +97,18 @@ export default function GameView() {
     if (!game || !bottomPlayer)
       return { team1Score: 0, team2Score: 0 };
 
+    const activeRound = game.currentRound;
+    const includeRoundPoints =
+      activeRound !== null && activeRound.roundStatus !== RoundStatus.FINISHED;
+    const team1Score =
+      game.team1.totalScore +
+      (includeRoundPoints ? activeRound.team1RoundPoints : 0);
+    const team2Score =
+      game.team2.totalScore +
+      (includeRoundPoints ? activeRound.team2RoundPoints : 0);
     const myTeamIndex = bottomPlayer.teamIndex;
-    const we = myTeamIndex === 0 ? game.team1.totalScore : game.team2.totalScore;
-    const they = myTeamIndex === 0 ? game.team2.totalScore : game.team1.totalScore;
+    const we = myTeamIndex === 0 ? team1Score : team2Score;
+    const they = myTeamIndex === 0 ? team2Score : team1Score;
     return { team1Score: we, team2Score: they };
   }, [game, bottomPlayer]);
 
@@ -108,7 +119,15 @@ export default function GameView() {
     trumpChoice !== null;
 
   const trumpSuite = game?.currentRound?.trumpSuite ?? null;
-  const playedCards = game?.currentRound?.currentTrick?.playedCards ?? [];
+  const currentTrick = game?.currentRound?.currentTrick ?? null;
+  const playedCards = currentTrick?.playedCards ?? [];
+  const legalMoveCardKeys = useMemo(
+    () =>
+      bottomPlayer
+        ? getLegalMoveCardKeys(currentTrick, trumpSuite, bottomPlayer.hand ?? [])
+        : new Set<string>(),
+    [bottomPlayer, currentTrick, trumpSuite],
+  );
   const tableStateKey = `${game?.currentRound?.roundNumber ?? -1}-${game?.currentRound?.currentTrickNumber ?? -1}`;
   const previewCard =
     tableState.trickKey === tableStateKey ? tableState.previewCard : null;
@@ -134,6 +153,14 @@ export default function GameView() {
 
   const handleThrowCard = useCallback(
     (card: Card, _index: number, source: "click" | "drag") => {
+      if (!legalMoveCardKeys.has(getCardKey(card))) {
+        toast.error("Invalid move", {
+          description: "You need to play a legal card for this trick.",
+          id: "invalid-card-move",
+        });
+        return;
+      }
+
       setTableState({
         trickKey: tableStateKey,
         previewCard: source === "click" ? card : null,
@@ -141,8 +168,15 @@ export default function GameView() {
       });
       throwCard(card);
     },
-    [tableStateKey, throwCard],
+    [legalMoveCardKeys, tableStateKey, throwCard],
   );
+
+  const handleInvalidCardClick = useCallback(() => {
+    toast.error("Invalid move", {
+      description: "You need to play a legal card for this trick.",
+      id: "invalid-card-move",
+    });
+  }, []);
 
   const handleDraggingChange = useCallback(
     (dragging: boolean) => {
@@ -317,9 +351,11 @@ export default function GameView() {
               bottomPlayer.seatIndex === currentTurnSeatIndex
             }
             pendingCardKey={previewCardKey}
+            legalCardKeys={legalMoveCardKeys}
             dropTargetRef={trickDropRef}
             onDraggingChange={handleDraggingChange}
             onCardThrow={handleThrowCard}
+            onInvalidCardClick={handleInvalidCardClick}
           />
         )}
       </div>

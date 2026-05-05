@@ -82,6 +82,8 @@ export type BeloteRound = {
     trumpSuite: Suite | null;
     currentTurnIndex: number;
     currentTrickNumber: number;
+    team1RoundPoints: number;
+    team2RoundPoints: number;
     tricks: Trick[];
     currentTrick: Trick | null;
 };

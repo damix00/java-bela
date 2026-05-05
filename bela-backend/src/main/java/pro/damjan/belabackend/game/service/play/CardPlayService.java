@@ -77,6 +77,10 @@ public class CardPlayService {
             throw new IllegalStateException("Illegal card throw");
         }
 
+        if (round.getRoundStatus() == RoundStatus.FINISHED) {
+            game.finishCurrentRoundScoring();
+        }
+
         gameAccessService.save(game);
 
         long timeoutSeconds =

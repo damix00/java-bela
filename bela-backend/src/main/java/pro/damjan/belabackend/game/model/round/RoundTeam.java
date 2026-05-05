@@ -5,20 +5,27 @@ import lombok.Setter;
 import pro.damjan.belabackend.game.model.card.Declaration;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 public class RoundTeam implements Serializable {
 
     private int cardPoints; // Points from cards won in tricks
 
-    @Getter
-    private List<Declaration> declarations;
-    @Getter @Setter
+    @Setter
+    private List<Declaration> declarations = new ArrayList<>();
+    @Setter
     private boolean calledTrump; // Whether this team called the trump suite for this round
 
     public int getPoints() {
-        int declarationPoints = declarations.stream().mapToInt(d -> d.getType().getPoints()).sum();
-        return cardPoints + declarationPoints;
+        return cardPoints + getDeclarationPoints();
+    }
+
+    public int getDeclarationPoints() {
+        return declarations == null
+                ? 0
+                : declarations.stream().mapToInt(d -> d.getType().getPoints()).sum();
     }
 
     public void addCardPoints(int points) {

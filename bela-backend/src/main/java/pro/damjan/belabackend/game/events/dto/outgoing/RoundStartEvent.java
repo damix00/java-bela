@@ -15,12 +15,23 @@ public class RoundStartEvent extends OutgoingEvent {
     private RoundStatus roundStatus;
     private int currentTurnIndex;
     private List<Card> hand;
+    private int team1RoundPoints;
+    private int team2RoundPoints;
 
-    public RoundStartEvent(int roundNumber, RoundStatus roundStatus, int currentTurnIndex, List<Card> visibleHand) {
+    public RoundStartEvent(
+            int roundNumber,
+            RoundStatus roundStatus,
+            int currentTurnIndex,
+            List<Card> visibleHand,
+            int team1RoundPoints,
+            int team2RoundPoints
+    ) {
         super("game:roundStart");
         this.roundNumber = roundNumber;
         this.roundStatus = roundStatus;
         this.currentTurnIndex = currentTurnIndex;
         this.hand = visibleHand;
+        this.team1RoundPoints = team1RoundPoints;
+        this.team2RoundPoints = team2RoundPoints;
     }
 }

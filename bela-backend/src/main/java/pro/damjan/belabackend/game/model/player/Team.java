@@ -17,6 +17,14 @@ public class Team implements Serializable {
         this.totalScore = 0;
     }
 
+    public void addScore(int points) {
+        if (points < 0) {
+            throw new IllegalArgumentException("Points to add cannot be negative");
+        }
+
+        this.totalScore += points;
+    }
+
     public static TeamPair pairFrom(List<GamePlayer> players) {
         if (players.size() != 4) {
             throw new IllegalArgumentException("Exactly 4 players are required to form teams");

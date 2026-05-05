@@ -81,7 +81,9 @@ public class BeloteGameEventPublisher {
                             round.getRoundNumber(),
                             round.getRoundStatus(),
                             round.getCurrentTurnIndex(),
-                            visibleHand
+                            visibleHand,
+                            round.getTeam1RoundScore(),
+                            round.getTeam2RoundScore()
                     )
             );
         }
@@ -179,7 +181,11 @@ public class BeloteGameEventPublisher {
                         nextTrickPending,
                         winningPlayerIndex,
                         game.getCurrentRound().getCurrentTurnIndex(),
-                        timeoutSeconds
+                        timeoutSeconds,
+                        game.getCurrentRound().getTeam1RoundScore(),
+                        game.getCurrentRound().getTeam2RoundScore(),
+                        game.getTeam1().getTotalScore(),
+                        game.getTeam2().getTotalScore()
                 )
         );
     }

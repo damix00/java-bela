@@ -40,6 +40,8 @@ public class BeloteRound implements Serializable {
     private int currentTrickNumber = -1; // 0-based index for tricks within this round
     private List<Trick> tricks; // List of tricks played in this round, in order
     private Trick currentTrick;
+    private RoundTeam team1 = new RoundTeam();
+    private RoundTeam team2 = new RoundTeam();
 
     private List<Trick> tricksOrEmpty() {
         if (tricks == null) {
@@ -83,6 +85,7 @@ public class BeloteRound implements Serializable {
         }
 
         this.trumpSuite = suite;
+        getRoundTeamForPlayerIndex(currentTurnIndex).setCalledTrump(true);
         this.roundStatus = RoundStatus.DECLARATIONS;
     }
 
@@ -142,9 +145,12 @@ public class BeloteRound implements Serializable {
         if (currentTrick.isComplete()) {
             int winningPlayerIndex = TrickValidator.determineTrickWinner(currentTrick, trumpSuite);
             currentTrick.setWinningPlayerIndex(winningPlayerIndex);
+            getRoundTeamForPlayerIndex(winningPlayerIndex).addCardPoints(currentTrick.calculatePoints());
             currentTurnIndex = winningPlayerIndex;
 
             if (gamePlayer.getHand().isEmpty()) {
+                // add 10 points for winning the last trick
+                getRoundTeamForPlayerIndex(winningPlayerIndex).addCardPoints(10);
                 roundStatus = RoundStatus.FINISHED;
                 return new CardThrowResult(true, playedTrickNumber, true, winningPlayerIndex, false);
             }
@@ -154,5 +160,55 @@ public class BeloteRound implements Serializable {
 
         advanceTurn();
         return new CardThrowResult(true, playedTrickNumber, false, null, false);
+    }
+
+    public RoundTeam getRoundTeam(int teamIndex) {
+        if (teamIndex == 0) {
+            return team1;
+        }
+        if (teamIndex == 1) {
+            return team2;
+        }
+        throw new IllegalArgumentException("Team index must be 0 or 1");
+    }
+
+    public RoundTeam getRoundTeamForPlayerIndex(int playerIndex) {
+        if (playerIndex < 0 || playerIndex > 3) {
+            throw new IllegalArgumentException("Player index must be between 0 and 3");
+        }
+        return getRoundTeam(playerIndex % 2);
+    }
+
+    public int getTeam1RoundScore() {
+        return getFinalRoundScore(0);
+    }
+
+    public int getTeam2RoundScore() {
+        return getFinalRoundScore(1);
+    }
+
+    private int getFinalRoundScore(int teamIndex) {
+        if (roundStatus != RoundStatus.FINISHED) {
+            return getRoundTeam(teamIndex).getPoints();
+        }
+
+        int callerTeamIndex = team1.isCalledTrump() ? 0 : team2.isCalledTrump() ? 1 : -1;
+        if (callerTeamIndex == -1) {
+            return getRoundTeam(teamIndex).getPoints();
+        }
+
+        RoundTeam caller = getRoundTeam(callerTeamIndex);
+        RoundTeam other = getRoundTeam(1 - callerTeamIndex);
+        int totalPoints = caller.getPoints() + other.getPoints();
+
+        if (caller.getPoints() * 2 >= totalPoints) {
+            return getRoundTeam(teamIndex).getPoints();
+        }
+
+        if (teamIndex == callerTeamIndex) {
+            return 0;
+        }
+
+        return caller.getCardPoints() + other.getCardPoints() + other.getDeclarationPoints();
     }
 }

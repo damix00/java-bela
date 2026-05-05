@@ -7,6 +7,7 @@ import pro.damjan.belabackend.game.events.BeloteGameEventPublisher;
 import pro.damjan.belabackend.game.model.BeloteGame;
 import pro.damjan.belabackend.game.model.GameStatus;
 import pro.damjan.belabackend.game.model.card.Card;
+import pro.damjan.belabackend.game.model.card.Declaration;
 import pro.damjan.belabackend.game.model.card.Rank;
 import pro.damjan.belabackend.game.model.card.Suite;
 import pro.damjan.belabackend.game.model.player.GamePlayer;
@@ -69,6 +70,8 @@ class CardPlayServiceTest {
         assertThat(round.getCurrentTrickNumber()).isEqualTo(0);
         assertThat(round.getCurrentTrick()).isSameAs(round.getTricks().get(0));
         assertThat(round.getCurrentTurnIndex()).isEqualTo(3);
+        assertThat(round.getTeam1RoundScore()).isZero();
+        assertThat(round.getTeam2RoundScore()).isEqualTo(11);
 
         verify(scheduledTaskRegistry).registerTask(org.mockito.ArgumentMatchers.argThat(task ->
                 task.getType() == ScheduledTaskType.NEXT_TRICK_START_TASK
@@ -152,6 +155,10 @@ class CardPlayServiceTest {
         assertThat(round.getTricks()).hasSize(1);
         assertThat(round.getCurrentTrick()).isSameAs(round.getTricks().get(0));
         assertThat(round.getCurrentTrick().isComplete()).isTrue();
+        assertThat(round.getTeam1RoundScore()).isZero();
+        assertThat(round.getTeam2RoundScore()).isEqualTo(21);
+        assertThat(game.getTeam1().getTotalScore()).isZero();
+        assertThat(game.getTeam2().getTotalScore()).isEqualTo(21);
 
         verify(scheduledTaskRegistry).registerTask(org.mockito.ArgumentMatchers.argThat(task ->
                 task.getType() == ScheduledTaskType.ROUND_START_TASK
@@ -172,6 +179,31 @@ class CardPlayServiceTest {
                 eq(3),
                 eq(0L)
         );
+    }
+
+    @Test
+    void trumpCallingTeamBelowHalfGivesOtherTeamAllCardPointsAndTheirDeclarations() {
+        BeloteGame game = playingGameWithHands(
+                List.of(card(Suite.HEARTS, Rank.SEVEN)),
+                List.of(card(Suite.HEARTS, Rank.EIGHT)),
+                List.of(card(Suite.HEARTS, Rank.NINE)),
+                List.of(card(Suite.HEARTS, Rank.ACE))
+        );
+        game.getCurrentRound().getRoundTeam(0).setCalledTrump(true);
+        Declaration declaration = new Declaration();
+        declaration.setType(Declaration.Type.SEQUENCE_3);
+        game.getCurrentRound().getRoundTeam(1).setDeclarations(List.of(declaration));
+        preplayCard(game, 0, Suite.HEARTS, Rank.SEVEN);
+        preplayCard(game, 1, Suite.HEARTS, Rank.EIGHT);
+        preplayCard(game, 2, Suite.HEARTS, Rank.NINE);
+        when(gameAccessService.requireUserGame("p3")).thenReturn(game);
+
+        cardPlayService.throwCard("p3", Suite.HEARTS, Rank.ACE);
+
+        assertThat(game.getCurrentRound().getTeam1RoundScore()).isZero();
+        assertThat(game.getCurrentRound().getTeam2RoundScore()).isEqualTo(41);
+        assertThat(game.getTeam1().getTotalScore()).isZero();
+        assertThat(game.getTeam2().getTotalScore()).isEqualTo(41);
     }
 
     @Test

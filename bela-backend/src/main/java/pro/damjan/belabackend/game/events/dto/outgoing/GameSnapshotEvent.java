@@ -99,6 +99,8 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
         private final int currentTurnIndex;
         private final int currentTrickNumber;
         private final List<PlayedCard> currentTrickCards;
+        private final int team1RoundPoints;
+        private final int team2RoundPoints;
 
         private RoundSnapshot(
                 int roundNumber,
@@ -106,7 +108,9 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
                 Suite trumpSuite,
                 int currentTurnIndex,
                 int currentTrickNumber,
-                List<PlayedCard> currentTrickCards
+                List<PlayedCard> currentTrickCards,
+                int team1RoundPoints,
+                int team2RoundPoints
         ) {
             this.roundNumber = roundNumber;
             this.roundStatus = roundStatus;
@@ -114,6 +118,8 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
             this.currentTurnIndex = currentTurnIndex;
             this.currentTrickNumber = currentTrickNumber;
             this.currentTrickCards = currentTrickCards;
+            this.team1RoundPoints = team1RoundPoints;
+            this.team2RoundPoints = team2RoundPoints;
         }
 
         public static RoundSnapshot from(BeloteRound round) {
@@ -123,7 +129,9 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
                     round.getTrumpSuite(),
                     round.getCurrentTurnIndex(),
                     round.getCurrentTrickNumber(),
-                    round.getCurrentTrick() == null ? List.of() : round.getCurrentTrick().getPlayedCards()
+                    round.getCurrentTrick() == null ? List.of() : round.getCurrentTrick().getPlayedCards(),
+                    round.getTeam1RoundScore(),
+                    round.getTeam2RoundScore()
             );
         }
     }

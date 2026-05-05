@@ -18,6 +18,10 @@ public class CardThrownEvent extends OutgoingEvent {
     private Integer winningPlayerIndex;
     private int nextTurnIndex;
     private long timeoutSeconds;
+    private int team1RoundPoints;
+    private int team2RoundPoints;
+    private int team1TotalScore;
+    private int team2TotalScore;
 
     public CardThrownEvent(
             int roundNumber,
@@ -29,7 +33,11 @@ public class CardThrownEvent extends OutgoingEvent {
             boolean nextTrickPending,
             Integer winningPlayerIndex,
             int nextTurnIndex,
-            long timeoutSeconds
+            long timeoutSeconds,
+            int team1RoundPoints,
+            int team2RoundPoints,
+            int team1TotalScore,
+            int team2TotalScore
     ) {
         super("game:cardThrown");
         this.roundNumber = roundNumber;
@@ -42,5 +50,9 @@ public class CardThrownEvent extends OutgoingEvent {
         this.winningPlayerIndex = winningPlayerIndex;
         this.nextTurnIndex = nextTurnIndex;
         this.timeoutSeconds = timeoutSeconds;
+        this.team1RoundPoints = team1RoundPoints;
+        this.team2RoundPoints = team2RoundPoints;
+        this.team1TotalScore = team1TotalScore;
+        this.team2TotalScore = team2TotalScore;
     }
 }
