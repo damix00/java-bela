@@ -130,6 +130,7 @@ export default function GameView() {
       : nextTrickPending?.winningPlayerIndex != null
         ? `Seat ${nextTrickPending.winningPlayerIndex + 1}`
         : "Winner";
+  const nextRoundNumber = (nextTrickPending?.roundNumber ?? 0) + 2;
 
   const handleThrowCard = useCallback(
     (card: Card, _index: number, source: "click" | "drag") => {
@@ -237,7 +238,6 @@ export default function GameView() {
 
           {/* Center trick area */}
           <CenterTrick
-            key={tableStateKey}
             dropTargetRef={trickDropRef}
             previewCard={activePreviewCard}
             previewPlayerIndex={bottomPlayer?.seatIndex ?? null}
@@ -273,30 +273,41 @@ export default function GameView() {
           )}
         </AnimatePresence>
 
-        <AnimatePresence>
-          {bottomPlayer && !isChoosingTrump && nextTrickPending && (
-            <NextTrickIndicator
-              key={`${nextTrickPending.roundNumber}-${nextTrickPending.completedTrickNumber}-${nextTrickPending.startedAt}`}
-              winningPlayerLabel={nextTrickWinningLabel}
-              timeoutSeconds={nextTrickPending.timeoutSeconds}
-              startedAt={nextTrickPending.startedAt}
-            />
-          )}
+        <div className="flex min-h-[6.75rem] w-full items-center justify-center px-4">
+          <AnimatePresence mode="wait">
+            {bottomPlayer && !isChoosingTrump && nextTrickPending && (
+              <NextTrickIndicator
+                key={`${nextTrickPending.kind}-${nextTrickPending.roundNumber}-${nextTrickPending.completedTrickNumber}-${nextTrickPending.startedAt}`}
+                title={
+                  nextTrickPending.kind === "round"
+                    ? "Round Complete"
+                    : "Trick Complete"
+                }
+                message={
+                  nextTrickPending.kind === "round"
+                    ? `Round ${nextRoundNumber} starts next`
+                    : `${nextTrickWinningLabel} starts next`
+                }
+                timeoutSeconds={nextTrickPending.timeoutSeconds}
+                startedAt={nextTrickPending.startedAt}
+              />
+            )}
 
-          {bottomPlayer && !isChoosingTrump && turnTimer && (
-            <TurnTimeout
-              key={`${turnTimer.roundNumber}-${turnTimer.trickNumber}-${turnTimer.currentTurnIndex}-${turnTimer.startedAt}`}
-              label={
-                turnTimer.currentTurnIndex === bottomPlayer.seatIndex
-                  ? "Throw your card"
-                  : `Seat ${turnTimer.currentTurnIndex + 1} is up`
-              }
-              timeoutSeconds={turnTimer.timeoutSeconds}
-              startedAt={turnTimer.startedAt}
-              isMyTurn={turnTimer.currentTurnIndex === bottomPlayer.seatIndex}
-            />
-          )}
-        </AnimatePresence>
+            {bottomPlayer && !isChoosingTrump && !nextTrickPending && turnTimer && (
+              <TurnTimeout
+                key={`${turnTimer.roundNumber}-${turnTimer.trickNumber}-${turnTimer.currentTurnIndex}-${turnTimer.startedAt}`}
+                label={
+                  turnTimer.currentTurnIndex === bottomPlayer.seatIndex
+                    ? "Throw your card"
+                    : `Seat ${turnTimer.currentTurnIndex + 1} is up`
+                }
+                timeoutSeconds={turnTimer.timeoutSeconds}
+                startedAt={turnTimer.startedAt}
+                isMyTurn={turnTimer.currentTurnIndex === bottomPlayer.seatIndex}
+              />
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Hand */}
         {bottomPlayer && (

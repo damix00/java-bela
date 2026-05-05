@@ -4,7 +4,6 @@ import { motion } from "motion/react";
 import { GamePlayer } from "@/types/game";
 import { useEffect, useState } from "react";
 import { getUserData, PublicUserData } from "@/lib/user-cache";
-import PlayingCard from "./playing-card";
 
 type Position = "top" | "left" | "right" | "bottom";
 
@@ -18,34 +17,42 @@ export default function PlayerSeat({
     isCurrentTurn: boolean;
 }) {
     const [userData, setUserData] = useState<PublicUserData | null>(null);
+    const botUserData: PublicUserData | null = player.bot
+        ? {
+              id: player.userId,
+              username: `Bot ${player.seatIndex + 1}`,
+              avatarUrl: null,
+              createdAt: new Date().toISOString(),
+          }
+        : null;
 
     useEffect(() => {
-        if (!player) {
-            return;
-        }
         if (player.bot) {
-            setUserData({
-                id: player.userId,
-                username: `Bot ${player.seatIndex + 1}`,
-                avatarUrl: null,
-                createdAt: new Date().toISOString(),
-            });
             return;
         }
-        getUserData(player.userId).then(setUserData);
-    }, [player.userId]);
+        let ignore = false;
 
-    const displayName = userData?.username ?? "...";
+        getUserData(player.userId).then((data) => {
+            if (!ignore) {
+                setUserData(data);
+            }
+        });
+
+        return () => {
+            ignore = true;
+        };
+    }, [player.bot, player.userId]);
+
+    const displayUserData = botUserData ?? userData;
+    const displayName = displayUserData?.username ?? "...";
     const initials = displayName.slice(0, 2).toUpperCase();
 
     // Card count indicator for opponents
     const cardCount = player.hand?.length ?? 0;
 
-    const isVertical = position === "left" || position === "right";
-
     return (
         <motion.div
-            className="flex flex-col items-center gap-1.5"
+            className="flex min-h-[6.25rem] flex-col items-center gap-1.5"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{
@@ -62,9 +69,9 @@ export default function PlayerSeat({
                             ? "bg-primary text-on-primary ring-2 ring-primary ring-offset-2 ring-offset-background"
                             : "bg-background-tertiary text-foreground-muted"
                     }`}>
-                    {userData?.avatarUrl ? (
+                    {displayUserData?.avatarUrl ? (
                         <img
-                            src={userData.avatarUrl}
+                            src={displayUserData.avatarUrl}
                             alt={displayName}
                             className="w-full h-full rounded-lg object-cover"
                         />
@@ -92,19 +99,16 @@ export default function PlayerSeat({
             </div>
 
             {/* Turn indicator */}
-            {isCurrentTurn && (
-                <motion.div
-                    className="text-[10px] font-bold uppercase tracking-widest text-primary"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{
-                        repeat: Infinity,
-                        repeatType: "reverse",
-                        duration: 0.8,
-                    }}>
-                    {position === "bottom" ? "Your Turn" : "Playing..."}
-                </motion.div>
-            )}
+            <motion.div
+                className="h-3 text-[10px] font-bold uppercase leading-3 tracking-widest text-primary"
+                initial={{ opacity: 0 }}
+                animate={isCurrentTurn ? { opacity: [1, 0.35, 1] } : { opacity: 0 }}
+                transition={{
+                    repeat: isCurrentTurn ? Infinity : 0,
+                    duration: 0.8,
+                }}>
+                {position === "bottom" ? "Your Turn" : "Playing..."}
+            </motion.div>
         </motion.div>
     );
 }

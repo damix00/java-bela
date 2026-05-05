@@ -115,6 +115,7 @@ export type TurnTimerState = {
 } | null;
 
 export type NextTrickPendingState = {
+    kind: "trick" | "round";
     roundNumber: number;
     completedTrickNumber: number;
     winningPlayerIndex: number | null;
@@ -490,10 +491,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
     useWsEvent<CardThrownData>("game:cardThrown", (data) => {
         if (data.nextTrickPending) {
             setNextTrickPending({
+                kind: "trick",
                 roundNumber: data.roundNumber,
                 completedTrickNumber: data.trickNumber,
                 winningPlayerIndex: data.winningPlayerIndex,
                 timeoutSeconds: 3,
+                startedAt: Date.now(),
+            });
+        } else if (data.trickComplete) {
+            setNextTrickPending({
+                kind: "round",
+                roundNumber: data.roundNumber,
+                completedTrickNumber: data.trickNumber,
+                winningPlayerIndex: data.winningPlayerIndex,
+                timeoutSeconds: 5,
                 startedAt: Date.now(),
             });
         } else if (!data.trickComplete) {
@@ -556,6 +567,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
             const currentRound: BeloteRound = {
                 ...prev.currentRound,
+                roundStatus:
+                    data.trickComplete && !data.nextTrickPending
+                        ? RoundStatus.FINISHED
+                        : prev.currentRound.roundStatus,
                 currentTurnIndex: hasNewerCurrentTrick
                     ? prev.currentRound.currentTurnIndex
                     : data.nextTurnIndex,

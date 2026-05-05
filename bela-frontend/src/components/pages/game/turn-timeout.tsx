@@ -46,7 +46,7 @@ export default function TurnTimeout({
 
   return (
     <motion.div
-      className="pointer-events-none relative overflow-hidden rounded-2xl border border-white/10 bg-background-secondary/78 px-4 py-3 shadow-[0_18px_45px_rgba(0,0,0,0.22)] backdrop-blur-md"
+      className="pointer-events-none relative w-full max-w-sm overflow-hidden rounded-2xl border border-white/10 bg-background-secondary/78 px-4 py-3 shadow-[0_18px_45px_rgba(0,0,0,0.22)] backdrop-blur-md"
       initial={{ opacity: 0, y: 18, scale: 0.96 }}
       animate={{
         opacity: 1,

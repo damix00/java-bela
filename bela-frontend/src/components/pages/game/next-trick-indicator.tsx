@@ -4,11 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 
 export default function NextTrickIndicator({
-  winningPlayerLabel,
+  title,
+  message,
   timeoutSeconds,
   startedAt,
 }: {
-  winningPlayerLabel: string;
+  title: string;
+  message: string;
   timeoutSeconds: number;
   startedAt: number;
 }) {
@@ -38,7 +40,7 @@ export default function NextTrickIndicator({
 
   return (
     <motion.div
-      className="pointer-events-none relative overflow-hidden rounded-2xl border border-primary/20 bg-background-secondary/82 px-4 py-3 shadow-[0_18px_45px_rgba(0,0,0,0.24)] backdrop-blur-md"
+      className="pointer-events-none relative w-full max-w-sm overflow-hidden rounded-2xl border border-primary/20 bg-background-secondary/82 px-4 py-3 shadow-[0_18px_45px_rgba(0,0,0,0.24)] backdrop-blur-md"
       initial={{ opacity: 0, y: 16, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 10, scale: 0.98 }}
@@ -61,10 +63,10 @@ export default function NextTrickIndicator({
 
         <div className="min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground-muted">
-            Trick Complete
+            {title}
           </p>
           <p className="truncate text-sm font-semibold text-foreground">
-            {winningPlayerLabel} starts next
+            {message}
           </p>
         </div>
       </div>
