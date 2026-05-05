@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useGame } from "@/context/game-context";
-import { Card, getCardKey, getPlayersInSeatOrder, RoundStatus } from "@/types/game";
+import { Card, Declaration, getCardKey, getPlayersInSeatOrder, RoundStatus } from "@/types/game";
 import { getLegalMoveCardKeys } from "@/lib/game-rules";
 import Loader from "@/components/ui/loader";
 import ScoreBoard from "./score-board";
@@ -18,6 +18,7 @@ import RoundStartOverlay from "./round-start-overlay";
 import TrumpChooser from "./trump-chooser";
 import TurnTimeout from "./turn-timeout";
 import NextTrickIndicator from "./next-trick-indicator";
+import DeclarationRevealOverlay from "./declaration-reveal-overlay";
 
 export default function GameView() {
   const {
@@ -112,11 +113,33 @@ export default function GameView() {
     return { team1Score: we, team2Score: they };
   }, [game, bottomPlayer]);
 
+  const declarations = useMemo<Declaration[]>(() => {
+    const round = game?.currentRound;
+    if (!round) return [];
+
+    return [
+      ...(round.team1Declarations ?? []),
+      ...(round.team2Declarations ?? []),
+    ];
+  }, [game?.currentRound]);
+
+  const getDeclarationPlayerLabel = useCallback(
+    (playerIndex: number) => {
+      if (playerIndex === bottomPlayer?.seatIndex) return "You";
+      if (playerIndex === topPlayer?.seatIndex) return "Partner";
+      if (playerIndex === leftPlayer?.seatIndex) return "Left player";
+      if (playerIndex === rightPlayer?.seatIndex) return "Right player";
+      return `Seat ${playerIndex + 1}`;
+    },
+    [bottomPlayer, leftPlayer, rightPlayer, topPlayer],
+  );
+
   // Current turn check
   const currentTurnSeatIndex = game?.currentRound?.currentTurnIndex ?? -1;
   const isChoosingTrump =
     game?.currentRound?.roundStatus === RoundStatus.CHOOSING_TRUMP &&
     trumpChoice !== null;
+  const isPlayingCards = game?.currentRound?.roundStatus === RoundStatus.PLAYING;
 
   const trumpSuite = game?.currentRound?.trumpSuite ?? null;
   const currentTrick = game?.currentRound?.currentTrick ?? null;
@@ -223,6 +246,13 @@ export default function GameView() {
       <AnimatePresence>
         {phase === "countdown" && <GameCountdown key="countdown" />}
         {phase === "round_starting" && <RoundStartOverlay key="round" />}
+        {phase === "declarations" && declarations.length > 0 && (
+          <DeclarationRevealOverlay
+            key="declarations"
+            declarations={declarations}
+            getPlayerLabel={getDeclarationPlayerLabel}
+          />
+        )}
       </AnimatePresence>
 
       {/* Top bar: Score + Trump */}
@@ -346,6 +376,7 @@ export default function GameView() {
           <PlayerHand
             cards={bottomPlayer.hand ?? []}
             interactive={
+              isPlayingCards &&
               !isChoosingTrump &&
               !nextTrickPending &&
               bottomPlayer.seatIndex === currentTurnSeatIndex

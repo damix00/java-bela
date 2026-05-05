@@ -53,6 +53,10 @@ public class BeloteGameService {
         gameLockService.withGameLock(gameId, () -> trumpPhaseService.handleBotTrumpChoice(gameId, roundNumber, turnIndex));
     }
 
+    public void handleDeclarationsComplete(String gameId, int roundNumber) {
+        gameLockService.withGameLock(gameId, () -> trumpPhaseService.handleDeclarationsComplete(gameId, roundNumber));
+    }
+
     public void chooseTrump(String userId, Suite suite) {
         withUserGameLock(userId, () -> trumpPhaseService.chooseTrump(userId, suite));
     }

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import pro.damjan.belabackend.game.events.BeloteGameEventPublisher;
 import pro.damjan.belabackend.game.model.BeloteGame;
 import pro.damjan.belabackend.game.model.card.Card;
+import pro.damjan.belabackend.game.model.card.DeclarationResolver;
 import pro.damjan.belabackend.game.model.card.Suite;
 import pro.damjan.belabackend.game.model.player.GamePlayer;
 import pro.damjan.belabackend.game.model.round.BeloteRound;
@@ -28,6 +29,8 @@ public class TrumpPhaseService {
     private static final Duration BOT_TRUMP_CHOICE_DELAY = Duration.ofSeconds(1);
     private static final Duration TRUMP_CHOICE_TIMEOUT = Duration.ofSeconds(10);
     private static final Duration CARD_THROW_TIMEOUT = Duration.ofSeconds(30);
+    private static final Duration DECLARATION_REVEAL_DELAY = Duration.ofSeconds(4);
+    private static final Duration NEXT_ROUND_DELAY = Duration.ofSeconds(5);
 
     private final GameAccessService gameAccessService;
     private final BeloteGameEventPublisher gamePublisher;
@@ -72,6 +75,20 @@ public class TrumpPhaseService {
         }
 
         chooseBotTrump(game);
+    }
+
+    public void handleDeclarationsComplete(String gameId, int roundNumber) {
+        BeloteGame game = gameAccessService.requireGameById(gameId);
+
+        var round = game.getCurrentRound();
+        if (round == null
+                || round.getRoundStatus() != RoundStatus.DECLARATIONS
+                || round.getRoundNumber() != roundNumber) {
+            return;
+        }
+
+        startCardPlay(game);
+        publishFirstCardTurnOrSchedule(game);
     }
 
     public void chooseTrump(String userId, Suite suite) {
@@ -135,15 +152,49 @@ public class TrumpPhaseService {
             player.updateTrumpSuite(suite);
         }
 
+        var declarations = DeclarationResolver.resolve(game.getPlayers(), round.getStartingPlayerIndex());
+        round.getRoundTeam(0).setDeclarations(declarations.team1Declarations());
+        round.getRoundTeam(1).setDeclarations(declarations.team2Declarations());
+
+        if (declarations.belot()) {
+            round.setRoundStatus(RoundStatus.FINISHED);
+            game.finishCurrentRoundScoring();
+
+            gameAccessService.save(game);
+            gamePublisher.trumpChosen(game, chosenByTurnIndex, suite, RoundStatus.FINISHED, revealedCardsByUserId);
+            scheduleNextRoundStart(game, round.getRoundNumber() + 1);
+            return;
+        }
+
+        if (declarations.hasWinningTeam()) {
+            round.setRoundStatus(RoundStatus.DECLARATIONS);
+
+            gameAccessService.save(game);
+            gamePublisher.trumpChosen(game, chosenByTurnIndex, suite, RoundStatus.DECLARATIONS, revealedCardsByUserId);
+            scheduleDeclarationsComplete(game);
+            return;
+        }
+
+        startCardPlay(game);
+        gamePublisher.trumpChosen(game, chosenByTurnIndex, suite, RoundStatus.PLAYING, revealedCardsByUserId);
+        publishFirstCardTurnOrSchedule(game);
+    }
+
+    private void startCardPlay(BeloteGame game) {
+        BeloteRound round = game.getCurrentRound();
+
         round.setRoundStatus(RoundStatus.PLAYING);
         round.setCurrentTurnIndex(round.getStartingPlayerIndex());
         round.startNewTrick();
 
         gameAccessService.save(game);
-        gamePublisher.trumpChosen(game, chosenByTurnIndex, suite, RoundStatus.PLAYING, revealedCardsByUserId);
+    }
+
+    private void publishFirstCardTurnOrSchedule(BeloteGame game) {
         if (!isCurrentPlayerBot(game)) {
             gamePublisher.cardTurnStarted(game, CARD_THROW_TIMEOUT.toSeconds());
         }
+
         cardPlayService.playBotTurnOrSchedule(game);
     }
 
@@ -199,6 +250,33 @@ public class TrumpPhaseService {
                                 "roundNumber", round.getRoundNumber(),
                                 "turnIndex", round.getCurrentTurnIndex()
                         )
+                )
+        );
+    }
+
+    private void scheduleDeclarationsComplete(BeloteGame game) {
+        var round = game.getCurrentRound();
+        if (round == null || round.getRoundStatus() != RoundStatus.DECLARATIONS) {
+            return;
+        }
+
+        scheduledTaskRegistry.registerTask(
+                new ScheduledGameTask(
+                        ScheduledTaskType.DECLARATIONS_COMPLETE_TASK,
+                        DECLARATION_REVEAL_DELAY,
+                        game.getId(),
+                        Map.of("roundNumber", round.getRoundNumber())
+                )
+        );
+    }
+
+    private void scheduleNextRoundStart(BeloteGame game, int nextRoundNumber) {
+        scheduledTaskRegistry.registerTask(
+                new ScheduledGameTask(
+                        ScheduledTaskType.ROUND_START_TASK,
+                        NEXT_ROUND_DELAY,
+                        game.getId(),
+                        Map.of("roundNumber", nextRoundNumber)
                 )
         );
     }

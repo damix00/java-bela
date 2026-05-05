@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter @Setter
 public class Declaration implements Serializable {
@@ -28,4 +30,18 @@ public class Declaration implements Serializable {
     }
 
     private Type type;
+    private int playerIndex = -1;
+    private List<Card> cards = new ArrayList<>();
+
+    public Declaration() {}
+
+    public Declaration(Type type, int playerIndex, List<Card> cards) {
+        this.type = type;
+        this.playerIndex = playerIndex;
+        this.cards = new ArrayList<>(cards);
+    }
+
+    public int getPoints() {
+        return type == null ? 0 : type.getPoints();
+    }
 }

@@ -74,6 +74,8 @@ export enum DeclarationType {
 export type Declaration = {
     type: DeclarationType;
     points: number;
+    playerIndex: number;
+    cards: Card[];
 };
 
 export type BeloteRound = {
@@ -84,6 +86,8 @@ export type BeloteRound = {
     currentTrickNumber: number;
     team1RoundPoints: number;
     team2RoundPoints: number;
+    team1Declarations: Declaration[];
+    team2Declarations: Declaration[];
     tricks: Trick[];
     currentTrick: Trick | null;
 };

@@ -6,6 +6,7 @@ import pro.damjan.belabackend.game.model.BeloteGame;
 import pro.damjan.belabackend.game.model.GameStatus;
 import pro.damjan.belabackend.game.model.card.Card;
 import pro.damjan.belabackend.game.model.card.CardOrdering;
+import pro.damjan.belabackend.game.model.card.Declaration;
 import pro.damjan.belabackend.game.model.card.Suite;
 import pro.damjan.belabackend.game.model.player.GamePlayer;
 import pro.damjan.belabackend.game.model.round.BeloteRound;
@@ -101,6 +102,8 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
         private final List<PlayedCard> currentTrickCards;
         private final int team1RoundPoints;
         private final int team2RoundPoints;
+        private final List<Declaration> team1Declarations;
+        private final List<Declaration> team2Declarations;
 
         private RoundSnapshot(
                 int roundNumber,
@@ -110,7 +113,9 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
                 int currentTrickNumber,
                 List<PlayedCard> currentTrickCards,
                 int team1RoundPoints,
-                int team2RoundPoints
+                int team2RoundPoints,
+                List<Declaration> team1Declarations,
+                List<Declaration> team2Declarations
         ) {
             this.roundNumber = roundNumber;
             this.roundStatus = roundStatus;
@@ -120,6 +125,8 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
             this.currentTrickCards = currentTrickCards;
             this.team1RoundPoints = team1RoundPoints;
             this.team2RoundPoints = team2RoundPoints;
+            this.team1Declarations = team1Declarations;
+            this.team2Declarations = team2Declarations;
         }
 
         public static RoundSnapshot from(BeloteRound round) {
@@ -131,7 +138,9 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
                     round.getCurrentTrickNumber(),
                     round.getCurrentTrick() == null ? List.of() : round.getCurrentTrick().getPlayedCards(),
                     round.getTeam1RoundScore(),
-                    round.getTeam2RoundScore()
+                    round.getTeam2RoundScore(),
+                    round.getRoundTeam(0).getDeclarations(),
+                    round.getRoundTeam(1).getDeclarations()
             );
         }
     }

@@ -173,6 +173,74 @@ class TrumpPhaseServiceTest {
         verify(scheduledTaskRegistry, never()).registerTask(any(ScheduledGameTask.class));
     }
 
+    @Test
+    void declarationsAreShownBeforeCardPlayStarts() {
+        BeloteGame game = choosingTrumpGame();
+        game.getPlayer(0).receiveCards(List.of(
+                visible(Suite.HEARTS, Rank.JACK),
+                visible(Suite.BELLS, Rank.JACK),
+                visible(Suite.ACORN, Rank.JACK),
+                visible(Suite.LEAF, Rank.JACK)
+        ));
+        when(gameAccessService.requireUserGame("p0")).thenReturn(game);
+
+        trumpPhaseService.chooseTrump("p0", Suite.HEARTS);
+
+        assertThat(game.getCurrentRound().getRoundStatus()).isEqualTo(RoundStatus.DECLARATIONS);
+        assertThat(game.getCurrentRound().getCurrentTrick()).isNull();
+        assertThat(game.getCurrentRound().getRoundTeam(0).getDeclarationPoints()).isEqualTo(200);
+        assertThat(game.getCurrentRound().getTeam1RoundScore()).isEqualTo(200);
+
+        verify(gameAccessService).save(game);
+        verify(gamePublisher).trumpChosen(eq(game), eq(0), eq(Suite.HEARTS), eq(RoundStatus.DECLARATIONS), any(Map.class));
+        verify(gamePublisher, never()).cardTurnStarted(any(), any(Long.class));
+        verify(cardPlayService, never()).playBotTurnOrSchedule(game);
+        verify(scheduledTaskRegistry).registerTask(org.mockito.ArgumentMatchers.argThat(task ->
+                task.getType() == ScheduledTaskType.DECLARATIONS_COMPLETE_TASK
+                        && task.getDelay().equals(Duration.ofSeconds(4))
+                        && task.getRequiredIntParameter("roundNumber") == 0
+        ));
+    }
+
+    @Test
+    void belotDeclarationFinishesRoundAndSchedulesNextRoundWithoutFinishingGame() {
+        BeloteGame game = choosingTrumpGame();
+        game.getPlayer(0).receiveCards(List.of(
+                visible(Suite.HEARTS, Rank.SEVEN),
+                visible(Suite.HEARTS, Rank.EIGHT),
+                visible(Suite.HEARTS, Rank.NINE),
+                visible(Suite.HEARTS, Rank.TEN),
+                visible(Suite.HEARTS, Rank.JACK),
+                visible(Suite.HEARTS, Rank.QUEEN),
+                hidden(Suite.HEARTS, Rank.KING),
+                hidden(Suite.HEARTS, Rank.ACE)
+        ));
+        when(gameAccessService.requireUserGame("p0")).thenReturn(game);
+
+        trumpPhaseService.chooseTrump("p0", Suite.BELLS);
+
+        assertThat(game.getStatus()).isEqualTo(GameStatus.IN_PROGRESS);
+        assertThat(game.getTeam1().getTotalScore()).isEqualTo(162);
+        assertThat(game.getTeam2().getTotalScore()).isZero();
+        assertThat(game.getCurrentRound().getRoundStatus()).isEqualTo(RoundStatus.FINISHED);
+        assertThat(game.getCurrentRound().getCurrentTrick()).isNull();
+        assertThat(game.getCurrentRound().getRoundTeam(0).getDeclarations())
+                .singleElement()
+                .extracting(declaration -> declaration.getType())
+                .isEqualTo(pro.damjan.belabackend.game.model.card.Declaration.Type.BELOTE);
+
+        verify(gameAccessService).save(game);
+        verify(gamePublisher).trumpChosen(eq(game), eq(0), eq(Suite.BELLS), eq(RoundStatus.FINISHED), any(Map.class));
+        verify(gamePublisher, never()).statusChanged(game);
+        verify(gamePublisher, never()).cardTurnStarted(any(), any(Long.class));
+        verify(cardPlayService, never()).playBotTurnOrSchedule(game);
+        verify(scheduledTaskRegistry).registerTask(org.mockito.ArgumentMatchers.argThat(task ->
+                task.getType() == ScheduledTaskType.ROUND_START_TASK
+                        && task.getDelay().equals(Duration.ofSeconds(5))
+                        && task.getRequiredIntParameter("roundNumber") == 1
+        ));
+    }
+
     private BeloteGame choosingTrumpGame() {
         return choosingTrumpGame(false, false, false, false);
     }

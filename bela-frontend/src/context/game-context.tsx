@@ -15,6 +15,7 @@ import {
     BeloteGame,
     BeloteRound,
     Card,
+    Declaration,
     GameStatus,
     PlayedCard,
     RoundStatus,
@@ -39,6 +40,8 @@ type GameSnapshotData = {
         currentTrickCards: PlayedCard[];
         team1RoundPoints: number;
         team2RoundPoints: number;
+        team1Declarations: Declaration[];
+        team2Declarations: Declaration[];
     } | null;
 };
 
@@ -71,10 +74,17 @@ type TrumpChoiceSkippedData = {
 type TrumpChosenData = {
     roundNumber: number;
     chosenByTurnIndex: number;
+    currentTurnIndex: number;
     trumpSuite: Suite;
     roundStatus: RoundStatus;
     hand: Card[];
     revealedCards: Card[];
+    team1RoundPoints: number;
+    team2RoundPoints: number;
+    team1TotalScore: number;
+    team2TotalScore: number;
+    team1Declarations: Declaration[];
+    team2Declarations: Declaration[];
 };
 
 type CardTurnStartedData = {
@@ -105,6 +115,7 @@ export type GamePhase =
     | "loading"
     | "countdown"
     | "round_starting"
+    | "declarations"
     | "playing"
     | "finished";
 
@@ -255,6 +266,8 @@ function normalizeSnapshotRound(
         currentTrickNumber: round.currentTrickNumber,
         team1RoundPoints: round.team1RoundPoints,
         team2RoundPoints: round.team2RoundPoints,
+        team1Declarations: round.team1Declarations ?? [],
+        team2Declarations: round.team2Declarations ?? [],
         tricks: currentTrick ? [currentTrick] : [],
         currentTrick,
     };
@@ -293,7 +306,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
         });
 
         if (data.status === GameStatus.IN_PROGRESS) {
-            setPhase("playing");
+            const hasDeclarations =
+                (currentRound?.team1Declarations.length ?? 0) +
+                    (currentRound?.team2Declarations.length ?? 0) >
+                0;
+            setPhase(
+                currentRound?.roundStatus === RoundStatus.DECLARATIONS ||
+                    (currentRound?.roundStatus === RoundStatus.FINISHED &&
+                        hasDeclarations)
+                    ? "declarations"
+                    : "playing",
+            );
+        } else if (data.status === GameStatus.FINISHED) {
+            setPhase("finished");
         }
     });
 
@@ -313,6 +338,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 currentTrickNumber: -1,
                 team1RoundPoints: data.team1RoundPoints,
                 team2RoundPoints: data.team2RoundPoints,
+                team1Declarations: [],
+                team2Declarations: [],
                 tricks: [],
                 currentTrick: null,
             };
@@ -433,8 +460,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 ...prev.currentRound,
                 roundStatus: data.roundStatus,
                 trumpSuite: data.trumpSuite,
-                currentTurnIndex: data.chosenByTurnIndex,
+                currentTurnIndex: data.currentTurnIndex,
+                team1RoundPoints: data.team1RoundPoints,
+                team2RoundPoints: data.team2RoundPoints,
+                team1Declarations: data.team1Declarations ?? [],
+                team2Declarations: data.team2Declarations ?? [],
             };
+            const nextTeam1 = updateTeamHands(prev.team1);
+            const nextTeam2 = updateTeamHands(prev.team2);
 
             return {
                 ...prev,
@@ -444,13 +477,26 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         ? currentRound
                         : round,
                 ),
-                team1: updateTeamHands(prev.team1),
-                team2: updateTeamHands(prev.team2),
+                team1: {
+                    ...nextTeam1,
+                    totalScore: data.team1TotalScore,
+                },
+                team2: {
+                    ...nextTeam2,
+                    totalScore: data.team2TotalScore,
+                },
             };
         });
+
+        if (data.roundStatus === RoundStatus.DECLARATIONS) {
+            setPhase("declarations");
+        } else if (data.roundStatus === RoundStatus.FINISHED) {
+            setPhase("declarations");
+        }
     });
 
     useWsEvent<CardTurnStartedData>("game:cardTurnStarted", (data) => {
+        setPhase("playing");
         setNextTrickPending((prev) =>
             prev &&
             prev.roundNumber === data.roundNumber &&
@@ -484,6 +530,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
             const currentRound: BeloteRound = {
                 ...prev.currentRound,
+                roundStatus: RoundStatus.PLAYING,
                 currentTurnIndex: data.currentTurnIndex,
                 currentTrickNumber: data.trickNumber,
                 currentTrick: nextCurrentTrick,
@@ -634,6 +681,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
         if (data.gameStatus === GameStatus.IN_PROGRESS && phase === "loading") {
             setPhase("countdown");
+        } else if (data.gameStatus === GameStatus.FINISHED) {
+            setPhase("finished");
         }
     });
 

@@ -25,7 +25,7 @@ public class RoundTeam implements Serializable {
     public int getDeclarationPoints() {
         return declarations == null
                 ? 0
-                : declarations.stream().mapToInt(d -> d.getType().getPoints()).sum();
+                : declarations.stream().mapToInt(Declaration::getPoints).sum();
     }
 
     public void addCardPoints(int points) {

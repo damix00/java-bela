@@ -134,10 +134,17 @@ public class BeloteGameEventPublisher {
                             player.getUserId(),
                             round.getRoundNumber(),
                             chosenByTurnIndex,
+                            round.getCurrentTurnIndex(),
                             trumpSuite,
                             roundStatus,
                             CardOrdering.sortForClient(player.getHand()),
-                            CardOrdering.sortForClient(revealedCardsByUserId.getOrDefault(player.getUserId(), List.of()))
+                            CardOrdering.sortForClient(revealedCardsByUserId.getOrDefault(player.getUserId(), List.of())),
+                            round.getTeam1RoundScore(),
+                            round.getTeam2RoundScore(),
+                            game.getTeam1().getTotalScore(),
+                            game.getTeam2().getTotalScore(),
+                            round.getRoundTeam(0).getDeclarations(),
+                            round.getRoundTeam(1).getDeclarations()
                     )
             );
         }
