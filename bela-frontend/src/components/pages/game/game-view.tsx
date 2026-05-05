@@ -1,10 +1,10 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
-import { useMemo } from "react";
+import { AnimatePresence, LayoutGroup, motion } from "motion/react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useGame } from "@/context/game-context";
-import { getPlayersInSeatOrder, RoundStatus } from "@/types/game";
+import { Card, getCardKey, getPlayersInSeatOrder, RoundStatus } from "@/types/game";
 import Loader from "@/components/ui/loader";
 import ScoreBoard from "./score-board";
 import TrumpDisplay from "./trump-display";
@@ -14,10 +14,31 @@ import CenterTrick from "./center-trick";
 import GameCountdown from "./game-countdown";
 import RoundStartOverlay from "./round-start-overlay";
 import TrumpChooser from "./trump-chooser";
+import TurnTimeout from "./turn-timeout";
+import NextTrickIndicator from "./next-trick-indicator";
 
 export default function GameView() {
-  const { game, phase, trumpChoice, chooseTrump, passTrump } = useGame();
+  const {
+    game,
+    phase,
+    trumpChoice,
+    turnTimer,
+    nextTrickPending,
+    chooseTrump,
+    passTrump,
+    throwCard,
+  } = useGame();
   const { user } = useAuth();
+  const trickDropRef = useRef<HTMLDivElement | null>(null);
+  const [tableState, setTableState] = useState<{
+    trickKey: string;
+    previewCard: Card | null;
+    isDraggingCard: boolean;
+  }>({
+    trickKey: "",
+    previewCard: null,
+    isDraggingCard: false,
+  });
 
   // Map seat indices to visual positions relative to current user
   // Visual: 0=top (partner), 1=right, 2=bottom (me), 3=left
@@ -88,6 +109,60 @@ export default function GameView() {
 
   const trumpSuite = game?.currentRound?.trumpSuite ?? null;
   const playedCards = game?.currentRound?.currentTrick?.playedCards ?? [];
+  const tableStateKey = `${game?.currentRound?.roundNumber ?? -1}-${game?.currentRound?.currentTrickNumber ?? -1}`;
+  const previewCard =
+    tableState.trickKey === tableStateKey ? tableState.previewCard : null;
+  const isDraggingCard =
+    tableState.trickKey === tableStateKey ? tableState.isDraggingCard : false;
+  const activePreviewCard =
+    previewCard &&
+    playedCards.some(
+      (playedCard) =>
+        playedCard.playerIndex === bottomPlayer?.seatIndex &&
+        getCardKey(playedCard.card) === getCardKey(previewCard),
+    )
+      ? null
+      : previewCard;
+  const previewCardKey = activePreviewCard ? getCardKey(activePreviewCard) : null;
+  const nextTrickWinningLabel =
+    nextTrickPending?.winningPlayerIndex === bottomPlayer?.seatIndex
+      ? "You"
+      : nextTrickPending?.winningPlayerIndex != null
+        ? `Seat ${nextTrickPending.winningPlayerIndex + 1}`
+        : "Winner";
+
+  const handleThrowCard = useCallback(
+    (card: Card, _index: number, source: "click" | "drag") => {
+      setTableState({
+        trickKey: tableStateKey,
+        previewCard: source === "click" ? card : null,
+        isDraggingCard: false,
+      });
+      throwCard(card);
+    },
+    [tableStateKey, throwCard],
+  );
+
+  const handleDraggingChange = useCallback(
+    (dragging: boolean) => {
+      setTableState((current) => {
+        const nextPreviewCard =
+          current.trickKey === tableStateKey ? current.previewCard : null;
+        const nextState = {
+          trickKey: tableStateKey,
+          previewCard: nextPreviewCard,
+          isDraggingCard: dragging,
+        };
+
+        return current.trickKey === nextState.trickKey &&
+          current.previewCard === nextState.previewCard &&
+          current.isDraggingCard === nextState.isDraggingCard
+          ? current
+          : nextState;
+      });
+    },
+    [tableStateKey],
+  );
 
   // Loading state
   if (!game || phase === "loading") {
@@ -121,50 +196,56 @@ export default function GameView() {
         <TrumpDisplay suite={trumpSuite} />
       </div>
 
-      {/* Game table area */}
-      <div className="flex flex-1 flex-col items-center justify-center relative">
-        {/* Subtle table felt effect */}
-        <div className="absolute inset-0 bg-gradient-radial from-background-secondary/30 via-transparent to-transparent pointer-events-none" />
+      <LayoutGroup id="game-table">
+        {/* Game table area */}
+        <div className="flex flex-1 flex-col items-center justify-center relative">
+          {/* Subtle table felt effect */}
+          <div className="absolute inset-0 bg-gradient-radial from-background-secondary/30 via-transparent to-transparent pointer-events-none" />
 
-        {/* Top player (partner) */}
-        <div className="absolute top-2 md:top-4 left-1/2 -translate-x-1/2 z-10">
-          {topPlayer && (
-            <PlayerSeat
-              player={topPlayer}
-              position="top"
-              isCurrentTurn={topPlayer.seatIndex === currentTurnSeatIndex}
-            />
-          )}
+          {/* Top player (partner) */}
+          <div className="absolute top-2 md:top-4 left-1/2 -translate-x-1/2 z-10">
+            {topPlayer && (
+              <PlayerSeat
+                player={topPlayer}
+                position="top"
+                isCurrentTurn={topPlayer.seatIndex === currentTurnSeatIndex}
+              />
+            )}
+          </div>
+
+          {/* Left player */}
+          <div className="absolute left-3 md:left-8 top-1/2 -translate-y-1/2 z-10">
+            {leftPlayer && (
+              <PlayerSeat
+                player={leftPlayer}
+                position="left"
+                isCurrentTurn={leftPlayer.seatIndex === currentTurnSeatIndex}
+              />
+            )}
+          </div>
+
+          {/* Right player */}
+          <div className="absolute right-3 md:right-8 top-1/2 -translate-y-1/2 z-10">
+            {rightPlayer && (
+              <PlayerSeat
+                player={rightPlayer}
+                position="right"
+                isCurrentTurn={rightPlayer.seatIndex === currentTurnSeatIndex}
+              />
+            )}
+          </div>
+
+          {/* Center trick area */}
+          <CenterTrick
+            key={tableStateKey}
+            dropTargetRef={trickDropRef}
+            previewCard={activePreviewCard}
+            previewPlayerIndex={bottomPlayer?.seatIndex ?? null}
+            isDropTargetActive={isDraggingCard}
+            playedCards={playedCards}
+            playerSeatMapping={seatMapping}
+          />
         </div>
-
-        {/* Left player */}
-        <div className="absolute left-3 md:left-8 top-1/2 -translate-y-1/2 z-10">
-          {leftPlayer && (
-            <PlayerSeat
-              player={leftPlayer}
-              position="left"
-              isCurrentTurn={leftPlayer.seatIndex === currentTurnSeatIndex}
-            />
-          )}
-        </div>
-
-        {/* Right player */}
-        <div className="absolute right-3 md:right-8 top-1/2 -translate-y-1/2 z-10">
-          {rightPlayer && (
-            <PlayerSeat
-              player={rightPlayer}
-              position="right"
-              isCurrentTurn={rightPlayer.seatIndex === currentTurnSeatIndex}
-            />
-          )}
-        </div>
-
-        {/* Center trick area */}
-        <CenterTrick
-          playedCards={playedCards}
-          playerSeatMapping={seatMapping}
-        />
-      </div>
 
       {/* Bottom: current player's hand */}
       <div className="relative z-10 pb-6 pt-2 md:pb-8 flex flex-col items-center gap-2">
@@ -192,20 +273,48 @@ export default function GameView() {
           )}
         </AnimatePresence>
 
+        <AnimatePresence>
+          {bottomPlayer && !isChoosingTrump && nextTrickPending && (
+            <NextTrickIndicator
+              key={`${nextTrickPending.roundNumber}-${nextTrickPending.completedTrickNumber}-${nextTrickPending.startedAt}`}
+              winningPlayerLabel={nextTrickWinningLabel}
+              timeoutSeconds={nextTrickPending.timeoutSeconds}
+              startedAt={nextTrickPending.startedAt}
+            />
+          )}
+
+          {bottomPlayer && !isChoosingTrump && turnTimer && (
+            <TurnTimeout
+              key={`${turnTimer.roundNumber}-${turnTimer.trickNumber}-${turnTimer.currentTurnIndex}-${turnTimer.startedAt}`}
+              label={
+                turnTimer.currentTurnIndex === bottomPlayer.seatIndex
+                  ? "Throw your card"
+                  : `Seat ${turnTimer.currentTurnIndex + 1} is up`
+              }
+              timeoutSeconds={turnTimer.timeoutSeconds}
+              startedAt={turnTimer.startedAt}
+              isMyTurn={turnTimer.currentTurnIndex === bottomPlayer.seatIndex}
+            />
+          )}
+        </AnimatePresence>
+
         {/* Hand */}
         {bottomPlayer && (
           <PlayerHand
             cards={bottomPlayer.hand ?? []}
             interactive={
-              !isChoosingTrump && bottomPlayer.seatIndex === currentTurnSeatIndex
+              !isChoosingTrump &&
+              !nextTrickPending &&
+              bottomPlayer.seatIndex === currentTurnSeatIndex
             }
-            onCardClick={(card, index) => {
-              // TODO: send play card event to backend
-              console.log("Card clicked:", card, index);
-            }}
+            pendingCardKey={previewCardKey}
+            dropTargetRef={trickDropRef}
+            onDraggingChange={handleDraggingChange}
+            onCardThrow={handleThrowCard}
           />
         )}
       </div>
+      </LayoutGroup>
     </div>
   );
 }

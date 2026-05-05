@@ -38,6 +38,10 @@ export type Card = {
     hidden: boolean;
 };
 
+export function getCardKey(card: Card) {
+    return `${card.suite}-${card.rank}`;
+}
+
 export type PlayedCard = {
     playerIndex: number;
     card: Card;

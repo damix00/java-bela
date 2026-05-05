@@ -16,6 +16,14 @@ import java.util.List;
 @Getter
 public class BeloteRound implements Serializable {
 
+    public record CardThrowResult(
+            boolean legalMove,
+            int trickNumber,
+            boolean trickComplete,
+            Integer winningPlayerIndex,
+            boolean nextTrickPending
+    ) {}
+
     private final int roundNumber;
 
     @Setter
@@ -78,26 +86,47 @@ public class BeloteRound implements Serializable {
         currentTurnIndex = (currentTurnIndex + 1) % 4;
     }
 
+    public void setCurrentTurnIndex(int turnIndex) {
+        if (turnIndex < 0 || turnIndex > 3) {
+            throw new IllegalArgumentException("Turn index must be between 0 and 3");
+        }
+        this.currentTurnIndex = turnIndex;
+    }
+
     public void startNewTrick() {
+        if (currentTrick != null && !currentTrick.isComplete()) {
+            throw new IllegalStateException("Cannot start a new trick while the current trick is still active");
+        }
+
         currentTrick = new Trick();
         currentTrick.setTrickNumber(++currentTrickNumber);
 
         tricksOrEmpty().add(currentTrick);
     }
 
-    public boolean throwCard(GamePlayer gamePlayer, Card card) {
+    public Trick getTrick(int trickNumber) {
+        return tricksOrEmpty()
+                .stream()
+                .filter(trick -> trick.getTrickNumber() == trickNumber)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Trick not found: " + trickNumber));
+    }
+
+    public CardThrowResult throwCard(GamePlayer gamePlayer, Card card) {
         if (currentTrick == null || currentTrick.isComplete()) {
             throw new IllegalStateException("Cannot throw card, no active trick or current trick is already complete");
         }
 
         // TODO: Validate card can be played
         if (!TrickValidator.isLegalMove(currentTrick, card, trumpSuite, gamePlayer)) {
-            return false;
+            return new CardThrowResult(false, currentTrickNumber, false, null, false);
         }
 
         if (gamePlayer.getSeatIndex() != currentTurnIndex) {
             throw new IllegalStateException("It's not the player's turn to play");
         }
+
+        int playedTrickNumber = currentTrickNumber;
 
         currentTrick.addCard(new PlayedCard(
                 gamePlayer.getSeatIndex(),
@@ -109,10 +138,17 @@ public class BeloteRound implements Serializable {
         if (currentTrick.isComplete()) {
             int winningPlayerIndex = TrickValidator.determineTrickWinner(currentTrick, trumpSuite);
             currentTrick.setWinningPlayerIndex(winningPlayerIndex);
+            currentTurnIndex = winningPlayerIndex;
+
+            if (gamePlayer.getHand().isEmpty()) {
+                roundStatus = RoundStatus.FINISHED;
+                return new CardThrowResult(true, playedTrickNumber, true, winningPlayerIndex, false);
+            }
+
+            return new CardThrowResult(true, playedTrickNumber, true, winningPlayerIndex, true);
         }
 
         advanceTurn();
-
-        return true;
+        return new CardThrowResult(true, playedTrickNumber, false, null, false);
     }
 }

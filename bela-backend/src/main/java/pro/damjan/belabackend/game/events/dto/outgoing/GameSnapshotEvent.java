@@ -9,6 +9,7 @@ import pro.damjan.belabackend.game.model.card.Suite;
 import pro.damjan.belabackend.game.model.player.GamePlayer;
 import pro.damjan.belabackend.game.model.round.BeloteRound;
 import pro.damjan.belabackend.game.model.round.RoundStatus;
+import pro.damjan.belabackend.game.model.round.trick.PlayedCard;
 import pro.damjan.belabackend.websocket.events.dto.OutgoingEvent;
 
 import java.util.List;
@@ -95,12 +96,23 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
         private final RoundStatus roundStatus;
         private final Suite trumpSuite;
         private final int currentTurnIndex;
+        private final int currentTrickNumber;
+        private final List<PlayedCard> currentTrickCards;
 
-        private RoundSnapshot(int roundNumber, RoundStatus roundStatus, Suite trumpSuite, int currentTurnIndex) {
+        private RoundSnapshot(
+                int roundNumber,
+                RoundStatus roundStatus,
+                Suite trumpSuite,
+                int currentTurnIndex,
+                int currentTrickNumber,
+                List<PlayedCard> currentTrickCards
+        ) {
             this.roundNumber = roundNumber;
             this.roundStatus = roundStatus;
             this.trumpSuite = trumpSuite;
             this.currentTurnIndex = currentTurnIndex;
+            this.currentTrickNumber = currentTrickNumber;
+            this.currentTrickCards = currentTrickCards;
         }
 
         public static RoundSnapshot from(BeloteRound round) {
@@ -108,7 +120,9 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
                     round.getRoundNumber(),
                     round.getRoundStatus(),
                     round.getTrumpSuite(),
-                    round.getCurrentTurnIndex()
+                    round.getCurrentTurnIndex(),
+                    round.getCurrentTrickNumber(),
+                    round.getCurrentTrick() == null ? List.of() : round.getCurrentTrick().getPlayedCards()
             );
         }
     }

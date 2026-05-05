@@ -16,9 +16,11 @@ import {
     BeloteRound,
     Card,
     GameStatus,
+    PlayedCard,
     RoundStatus,
     Suite,
     Team,
+    Trick,
 } from "@/types/game";
 import { LobbyStatus } from "@/types/lobby";
 
@@ -28,7 +30,14 @@ type GameSnapshotData = {
     maxPoints: number;
     team1: Team;
     team2: Team;
-    currentRound: BeloteRound | null;
+    currentRound: {
+        roundNumber: number;
+        roundStatus: RoundStatus;
+        trumpSuite: Suite | null;
+        currentTurnIndex: number;
+        currentTrickNumber: number;
+        currentTrickCards: PlayedCard[];
+    } | null;
 };
 
 type LobbyGameCreatedData = {
@@ -63,6 +72,26 @@ type TrumpChosenData = {
     revealedCards: Card[];
 };
 
+type CardTurnStartedData = {
+    roundNumber: number;
+    trickNumber: number;
+    currentTurnIndex: number;
+    timeoutSeconds: number;
+};
+
+type CardThrownData = {
+    roundNumber: number;
+    trickNumber: number;
+    playerIndex: number;
+    card: Card;
+    expired: boolean;
+    trickComplete: boolean;
+    nextTrickPending: boolean;
+    winningPlayerIndex: number | null;
+    nextTurnIndex: number;
+    timeoutSeconds: number;
+};
+
 export type GamePhase =
     | "loading"
     | "countdown"
@@ -77,22 +106,44 @@ export type TrumpChoiceState = {
     startedAt: number;
 } | null;
 
+export type TurnTimerState = {
+    roundNumber: number;
+    trickNumber: number;
+    currentTurnIndex: number;
+    timeoutSeconds: number;
+    startedAt: number;
+} | null;
+
+export type NextTrickPendingState = {
+    roundNumber: number;
+    completedTrickNumber: number;
+    winningPlayerIndex: number | null;
+    timeoutSeconds: number;
+    startedAt: number;
+} | null;
+
 type GameContextType = {
     game: BeloteGame | null;
     phase: GamePhase;
     trumpChoice: TrumpChoiceState;
+    turnTimer: TurnTimerState;
+    nextTrickPending: NextTrickPendingState;
     setPhase: (phase: GamePhase) => void;
     chooseTrump: (suite: Suite) => void;
     passTrump: () => void;
+    throwCard: (card: Card) => void;
 };
 
 const GameContext = createContext<GameContextType>({
     game: null,
     phase: "loading",
     trumpChoice: null,
+    turnTimer: null,
+    nextTrickPending: null,
     setPhase: () => {},
     chooseTrump: () => {},
     passTrump: () => {},
+    throwCard: () => {},
 });
 
 function sameCard(a: Card, b: Card) {
@@ -107,6 +158,96 @@ function applyTrumpToCard(card: Card, trumpSuite: Suite): Card {
     };
 }
 
+function updateRoundInHistory(rounds: BeloteRound[], currentRound: BeloteRound) {
+    const existingRoundIndex = rounds.findIndex(
+        (round) => round.roundNumber === currentRound.roundNumber,
+    );
+
+    if (existingRoundIndex === -1) {
+        return [...rounds, currentRound];
+    }
+
+    return rounds.map((round) =>
+        round.roundNumber === currentRound.roundNumber ? currentRound : round,
+    );
+}
+
+function updateTeamHandsForThrownCard(
+    team: Team,
+    playerIndex: number,
+    card: Card,
+): Team {
+    return {
+        ...team,
+        players: team.players.map((player) =>
+            player.seatIndex === playerIndex
+                ? {
+                      ...player,
+                      hand: (player.hand ?? []).filter(
+                          (handCard) => !sameCard(handCard, card),
+                      ),
+                  }
+                : player,
+        ),
+    };
+}
+
+function upsertPlayedCard(trick: Trick, playedCard: PlayedCard) {
+    const alreadyExists = trick.playedCards.some(
+        (entry) =>
+            entry.playerIndex === playedCard.playerIndex &&
+            sameCard(entry.card, playedCard.card),
+    );
+
+    if (alreadyExists) {
+        return trick.playedCards;
+    }
+
+    return [...trick.playedCards, playedCard];
+}
+
+function updateTrickInHistory(tricks: Trick[], currentTrick: Trick) {
+    const existingTrickIndex = tricks.findIndex(
+        (trick) => trick.trickNumber === currentTrick.trickNumber,
+    );
+
+    if (existingTrickIndex === -1) {
+        return [...tricks, currentTrick];
+    }
+
+    return tricks.map((trick) =>
+        trick.trickNumber === currentTrick.trickNumber ? currentTrick : trick,
+    );
+}
+
+function normalizeSnapshotRound(
+    round: GameSnapshotData["currentRound"],
+): BeloteRound | null {
+    if (!round) {
+        return null;
+    }
+
+    const currentTrick =
+        round.currentTrickNumber >= 0
+            ? {
+                  trickNumber: round.currentTrickNumber,
+                  playedCards: round.currentTrickCards ?? [],
+                  winningPlayerIndex: -1,
+                  complete: false,
+              }
+            : null;
+
+    return {
+        roundNumber: round.roundNumber,
+        roundStatus: round.roundStatus,
+        trumpSuite: round.trumpSuite,
+        currentTurnIndex: round.currentTurnIndex,
+        currentTrickNumber: round.currentTrickNumber,
+        tricks: currentTrick ? [currentTrick] : [],
+        currentTrick,
+    };
+}
+
 export function GameProvider({ children }: { children: ReactNode }) {
     const ws = useWebSocket();
     const { lobby } = useLobby();
@@ -114,6 +255,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const [game, setGame] = useState<BeloteGame | null>(null);
     const [phase, setPhase] = useState<GamePhase>("loading");
     const [trumpChoice, setTrumpChoice] = useState<TrumpChoiceState>(null);
+    const [turnTimer, setTurnTimer] = useState<TurnTimerState>(null);
+    const [nextTrickPending, setNextTrickPending] =
+        useState<NextTrickPendingState>(null);
 
     useWsEvent<LobbyGameCreatedData>("lobby:gameCreated", (data) => {
         console.log("Game created for game context:", data);
@@ -122,15 +266,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     useWsEvent<GameSnapshotData>("game:snapshot", (data) => {
         console.log("Game snapshot received:", data);
+        const currentRound = normalizeSnapshotRound(data.currentRound);
+        setNextTrickPending(null);
+
         setGame({
             id: data.gameId,
             team1: data.team1,
             team2: data.team2,
             maxPoints: data.maxPoints,
             status: data.status,
-            currentRoundNumber: data.currentRound?.roundNumber ?? -1,
+            currentRoundNumber: currentRound?.roundNumber ?? -1,
             rounds: [],
-            currentRound: data.currentRound,
+            currentRound,
         });
 
         if (data.status === GameStatus.IN_PROGRESS) {
@@ -140,6 +287,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     useWsEvent<RoundStartData>("game:roundStart", (data) => {
         console.log("Round started:", data);
+        setTurnTimer(null);
+        setNextTrickPending(null);
 
         setGame((prev) => {
             if (!prev) return prev;
@@ -181,6 +330,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
 
     useWsEvent<TrumpChoosingStartedData>("game:trumpChoosingStarted", (data) => {
+        setTurnTimer(null);
+        setNextTrickPending(null);
         setTrumpChoice({
             roundNumber: data.roundNumber,
             currentTurnIndex: data.currentTurnIndex,
@@ -225,6 +376,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     useWsEvent<TrumpChosenData>("game:trumpChosen", (data) => {
         setTrumpChoice(null);
+        setTurnTimer(null);
+        setNextTrickPending(null);
 
         setGame((prev) => {
             if (!prev || prev.currentRound?.roundNumber !== data.roundNumber) {
@@ -283,6 +436,155 @@ export function GameProvider({ children }: { children: ReactNode }) {
         });
     });
 
+    useWsEvent<CardTurnStartedData>("game:cardTurnStarted", (data) => {
+        setNextTrickPending((prev) =>
+            prev &&
+            prev.roundNumber === data.roundNumber &&
+            prev.completedTrickNumber < data.trickNumber
+                ? null
+                : prev,
+        );
+
+        setTurnTimer({
+            roundNumber: data.roundNumber,
+            trickNumber: data.trickNumber,
+            currentTurnIndex: data.currentTurnIndex,
+            timeoutSeconds: data.timeoutSeconds,
+            startedAt: Date.now(),
+        });
+
+        setGame((prev) => {
+            if (!prev || prev.currentRound?.roundNumber !== data.roundNumber) {
+                return prev;
+            }
+
+            const nextCurrentTrick =
+                prev.currentRound.currentTrick?.trickNumber === data.trickNumber
+                    ? prev.currentRound.currentTrick
+                    : {
+                          trickNumber: data.trickNumber,
+                          playedCards: [],
+                          winningPlayerIndex: -1,
+                          complete: false,
+                      };
+
+            const currentRound: BeloteRound = {
+                ...prev.currentRound,
+                currentTurnIndex: data.currentTurnIndex,
+                currentTrickNumber: data.trickNumber,
+                currentTrick: nextCurrentTrick,
+                tricks: updateTrickInHistory(
+                    prev.currentRound.tricks,
+                    nextCurrentTrick,
+                ),
+            };
+
+            return {
+                ...prev,
+                currentRound,
+                rounds: updateRoundInHistory(prev.rounds, currentRound),
+            };
+        });
+    });
+
+    useWsEvent<CardThrownData>("game:cardThrown", (data) => {
+        if (data.nextTrickPending) {
+            setNextTrickPending({
+                roundNumber: data.roundNumber,
+                completedTrickNumber: data.trickNumber,
+                winningPlayerIndex: data.winningPlayerIndex,
+                timeoutSeconds: 3,
+                startedAt: Date.now(),
+            });
+        } else if (!data.trickComplete) {
+            setNextTrickPending(null);
+        } else {
+            setNextTrickPending(null);
+        }
+
+        setTurnTimer((prevTimer) => {
+            if (data.trickComplete) {
+                return prevTimer &&
+                    prevTimer.roundNumber === data.roundNumber &&
+                    prevTimer.trickNumber > data.trickNumber
+                    ? prevTimer
+                    : null;
+            }
+
+            return {
+                roundNumber: data.roundNumber,
+                trickNumber: data.trickNumber,
+                currentTurnIndex: data.nextTurnIndex,
+                timeoutSeconds: data.timeoutSeconds,
+                startedAt: Date.now(),
+            };
+        });
+
+        setGame((prev) => {
+            if (!prev || prev.currentRound?.roundNumber !== data.roundNumber) {
+                return prev;
+            }
+
+            const existingTrick = prev.currentRound.tricks.find(
+                (trick) => trick.trickNumber === data.trickNumber,
+            );
+            const playedTrick: Trick = existingTrick ?? {
+                trickNumber: data.trickNumber,
+                playedCards: [],
+                winningPlayerIndex: -1,
+                complete: false,
+            };
+
+            const updatedPlayedTrick: Trick = {
+                ...playedTrick,
+                playedCards: upsertPlayedCard(playedTrick, {
+                    playerIndex: data.playerIndex,
+                    card: data.card,
+                }),
+                winningPlayerIndex:
+                    data.winningPlayerIndex ?? playedTrick.winningPlayerIndex,
+                complete: data.trickComplete,
+            };
+            const hasNewerCurrentTrick =
+                prev.currentRound.currentTrickNumber > data.trickNumber;
+            const currentTrick = hasNewerCurrentTrick
+                ? prev.currentRound.currentTrick
+                : updatedPlayedTrick;
+            const currentTrickNumber = hasNewerCurrentTrick
+                ? prev.currentRound.currentTrickNumber
+                : data.trickNumber;
+
+            const currentRound: BeloteRound = {
+                ...prev.currentRound,
+                currentTurnIndex: hasNewerCurrentTrick
+                    ? prev.currentRound.currentTurnIndex
+                    : data.nextTurnIndex,
+                currentTrickNumber,
+                currentTrick,
+                tricks: updateTrickInHistory(
+                    prev.currentRound.tricks,
+                    updatedPlayedTrick,
+                ),
+            };
+
+            return {
+                ...prev,
+                currentRound,
+                rounds: updateRoundInHistory(prev.rounds, currentRound),
+                team1: updateTeamHandsForThrownCard(
+                    prev.team1,
+                    data.playerIndex,
+                    data.card,
+                ),
+                team2: updateTeamHandsForThrownCard(
+                    prev.team2,
+                    data.playerIndex,
+                    data.card,
+                ),
+            };
+        });
+    });
+
     useWsEvent<{ gameStatus: GameStatus }>("game:statusChanged", (data) => {
         console.log("Game status changed:", data);
         setGame((prev) =>
@@ -315,15 +617,25 @@ export function GameProvider({ children }: { children: ReactNode }) {
         ws.send("game:trump:pass", null);
     };
 
+    const throwCard = (card: Card) => {
+        ws.send("game:card:throw", {
+            suite: card.suite,
+            rank: card.rank,
+        });
+    };
+
     return (
         <GameContext.Provider
             value={{
                 game,
                 phase,
                 trumpChoice,
+                turnTimer,
+                nextTrickPending,
                 setPhase,
                 chooseTrump,
                 passTrump,
+                throwCard,
             }}
         >
             {children}

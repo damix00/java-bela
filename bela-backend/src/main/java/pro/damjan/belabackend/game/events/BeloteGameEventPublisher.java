@@ -2,6 +2,8 @@ package pro.damjan.belabackend.game.events;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import pro.damjan.belabackend.game.events.dto.outgoing.CardThrownEvent;
+import pro.damjan.belabackend.game.events.dto.outgoing.CardTurnStartedEvent;
 import pro.damjan.belabackend.game.events.dto.outgoing.GameSnapshotEvent;
 import pro.damjan.belabackend.game.events.dto.outgoing.GameStatusChangedEvent;
 import pro.damjan.belabackend.game.events.dto.outgoing.PerspectiveOutgoingEvent;
@@ -134,6 +136,49 @@ public class BeloteGameEventPublisher {
                     )
             );
         }
+    }
+
+    public void cardTurnStarted(BeloteGame game, long timeoutSeconds) {
+        BeloteRound round = game.getCurrentRound();
+
+        broadcastToGame(
+                game,
+                new CardTurnStartedEvent(
+                        round.getRoundNumber(),
+                        round.getCurrentTrickNumber(),
+                        round.getCurrentTurnIndex(),
+                        timeoutSeconds
+                )
+        );
+    }
+
+    public void cardThrown(
+            BeloteGame game,
+            int roundNumber,
+            int trickNumber,
+            int playerIndex,
+            Card card,
+            boolean expired,
+            boolean trickComplete,
+            boolean nextTrickPending,
+            Integer winningPlayerIndex,
+            long timeoutSeconds
+    ) {
+        broadcastToGame(
+                game,
+                new CardThrownEvent(
+                        roundNumber,
+                        trickNumber,
+                        playerIndex,
+                        card,
+                        expired,
+                        trickComplete,
+                        nextTrickPending,
+                        winningPlayerIndex,
+                        game.getCurrentRound().getCurrentTurnIndex(),
+                        timeoutSeconds
+                )
+        );
     }
 
     public void statusChanged(BeloteGame game) {

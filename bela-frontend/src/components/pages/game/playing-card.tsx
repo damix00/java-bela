@@ -57,15 +57,24 @@ export default function PlayingCard({
 
   return (
     <motion.div
-      className={`${w} rounded-lg bg-white shadow-lg flex flex-col justify-between p-1.5 md:p-2 select-none relative overflow-hidden ${
+      className={`${w} rounded-[18px] bg-white shadow-lg flex flex-col justify-between p-1.5 md:p-2 select-none relative overflow-hidden border border-white/80 ${
         interactive
-          ? "cursor-pointer hover:ring-2 hover:ring-primary/70 active:scale-95"
+          ? "cursor-pointer"
           : ""
       } ${card.trump ? "ring-2 ring-primary/40" : ""} ${className}`}
       style={style}
       onClick={interactive ? onClick : undefined}
-      whileHover={interactive ? { y: -12, scale: 1.05 } : undefined}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      whileHover={
+        interactive
+          ? {
+              y: -12,
+              scale: 1.05,
+              boxShadow: "0 24px 36px rgba(15, 23, 42, 0.26)",
+            }
+          : undefined
+      }
+      whileTap={interactive ? { scale: 0.98, y: -6 } : undefined}
+      transition={{ type: "spring", stiffness: 320, damping: 22 }}
     >
       {/* Large background symbol */}
       <span
