@@ -115,7 +115,7 @@ public final class DeclarationResolver {
         List<Card> hand = player.getHand();
 
         findBelot(player.getSeatIndex(), hand).ifPresent(declarations::add);
-        declarations.addAll(findFourOfAKinds(player.getSeatIndex(), hand));
+        declarations.addAll(findFourOfAKind(player.getSeatIndex(), hand));
         declarations.addAll(findSequences(player.getSeatIndex(), hand));
 
         return declarations;
@@ -132,7 +132,7 @@ public final class DeclarationResolver {
                 .map(cards -> new Declaration(Declaration.Type.BELOTE, playerIndex, sortForDeclaration(cards)));
     }
 
-    private static List<Declaration> findFourOfAKinds(int playerIndex, List<Card> hand) {
+    private static List<Declaration> findFourOfAKind(int playerIndex, List<Card> hand) {
         Map<Rank, List<Card>> cardsByRank = hand.stream()
                 .collect(Collectors.groupingBy(Card::getRank, () -> new EnumMap<>(Rank.class), Collectors.toList()));
 

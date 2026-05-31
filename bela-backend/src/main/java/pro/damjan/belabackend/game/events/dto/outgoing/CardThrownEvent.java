@@ -22,6 +22,7 @@ public class CardThrownEvent extends OutgoingEvent {
     private int team2RoundPoints;
     private int team1TotalScore;
     private int team2TotalScore;
+    private boolean bela;
 
     public CardThrownEvent(
             int roundNumber,
@@ -37,7 +38,8 @@ public class CardThrownEvent extends OutgoingEvent {
             int team1RoundPoints,
             int team2RoundPoints,
             int team1TotalScore,
-            int team2TotalScore
+            int team2TotalScore,
+            boolean bela
     ) {
         super("game:cardThrown");
         this.roundNumber = roundNumber;
@@ -54,5 +56,6 @@ public class CardThrownEvent extends OutgoingEvent {
         this.team2RoundPoints = team2RoundPoints;
         this.team1TotalScore = team1TotalScore;
         this.team2TotalScore = team2TotalScore;
+        this.bela = bela;
     }
 }

@@ -32,7 +32,19 @@ public class RoundTeam implements Serializable {
         if (points < 0) {
             throw new IllegalArgumentException("Points to add cannot be negative");
         }
-        
+
         this.cardPoints += points;
+    }
+
+    /**
+     * Appends a declaration, tolerating an immutable list (the declaration resolver assigns
+     * {@code List.of()} to the losing team) by copying into a mutable list when needed.
+     */
+    public void addDeclaration(Declaration declaration) {
+        List<Declaration> updated = declarations == null
+                ? new ArrayList<>()
+                : new ArrayList<>(declarations);
+        updated.add(declaration);
+        this.declarations = updated;
     }
 }

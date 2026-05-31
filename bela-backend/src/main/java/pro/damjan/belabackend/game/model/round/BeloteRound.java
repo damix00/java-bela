@@ -4,6 +4,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import pro.damjan.belabackend.game.model.card.Card;
+import pro.damjan.belabackend.game.model.card.Declaration;
+import pro.damjan.belabackend.game.model.card.Rank;
 import pro.damjan.belabackend.game.model.card.Suite;
 import pro.damjan.belabackend.game.model.player.GamePlayer;
 import pro.damjan.belabackend.game.model.round.trick.PlayedCard;
@@ -22,7 +24,8 @@ public class BeloteRound implements Serializable {
             int trickNumber,
             boolean trickComplete,
             Integer winningPlayerIndex,
-            boolean nextTrickPending
+            boolean nextTrickPending,
+            boolean bela
     ) {}
 
     private final int roundNumber;
@@ -124,13 +127,12 @@ public class BeloteRound implements Serializable {
             throw new IllegalStateException("Cannot throw card, no active trick or current trick is already complete");
         }
 
-        // TODO: Validate card can be played
-        if (!TrickValidator.isLegalMove(currentTrick, card, trumpSuite, gamePlayer)) {
-            return new CardThrowResult(false, currentTrickNumber, false, null, false);
-        }
-
         if (gamePlayer.getSeatIndex() != currentTurnIndex) {
             throw new IllegalStateException("It's not the player's turn to play");
+        }
+
+        if (!TrickValidator.isLegalMove(currentTrick, card, trumpSuite, gamePlayer)) {
+            return new CardThrowResult(false, currentTrickNumber, false, null, false, false);
         }
 
         int playedTrickNumber = currentTrickNumber;
@@ -142,6 +144,8 @@ public class BeloteRound implements Serializable {
 
         gamePlayer.removeCard(card);
 
+        boolean bela = awardBelaIfCompleted(gamePlayer.getSeatIndex(), card);
+
         if (currentTrick.isComplete()) {
             int winningPlayerIndex = TrickValidator.determineTrickWinner(currentTrick, trumpSuite);
             currentTrick.setWinningPlayerIndex(winningPlayerIndex);
@@ -151,15 +155,77 @@ public class BeloteRound implements Serializable {
             if (gamePlayer.getHand().isEmpty()) {
                 // add 10 points for winning the last trick
                 getRoundTeamForPlayerIndex(winningPlayerIndex).addCardPoints(10);
+                awardAllTricksBonusIfApplicable();
                 roundStatus = RoundStatus.FINISHED;
-                return new CardThrowResult(true, playedTrickNumber, true, winningPlayerIndex, false);
+                return new CardThrowResult(true, playedTrickNumber, true, winningPlayerIndex, false, bela);
             }
 
-            return new CardThrowResult(true, playedTrickNumber, true, winningPlayerIndex, true);
+            return new CardThrowResult(true, playedTrickNumber, true, winningPlayerIndex, true, bela);
         }
 
         advanceTurn();
-        return new CardThrowResult(true, playedTrickNumber, false, null, false);
+        return new CardThrowResult(true, playedTrickNumber, false, null, false, bela);
+    }
+
+    /**
+     * Bela (King + Queen of the trump suite) is announced on play: the +20 is awarded to the
+     * player's team at the moment they play the second of the two trump cards during tricks.
+     * Returns true if this card completed the bela.
+     */
+    private boolean awardBelaIfCompleted(int seatIndex, Card card) {
+        if (trumpSuite == null || card.getSuite() != trumpSuite) {
+            return false;
+        }
+        if (card.getRank() != Rank.KING && card.getRank() != Rank.QUEEN) {
+            return false;
+        }
+
+        Rank partnerRank = card.getRank() == Rank.KING ? Rank.QUEEN : Rank.KING;
+        Card partnerCard = findPlayedCard(seatIndex, trumpSuite, partnerRank);
+        if (partnerCard == null) {
+            return false; // the other half of the bela has not been played yet
+        }
+
+        List<Card> belaCards = new ArrayList<>();
+        if (card.getRank() == Rank.KING) {
+            belaCards.add(card);
+            belaCards.add(partnerCard);
+        } else {
+            belaCards.add(partnerCard);
+            belaCards.add(card);
+        }
+
+        getRoundTeamForPlayerIndex(seatIndex)
+                .addDeclaration(new Declaration(Declaration.Type.BELA, seatIndex, belaCards));
+        return true;
+    }
+
+    private Card findPlayedCard(int seatIndex, Suite suite, Rank rank) {
+        for (Trick trick : tricksOrEmpty()) {
+            for (PlayedCard playedCard : trick.getPlayedCards()) {
+                if (playedCard.getPlayerIndex() == seatIndex
+                        && playedCard.getCard().getSuite() == suite
+                        && playedCard.getCard().getRank() == rank) {
+                    return playedCard.getCard();
+                }
+            }
+        }
+        return null;
+    }
+
+    /** Štiglja / kapot: a team that wins all eight tricks earns a +90 bonus. */
+    private void awardAllTricksBonusIfApplicable() {
+        List<Trick> allTricks = tricksOrEmpty();
+        if (allTricks.size() < 8) {
+            return;
+        }
+
+        int sweepingTeam = allTricks.getFirst().getWinningPlayerIndex() % 2;
+        boolean sweep = allTricks.stream()
+                .allMatch(trick -> trick.getWinningPlayerIndex() % 2 == sweepingTeam);
+        if (sweep) {
+            getRoundTeam(sweepingTeam).addCardPoints(90);
+        }
     }
 
     public RoundTeam getRoundTeam(int teamIndex) {
@@ -201,14 +267,17 @@ public class BeloteRound implements Serializable {
         RoundTeam other = getRoundTeam(1 - callerTeamIndex);
         int totalPoints = caller.getPoints() + other.getPoints();
 
-        if (caller.getPoints() * 2 >= totalPoints) {
+        // The calling team must win MORE than half the points; an exact tie means they fall (pao).
+        if (caller.getPoints() * 2 > totalPoints) {
             return getRoundTeam(teamIndex).getPoints();
         }
 
+        // Caller fell (pao): the opposing team takes everything on the table,
+        // including all card points and the declarations of both teams.
         if (teamIndex == callerTeamIndex) {
             return 0;
         }
 
-        return caller.getCardPoints() + other.getCardPoints() + other.getDeclarationPoints();
+        return totalPoints;
     }
 }

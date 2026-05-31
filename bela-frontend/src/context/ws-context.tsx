@@ -71,6 +71,15 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
                 const handlers = listenersRef.current.get(message.event);
                 // @ts-ignore
                 handlers?.forEach((handler) => handler(message.data));
+
+                // Fan every "error:<originalEvent>" message out to a single
+                // "error" channel so a global listener can surface failures.
+                if (message.event?.startsWith("error:")) {
+                    listenersRef.current
+                        .get("error")
+                        // @ts-ignore
+                        ?.forEach((handler) => handler(message));
+                }
             } catch {
                 console.error("Failed to parse WebSocket message");
             }

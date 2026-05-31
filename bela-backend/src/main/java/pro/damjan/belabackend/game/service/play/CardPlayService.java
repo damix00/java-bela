@@ -97,7 +97,8 @@ public class CardPlayService {
                 result.trickComplete(),
                 result.nextTrickPending(),
                 result.winningPlayerIndex(),
-                timeoutSeconds
+                timeoutSeconds,
+                result.bela()
         );
 
         if (round.getRoundStatus() == RoundStatus.FINISHED) {

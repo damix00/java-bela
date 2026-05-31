@@ -1,5 +1,6 @@
 package pro.damjan.belabackend.user.auth;
 
+import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pro.damjan.belabackend.user.auth.dto.response.AuthResponse;
@@ -38,7 +39,7 @@ public class AuthController {
                     limitSuccess = true
             )
     )
-    public AuthResponse register(@RequestBody RegisterRequest request) {
+    public AuthResponse register(@Valid @RequestBody RegisterRequest request) {
         User user = authService.register(request);
         String jwt = jwtService.generateToken(user.getId());
 
@@ -61,7 +62,7 @@ public class AuthController {
                     limitSuccess = false
             )
     )
-    public AuthResponse login(@RequestBody LoginRequest request) {
+    public AuthResponse login(@Valid @RequestBody LoginRequest request) {
         User user = authService.login(request.getEmail(), request.getPassword());
         String jwt = jwtService.generateToken(user.getId());
 

@@ -174,7 +174,8 @@ public class BeloteGameEventPublisher {
             boolean trickComplete,
             boolean nextTrickPending,
             Integer winningPlayerIndex,
-            long timeoutSeconds
+            long timeoutSeconds,
+            boolean bela
     ) {
         broadcastToGame(
                 game,
@@ -192,7 +193,8 @@ public class BeloteGameEventPublisher {
                         game.getCurrentRound().getTeam1RoundScore(),
                         game.getCurrentRound().getTeam2RoundScore(),
                         game.getTeam1().getTotalScore(),
-                        game.getTeam2().getTotalScore()
+                        game.getTeam2().getTotalScore(),
+                        bela
                 )
         );
     }
