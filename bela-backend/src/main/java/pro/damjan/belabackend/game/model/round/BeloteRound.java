@@ -213,7 +213,7 @@ public class BeloteRound implements Serializable {
         return null;
     }
 
-    /** Štiglja / kapot: a team that wins all eight tricks earns a +90 bonus. */
+    /** Štiglja: a team that wins all eight tricks earns a +90 bonus. */
     private void awardAllTricksBonusIfApplicable() {
         List<Trick> allTricks = tricksOrEmpty();
         if (allTricks.size() < 8) {

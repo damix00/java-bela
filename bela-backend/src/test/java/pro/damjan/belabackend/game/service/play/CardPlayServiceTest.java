@@ -44,7 +44,10 @@ class CardPlayServiceTest {
         gameAccessService = mock(GameAccessService.class);
         gamePublisher = mock(BeloteGameEventPublisher.class);
         scheduledTaskRegistry = mock(ScheduledTaskRegistry.class);
-        cardPlayService = new CardPlayService(gameAccessService, gamePublisher, scheduledTaskRegistry);
+        GameFlowService gameFlowService =
+                new GameFlowService(gameAccessService, gamePublisher, scheduledTaskRegistry);
+        cardPlayService = new CardPlayService(
+                gameAccessService, gamePublisher, scheduledTaskRegistry, gameFlowService);
     }
 
     @Test
@@ -91,7 +94,8 @@ class CardPlayServiceTest {
                 eq(true),
                 eq(true),
                 eq(3),
-                eq(0L)
+                eq(0L),
+                eq(false)
         );
         verify(gamePublisher, never()).cardTurnStarted(game, 30L);
 
@@ -107,7 +111,8 @@ class CardPlayServiceTest {
                 eq(true),
                 eq(true),
                 eq(3),
-                eq(0L)
+                eq(0L),
+                eq(false)
         );
         order.verify(scheduledTaskRegistry).registerTask(any(ScheduledGameTask.class));
     }
@@ -177,8 +182,74 @@ class CardPlayServiceTest {
                 eq(true),
                 eq(false),
                 eq(3),
-                eq(0L)
+                eq(0L),
+                eq(false)
         );
+    }
+
+    @Test
+    void finalTrickReachingMaxPointsEndsGameAndPublishesGameEnded() {
+        BeloteGame game = playingGameWithHands(
+                List.of(card(Suite.HEARTS, Rank.SEVEN)),
+                List.of(card(Suite.HEARTS, Rank.EIGHT)),
+                List.of(card(Suite.HEARTS, Rank.NINE)),
+                List.of(card(Suite.HEARTS, Rank.ACE))
+        );
+        game.getTeam2().addScore(990); // +21 from the final trick tips team2 over 1001
+        preplayCard(game, 0, Suite.HEARTS, Rank.SEVEN);
+        preplayCard(game, 1, Suite.HEARTS, Rank.EIGHT);
+        preplayCard(game, 2, Suite.HEARTS, Rank.NINE);
+        when(gameAccessService.requireUserGame("p3")).thenReturn(game);
+
+        cardPlayService.throwCard("p3", Suite.HEARTS, Rank.ACE);
+
+        assertThat(game.getCurrentRound().getRoundStatus()).isEqualTo(RoundStatus.FINISHED);
+        assertThat(game.getStatus()).isEqualTo(GameStatus.FINISHED);
+        assertThat(game.getTeam2().getTotalScore()).isEqualTo(1011);
+        assertThat(game.hasWinner()).isTrue();
+        assertThat(game.getWinningTeamIndex()).isEqualTo(1);
+
+        verify(gamePublisher).gameEnded(game);
+        verify(scheduledTaskRegistry, never()).registerTask(org.mockito.ArgumentMatchers.argThat(task ->
+                task.getType() == ScheduledTaskType.ROUND_START_TASK
+        ));
+
+        InOrder order = inOrder(gamePublisher);
+        order.verify(gamePublisher).cardThrown(
+                eq(game), eq(0), eq(0), eq(3), any(Card.class),
+                eq(false), eq(true), eq(false), eq(3), eq(0L), eq(false)
+        );
+        order.verify(gamePublisher).gameEnded(game);
+    }
+
+    @Test
+    void finalTrickTieAtMaxPointsKeepsGameGoingAndSchedulesNextRound() {
+        BeloteGame game = playingGameWithHands(
+                List.of(card(Suite.HEARTS, Rank.SEVEN)),
+                List.of(card(Suite.HEARTS, Rank.EIGHT)),
+                List.of(card(Suite.HEARTS, Rank.NINE)),
+                List.of(card(Suite.HEARTS, Rank.ACE))
+        );
+        // team2 gets +21 this trick; pre-seed both so they end exactly tied at 1011
+        game.getTeam1().addScore(1011);
+        game.getTeam2().addScore(990);
+        preplayCard(game, 0, Suite.HEARTS, Rank.SEVEN);
+        preplayCard(game, 1, Suite.HEARTS, Rank.EIGHT);
+        preplayCard(game, 2, Suite.HEARTS, Rank.NINE);
+        when(gameAccessService.requireUserGame("p3")).thenReturn(game);
+
+        cardPlayService.throwCard("p3", Suite.HEARTS, Rank.ACE);
+
+        assertThat(game.getTeam1().getTotalScore()).isEqualTo(1011);
+        assertThat(game.getTeam2().getTotalScore()).isEqualTo(1011);
+        assertThat(game.hasWinner()).isFalse();
+        assertThat(game.getStatus()).isEqualTo(GameStatus.IN_PROGRESS);
+
+        verify(gamePublisher, never()).gameEnded(any());
+        verify(scheduledTaskRegistry).registerTask(org.mockito.ArgumentMatchers.argThat(task ->
+                task.getType() == ScheduledTaskType.ROUND_START_TASK
+                        && task.getRequiredIntParameter("roundNumber") == 1
+        ));
     }
 
     @Test
@@ -219,7 +290,7 @@ class CardPlayServiceTest {
         cardPlayService.handleCardThrowTimeout("game-1", 0, 99, 0);
 
         verify(gameAccessService, never()).save(any());
-        verify(gamePublisher, never()).cardThrown(any(), any(Integer.class), any(Integer.class), any(Integer.class), any(), any(Boolean.class), any(Boolean.class), any(Boolean.class), any(), any(Long.class));
+        verify(gamePublisher, never()).cardThrown(any(), any(Integer.class), any(Integer.class), any(Integer.class), any(), any(Boolean.class), any(Boolean.class), any(Boolean.class), any(), any(Long.class), any(Boolean.class));
         verify(scheduledTaskRegistry, never()).registerTask(any());
     }
 
@@ -314,8 +385,8 @@ class CardPlayServiceTest {
                         && task.getRequiredIntParameter("trickNumber") == 0
                         && task.getRequiredIntParameter("turnIndex") == 1
         ));
-        verify(gamePublisher).cardThrown(eq(game), eq(0), eq(0), eq(0), any(Card.class), eq(false), eq(false), eq(false), eq(null), eq(30L));
-        verify(gamePublisher, never()).cardThrown(eq(game), eq(0), eq(0), eq(1), any(Card.class), eq(true), eq(false), eq(false), eq(null), eq(30L));
+        verify(gamePublisher).cardThrown(eq(game), eq(0), eq(0), eq(0), any(Card.class), eq(false), eq(false), eq(false), eq(null), eq(30L), eq(false));
+        verify(gamePublisher, never()).cardThrown(eq(game), eq(0), eq(0), eq(1), any(Card.class), eq(true), eq(false), eq(false), eq(null), eq(30L), eq(false));
     }
 
     @Test

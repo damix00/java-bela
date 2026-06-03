@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pro.damjan.belabackend.game.events.dto.outgoing.CardThrownEvent;
 import pro.damjan.belabackend.game.events.dto.outgoing.CardTurnStartedEvent;
+import pro.damjan.belabackend.game.events.dto.outgoing.GameEndedEvent;
 import pro.damjan.belabackend.game.events.dto.outgoing.GameSnapshotEvent;
 import pro.damjan.belabackend.game.events.dto.outgoing.GameStatusChangedEvent;
 import pro.damjan.belabackend.game.events.dto.outgoing.PerspectiveOutgoingEvent;
@@ -201,6 +202,18 @@ public class BeloteGameEventPublisher {
 
     public void statusChanged(BeloteGame game) {
         broadcastToGame(game, new GameStatusChangedEvent(game.getStatus()));
+    }
+
+    public void gameEnded(BeloteGame game) {
+        broadcastToGame(
+                game,
+                new GameEndedEvent(
+                        game.getTeam1().getTotalScore(),
+                        game.getTeam2().getTotalScore(),
+                        game.getWinningTeamIndex(),
+                        game.getStatus()
+                )
+        );
     }
 
 }

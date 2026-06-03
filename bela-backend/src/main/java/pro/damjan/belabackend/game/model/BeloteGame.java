@@ -100,4 +100,13 @@ public class BeloteGame implements Serializable {
     public void startGame() {
         status = GameStatus.IN_PROGRESS;
     }
+
+    public boolean hasWinner() {
+        return (team1.getTotalScore() >= maxPoints || team2.getTotalScore() >= maxPoints)
+                && team1.getTotalScore() != team2.getTotalScore();
+    }
+
+    public int getWinningTeamIndex() {
+        return team1.getTotalScore() >= team2.getTotalScore() ? 0 : 1;
+    }
 }

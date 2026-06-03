@@ -43,7 +43,10 @@ class TrumpPhaseServiceTest {
         gamePublisher = mock(BeloteGameEventPublisher.class);
         scheduledTaskRegistry = mock(ScheduledTaskRegistry.class);
         cardPlayService = mock(CardPlayService.class);
-        trumpPhaseService = new TrumpPhaseService(gameAccessService, gamePublisher, scheduledTaskRegistry, cardPlayService);
+        GameFlowService gameFlowService =
+                new GameFlowService(gameAccessService, gamePublisher, scheduledTaskRegistry);
+        trumpPhaseService = new TrumpPhaseService(
+                gameAccessService, gamePublisher, scheduledTaskRegistry, cardPlayService, gameFlowService);
     }
 
     @Test

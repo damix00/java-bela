@@ -1,5 +1,13 @@
 # AGENTS.md
 
+Code quality:
+- Never forget the DRY principle. If you find yourself copy-pasting code, stop and refactor into reusable methods or components.
+- Always write unit tests for your code. Aim for high coverage, but focus on testing critical logic and edge cases rather than trivial getters/setters.
+- Use meaningful variable and method names that clearly convey their purpose. Avoid abbreviations unless they are widely understood.
+- Keep methods short and focused on a single responsibility. If a method is getting too long, consider breaking it into smaller helper methods.
+- Handle exceptions gracefully. Don't let uncaught exceptions crash the application. Use try-catch blocks where appropriate and provide informative error messages.
+- Regularly review and refactor your code to improve readability, maintainability, and performance. Don't be afraid to revisit old code and make improvements as you learn more about the problem domain and best practices.
+
 ## Build & Run
 
 ```bash

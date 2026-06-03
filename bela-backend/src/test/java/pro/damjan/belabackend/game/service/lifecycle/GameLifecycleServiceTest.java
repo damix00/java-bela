@@ -16,6 +16,7 @@ import pro.damjan.belabackend.game.scheduling.registry.ScheduledTaskRegistry;
 import pro.damjan.belabackend.game.scheduling.tasks.ScheduledGameTask;
 import pro.damjan.belabackend.game.scheduling.tasks.ScheduledTaskType;
 import pro.damjan.belabackend.game.service.access.GameAccessService;
+import pro.damjan.belabackend.game.service.play.GameFlowService;
 import pro.damjan.belabackend.game.service.play.TrumpPhaseService;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 import pro.damjan.belabackend.lobby.model.LobbyPlayerStatus;
@@ -53,13 +54,16 @@ class GameLifecycleServiceTest {
         setOperations = mock(SetOperations.class);
         trumpPhaseService = mock(TrumpPhaseService.class);
         when(redisTemplate.opsForSet()).thenReturn(setOperations);
+        GameFlowService gameFlowService =
+                new GameFlowService(gameAccessService, gamePublisher, scheduledTaskRegistry);
         gameLifecycleService = new GameLifecycleService(
                 gameAccessService,
                 userPresenceService,
                 gamePublisher,
                 scheduledTaskRegistry,
                 redisTemplate,
-                trumpPhaseService
+                trumpPhaseService,
+                gameFlowService
         );
     }
 

@@ -23,14 +23,15 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CardPlayService {
 
+    public static final Duration CARD_THROW_TIMEOUT = Duration.ofSeconds(30);
+
     private static final Duration BOT_THROW_DELAY = Duration.ofSeconds(1);
-    private static final Duration CARD_THROW_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration NEXT_TRICK_DELAY = Duration.ofSeconds(3);
-    private static final Duration NEXT_ROUND_DELAY = Duration.ofSeconds(5);
 
     private final GameAccessService gameAccessService;
     private final BeloteGameEventPublisher gamePublisher;
     private final ScheduledTaskRegistry scheduledTaskRegistry;
+    private final GameFlowService gameFlowService;
 
     public void throwCard(String userId, Suite suite, Rank rank) {
         BeloteGame game = gameAccessService.requireUserGame(userId);
@@ -102,7 +103,7 @@ public class CardPlayService {
         );
 
         if (round.getRoundStatus() == RoundStatus.FINISHED) {
-            scheduleNextRoundStart(game, roundNumber + 1);
+            gameFlowService.endGameOrScheduleNextRound(game, roundNumber);
             return;
         }
 
@@ -220,14 +221,4 @@ public class CardPlayService {
         );
     }
 
-    private void scheduleNextRoundStart(BeloteGame game, int nextRoundNumber) {
-        scheduledTaskRegistry.registerTask(
-                new ScheduledGameTask(
-                        ScheduledTaskType.ROUND_START_TASK,
-                        NEXT_ROUND_DELAY,
-                        game.getId(),
-                        Map.of("roundNumber", nextRoundNumber)
-                )
-        );
-    }
 }

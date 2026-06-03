@@ -25,6 +25,7 @@ import TrumpChooser from "./trump-chooser";
 import TurnTimeout from "./turn-timeout";
 import NextTrickIndicator from "./next-trick-indicator";
 import DeclarationRevealOverlay from "./declaration-reveal-overlay";
+import GameOverOverlay from "./game-over-overlay";
 
 export default function GameView() {
     const {
@@ -48,6 +49,8 @@ export default function GameView() {
         previewCard: null,
         isDraggingCard: false,
     });
+    const [dismissedDeclarationsRound, setDismissedDeclarationsRound] =
+        useState(-1);
 
     // Map seat indices to visual positions relative to current user
     // Visual: 0=top (partner), 1=right, 2=bottom (me), 3=left
@@ -128,6 +131,23 @@ export default function GameView() {
             ...(round.team2Declarations ?? []),
         ];
     }, [game?.currentRound]);
+
+    // Auto-dismiss the declarations overlay after a few seconds so play can
+    // resume. Tracking the dismissed round (rather than a boolean) means the
+    // overlay reappears automatically when a new round's declarations arrive.
+    const declarationsRoundNumber = game?.currentRound?.roundNumber ?? -1;
+    const declarationsDismissed =
+        dismissedDeclarationsRound === declarationsRoundNumber;
+    useEffect(() => {
+        if (phase !== "declarations" || declarations.length === 0) return;
+
+        const timer = setTimeout(
+            () => setDismissedDeclarationsRound(declarationsRoundNumber),
+            5000,
+        );
+
+        return () => clearTimeout(timer);
+    }, [phase, declarationsRoundNumber, declarations.length]);
 
     const getDeclarationPlayerLabel = useCallback(
         (playerIndex: number) => {
@@ -265,6 +285,7 @@ export default function GameView() {
                 {phase === "round_starting" && (
                     <RoundStartOverlay key="round" />
                 )}
+                {phase === "finished" && <GameOverOverlay key="game-over" />}
                 {phase === "declarations" &&
                     !declarationsDismissed &&
                     declarations.length > 0 && (

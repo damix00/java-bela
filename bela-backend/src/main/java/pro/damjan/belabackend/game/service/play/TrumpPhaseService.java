@@ -28,14 +28,13 @@ public class TrumpPhaseService {
 
     private static final Duration BOT_TRUMP_CHOICE_DELAY = Duration.ofSeconds(1);
     private static final Duration TRUMP_CHOICE_TIMEOUT = Duration.ofSeconds(10);
-    private static final Duration CARD_THROW_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration DECLARATION_REVEAL_DELAY = Duration.ofSeconds(4);
-    private static final Duration NEXT_ROUND_DELAY = Duration.ofSeconds(5);
 
     private final GameAccessService gameAccessService;
     private final BeloteGameEventPublisher gamePublisher;
     private final ScheduledTaskRegistry scheduledTaskRegistry;
     private final CardPlayService cardPlayService;
+    private final GameFlowService gameFlowService;
 
     public void handleChoosingTrumpTimeout(String gameId, int roundNumber, int turnIndex) {
         BeloteGame game = gameAccessService.requireGameById(gameId);
@@ -162,7 +161,7 @@ public class TrumpPhaseService {
 
             gameAccessService.save(game);
             gamePublisher.trumpChosen(game, chosenByTurnIndex, suite, RoundStatus.FINISHED, revealedCardsByUserId);
-            scheduleNextRoundStart(game, round.getRoundNumber() + 1);
+            gameFlowService.endGameOrScheduleNextRound(game, round.getRoundNumber());
             return;
         }
 
@@ -192,7 +191,7 @@ public class TrumpPhaseService {
 
     private void publishFirstCardTurnOrSchedule(BeloteGame game) {
         if (!isCurrentPlayerBot(game)) {
-            gamePublisher.cardTurnStarted(game, CARD_THROW_TIMEOUT.toSeconds());
+            gamePublisher.cardTurnStarted(game, CardPlayService.CARD_THROW_TIMEOUT.toSeconds());
         }
 
         cardPlayService.playBotTurnOrSchedule(game);
@@ -266,17 +265,6 @@ public class TrumpPhaseService {
                         DECLARATION_REVEAL_DELAY,
                         game.getId(),
                         Map.of("roundNumber", round.getRoundNumber())
-                )
-        );
-    }
-
-    private void scheduleNextRoundStart(BeloteGame game, int nextRoundNumber) {
-        scheduledTaskRegistry.registerTask(
-                new ScheduledGameTask(
-                        ScheduledTaskType.ROUND_START_TASK,
-                        NEXT_ROUND_DELAY,
-                        game.getId(),
-                        Map.of("roundNumber", nextRoundNumber)
                 )
         );
     }

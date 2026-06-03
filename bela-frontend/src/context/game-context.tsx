@@ -25,6 +25,11 @@ import {
 } from "@/types/game";
 import { LobbyStatus } from "@/types/lobby";
 
+// Mirrors the backend TrumpPhaseService.TRUMP_CHOICE_TIMEOUT. Used to seed the
+// trump countdown when restoring trump-choosing state from a reconnect snapshot,
+// since the snapshot doesn't carry the (already-running) timer's remaining time.
+const TRUMP_CHOICE_TIMEOUT_SECONDS = 10;
+
 type GameSnapshotData = {
     gameId: string;
     status: GameStatus;
@@ -111,6 +116,13 @@ type CardThrownData = {
     team2TotalScore: number;
 };
 
+type GameEndedData = {
+    team1FinalScore: number;
+    team2FinalScore: number;
+    winningTeamIndex: number;
+    gameStatus: GameStatus;
+};
+
 export type GamePhase =
     | "loading"
     | "countdown"
@@ -149,6 +161,7 @@ type GameContextType = {
     trumpChoice: TrumpChoiceState;
     turnTimer: TurnTimerState;
     nextTrickPending: NextTrickPendingState;
+    gameResult: GameEndedData | null;
     setPhase: (phase: GamePhase) => void;
     chooseTrump: (suite: Suite) => void;
     passTrump: () => void;
@@ -161,6 +174,7 @@ const GameContext = createContext<GameContextType>({
     trumpChoice: null,
     turnTimer: null,
     nextTrickPending: null,
+    gameResult: null,
     setPhase: () => {},
     chooseTrump: () => {},
     passTrump: () => {},
@@ -283,6 +297,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const [turnTimer, setTurnTimer] = useState<TurnTimerState>(null);
     const [nextTrickPending, setNextTrickPending] =
         useState<NextTrickPendingState>(null);
+    const [gameResult, setGameResult] = useState<GameEndedData | null>(null);
 
     useWsEvent<LobbyGameCreatedData>("lobby:gameCreated", (data) => {
         console.log("Game created for game context:", data);
@@ -304,6 +319,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
             rounds: [],
             currentRound,
         });
+
+        if (currentRound?.roundStatus === RoundStatus.CHOOSING_TRUMP) {
+            setTrumpChoice({
+                roundNumber: currentRound.roundNumber,
+                currentTurnIndex: currentRound.currentTurnIndex,
+                timeoutSeconds: TRUMP_CHOICE_TIMEOUT_SECONDS,
+                startedAt: Date.now(),
+            });
+        } else {
+            setTrumpChoice(null);
+        }
 
         if (data.status === GameStatus.IN_PROGRESS) {
             const hasDeclarations =
@@ -668,6 +694,31 @@ export function GameProvider({ children }: { children: ReactNode }) {
         });
     });
 
+    useWsEvent<GameEndedData>("game:ended", (data) => {
+        console.log("Game ended:", data);
+        setGameResult(data);
+        setTurnTimer(null);
+        setNextTrickPending(null);
+        setTrumpChoice(null);
+        setGame((prev) =>
+            prev
+                ? {
+                      ...prev,
+                      status: data.gameStatus,
+                      team1: {
+                          ...prev.team1,
+                          totalScore: data.team1FinalScore,
+                      },
+                      team2: {
+                          ...prev.team2,
+                          totalScore: data.team2FinalScore,
+                      },
+                  }
+                : prev,
+        );
+        setPhase("finished");
+    });
+
     useWsEvent<{ gameStatus: GameStatus }>("game:statusChanged", (data) => {
         console.log("Game status changed:", data);
         setGame((prev) =>
@@ -717,6 +768,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 trumpChoice,
                 turnTimer,
                 nextTrickPending,
+                gameResult,
                 setPhase,
                 chooseTrump,
                 passTrump,

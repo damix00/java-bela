@@ -12,16 +12,13 @@ import pro.damjan.belabackend.game.model.player.GamePlayer;
 import pro.damjan.belabackend.game.model.player.Team;
 import pro.damjan.belabackend.game.model.player.TeamPair;
 import pro.damjan.belabackend.game.scheduling.registry.ScheduledTaskRegistry;
-import pro.damjan.belabackend.game.scheduling.tasks.ScheduledGameTask;
-import pro.damjan.belabackend.game.scheduling.tasks.ScheduledTaskType;
 import pro.damjan.belabackend.game.service.access.GameAccessService;
+import pro.damjan.belabackend.game.service.play.GameFlowService;
 import pro.damjan.belabackend.game.service.play.TrumpPhaseService;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 import pro.damjan.belabackend.user.presence.UserPresenceService;
 
-import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -29,14 +26,13 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class GameLifecycleService {
 
-    private static final Duration ROUND_START_DELAY = Duration.ofSeconds(5);
-
     private final GameAccessService gameAccessService;
     private final UserPresenceService userPresenceService;
     private final BeloteGameEventPublisher gamePublisher;
     private final ScheduledTaskRegistry scheduledTaskRegistry;
     private final StringRedisTemplate redisTemplate;
     private final TrumpPhaseService trumpPhaseService;
+    private final GameFlowService gameFlowService;
 
     public BeloteGame createGame(List<LobbyPlayer> lobbyPlayers) {
         List<GamePlayer> players = lobbyPlayers
@@ -50,7 +46,7 @@ public class GameLifecycleService {
                 .id(UUID.randomUUID().toString())
                 .team1(teams.teamA())
                 .team2(teams.teamB())
-                .maxPoints(1001)
+                .maxPoints(501) // TODO: make configurable
                 .status(GameStatus.WAITING)
                 .build();
 
@@ -87,14 +83,7 @@ public class GameLifecycleService {
             game.startGame();
             gamePublisher.statusChanged(game);
 
-            scheduledTaskRegistry.registerTask(
-                    new ScheduledGameTask(
-                            ScheduledTaskType.ROUND_START_TASK,
-                            ROUND_START_DELAY,
-                            game.getId(),
-                            Map.of("roundNumber", game.getCurrentRoundNumber() + 1)
-                    )
-            );
+            gameFlowService.scheduleNextRoundStart(game, game.getCurrentRoundNumber() + 1);
         }
 
         gameAccessService.save(game);
