@@ -33,10 +33,16 @@ public class Card implements Serializable {
         } else if (!this.isTrump && previousCard.isTrump) {
             return false; // non-trump loses to trump
         } else if (this.suite == previousCard.suite) {
-            return this.getPoints() > previousCard.getPoints();
+            // Compare by rank strength, not point value: equal-point ranks (e.g. 9, 8, 7)
+            // still have a strict beating order.
+            return this.getStrength() > previousCard.getStrength();
         }
 
         return false; // different non-trump suits cannot beat each other
+    }
+
+    public int getStrength() {
+        return rank.getStrength(isTrump);
     }
 
     public int getPoints() {

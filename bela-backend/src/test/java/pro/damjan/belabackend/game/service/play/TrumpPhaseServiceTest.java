@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -242,6 +243,20 @@ class TrumpPhaseServiceTest {
                         && task.getDelay().equals(Duration.ofSeconds(5))
                         && task.getRequiredIntParameter("roundNumber") == 1
         ));
+    }
+
+    @Test
+    void chooseTrumpRejectsNullSuiteWithoutMutatingTheRound() {
+        BeloteGame game = choosingTrumpGame();
+        when(gameAccessService.requireUserGame("p0")).thenReturn(game);
+
+        assertThatThrownBy(() -> trumpPhaseService.chooseTrump("p0", null))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        var round = game.getCurrentRound();
+        assertThat(round.getRoundStatus()).isEqualTo(RoundStatus.CHOOSING_TRUMP);
+        assertThat(round.getTrumpSuite()).isNull();
+        verify(gameAccessService, never()).save(any());
     }
 
     private BeloteGame choosingTrumpGame() {

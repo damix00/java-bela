@@ -42,7 +42,6 @@ public class BeloteRound implements Serializable {
 
     private int currentTrickNumber = -1; // 0-based index for tricks within this round
     private List<Trick> tricks; // List of tricks played in this round, in order
-    private Trick currentTrick;
     private RoundTeam team1 = new RoundTeam();
     private RoundTeam team2 = new RoundTeam();
 
@@ -103,15 +102,27 @@ public class BeloteRound implements Serializable {
         this.currentTurnIndex = turnIndex;
     }
 
+    /**
+     * The current trick is always the last entry in {@link #tricks}. It is derived rather than
+     * stored so the value survives a persistence round trip: storing it as a separate field would
+     * de-alias it from the list on reload, leaving the list copy frozen and silently corrupting
+     * trick-based scoring (bela and the all-tricks sweep bonus).
+     */
+    public Trick getCurrentTrick() {
+        List<Trick> all = tricksOrEmpty();
+        return all.isEmpty() ? null : all.getLast();
+    }
+
     public void startNewTrick() {
-        if (currentTrick != null && !currentTrick.isComplete()) {
+        Trick current = getCurrentTrick();
+        if (current != null && !current.isComplete()) {
             throw new IllegalStateException("Cannot start a new trick while the current trick is still active");
         }
 
-        currentTrick = new Trick();
-        currentTrick.setTrickNumber(++currentTrickNumber);
+        Trick trick = new Trick();
+        trick.setTrickNumber(++currentTrickNumber);
 
-        tricksOrEmpty().add(currentTrick);
+        tricksOrEmpty().add(trick);
     }
 
     public Trick getTrick(int trickNumber) {
@@ -123,6 +134,7 @@ public class BeloteRound implements Serializable {
     }
 
     public CardThrowResult throwCard(GamePlayer gamePlayer, Card card) {
+        Trick currentTrick = getCurrentTrick();
         if (currentTrick == null || currentTrick.isComplete()) {
             throw new IllegalStateException("Cannot throw card, no active trick or current trick is already complete");
         }

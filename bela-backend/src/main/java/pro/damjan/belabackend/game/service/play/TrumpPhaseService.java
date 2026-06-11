@@ -91,6 +91,10 @@ public class TrumpPhaseService {
     }
 
     public void chooseTrump(String userId, Suite suite) {
+        if (suite == null) {
+            throw new IllegalArgumentException("Trump suite is required");
+        }
+
         BeloteGame game = gameAccessService.requireUserGame(userId);
         var round = game.getCurrentRound();
         GamePlayer player = getCurrentTrumpChooser(game);

@@ -108,6 +108,58 @@ class BeloteRoundScoringTest {
         assertThat(round.getRoundTeam(1).getCardPoints()).isEqualTo(0);
     }
 
+    @Test
+    void currentTrickIsAlwaysTheLastTrickInTheList() {
+        // The current trick must be derived from the tricks list, not a duplicate field. Storing it
+        // separately de-aliased it from the list across a persistence round trip, freezing the list
+        // copy empty and corrupting bela / štiglja scoring.
+        BeloteRound round = new BeloteRound(0, 0, RoundStatus.CHOOSING_TRUMP);
+        round.chooseTrump(TRUMP);
+        round.setRoundStatus(RoundStatus.PLAYING);
+
+        GamePlayer p0 = player("p0", 0, List.of(card(TRUMP, Rank.ACE), card(Suite.BELLS, Rank.SEVEN)));
+        GamePlayer p1 = player("p1", 1, List.of(card(Suite.BELLS, Rank.EIGHT), card(Suite.BELLS, Rank.NINE)));
+        GamePlayer p2 = player("p2", 2, List.of(card(Suite.ACORN, Rank.SEVEN), card(Suite.ACORN, Rank.EIGHT)));
+        GamePlayer p3 = player("p3", 3, List.of(card(Suite.LEAF, Rank.SEVEN), card(Suite.LEAF, Rank.EIGHT)));
+
+        round.startNewTrick();
+        assertThat(round.getCurrentTrick()).isSameAs(round.getTricks().getLast());
+
+        // Complete the first trick, then a second can begin and the derived getter tracks it.
+        playFromHand(round, p0);
+        playFromHand(round, p1);
+        playFromHand(round, p2);
+        playFromHand(round, p3);
+
+        round.startNewTrick();
+        assertThat(round.getCurrentTrick()).isSameAs(round.getTricks().getLast());
+        assertThat(round.getTricks()).hasSize(2);
+    }
+
+    @Test
+    void completedTricksRemainRetrievableWithTheirWinners() {
+        BeloteRound round = new BeloteRound(0, 0, RoundStatus.CHOOSING_TRUMP);
+        round.chooseTrump(TRUMP);
+        round.setRoundStatus(RoundStatus.PLAYING);
+
+        GamePlayer p0 = player("p0", 0, List.of(card(TRUMP, Rank.ACE), card(Suite.BELLS, Rank.SEVEN)));
+        GamePlayer p1 = player("p1", 1, List.of(card(Suite.BELLS, Rank.EIGHT), card(Suite.BELLS, Rank.NINE)));
+        GamePlayer p2 = player("p2", 2, List.of(card(Suite.ACORN, Rank.SEVEN), card(Suite.ACORN, Rank.EIGHT)));
+        GamePlayer p3 = player("p3", 3, List.of(card(Suite.LEAF, Rank.SEVEN), card(Suite.LEAF, Rank.EIGHT)));
+
+        // Trick 0: p0 cuts with a trump and wins; the completed trick must stay in the list.
+        round.startNewTrick();
+        playFromHand(round, p0);
+        playFromHand(round, p1);
+        playFromHand(round, p2);
+        playFromHand(round, p3);
+
+        round.startNewTrick(); // appends trick 1; trick 0 must not be lost or overwritten
+
+        assertThat(round.getTrick(0).getPlayedCards()).hasSize(4);
+        assertThat(round.getTrick(0).getWinningPlayerIndex()).isEqualTo(0);
+    }
+
     private BeloteRound finishedRoundWithCaller(int callerTeamSeat) {
         BeloteRound round = new BeloteRound(0, callerTeamSeat, RoundStatus.CHOOSING_TRUMP);
         round.chooseTrump(TRUMP); // marks the current turn's team as the caller

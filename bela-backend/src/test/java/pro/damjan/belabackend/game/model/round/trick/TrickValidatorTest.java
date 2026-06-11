@@ -90,6 +90,20 @@ class TrickValidatorTest {
         assertThat(TrickValidator.isLegalMove(trick, lowerTrump, TRUMP_SUITE, player)).isTrue();
     }
 
+    @Test
+    void higherNonTrumpRankWinsAmongEqualPointCards() {
+        // Seat 0 leads the 8 of hearts, seat 1 follows with the 9 of hearts.
+        // Both are worth 0 points, but the 9 outranks the 8 and must win the trick.
+        Trick trick = trickWith(
+                played(0, card(Suite.HEARTS, Rank.EIGHT)),
+                played(1, card(Suite.HEARTS, Rank.NINE)),
+                played(2, card(Suite.HEARTS, Rank.SEVEN)),
+                played(3, card(Suite.BELLS, Rank.ACE))
+        );
+
+        assertThat(TrickValidator.determineTrickWinner(trick, TRUMP_SUITE)).isEqualTo(1);
+    }
+
     private Trick trickWith(PlayedCard... playedCards) {
         Trick trick = new Trick();
         for (PlayedCard playedCard : playedCards) {
