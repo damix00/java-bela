@@ -25,10 +25,14 @@ import {
 } from "@/types/game";
 import { LobbyStatus } from "@/types/lobby";
 
-// Mirrors the backend TrumpPhaseService.TRUMP_CHOICE_TIMEOUT. Used to seed the
-// trump countdown when restoring trump-choosing state from a reconnect snapshot,
-// since the snapshot doesn't carry the (already-running) timer's remaining time.
-const TRUMP_CHOICE_TIMEOUT_SECONDS = 10;
+// Names of the server-side ScheduledTaskType values that map to a client-visible countdown.
+// The reconnect snapshot tells us which one is running so we can rebuild the right indicator.
+const TIMER_TYPE = {
+    TRUMP_CHOICE: "CHOOSING_TRUMP_TIMEOUT_TASK",
+    CARD_THROW: "CARD_THROW_TIMEOUT_TASK",
+    NEXT_TRICK: "NEXT_TRICK_START_TASK",
+    NEXT_ROUND: "ROUND_START_TASK",
+} as const;
 
 type GameSnapshotData = {
     gameId: string;
@@ -47,8 +51,12 @@ type GameSnapshotData = {
         team2RoundPoints: number;
         team1Declarations: Declaration[];
         team2Declarations: Declaration[];
-        // remaining seconds on the active phase timer; null when no timer is running
+        // the active countdown: which timer is running and how many seconds remain.
+        // Both null when no client-facing timer is active.
+        timerType: string | null;
         timeoutSeconds: number | null;
+        // winner of the current trick once complete, for rebuilding the pending indicator; else null
+        currentTrickWinningPlayerIndex: number | null;
     } | null;
 };
 
@@ -112,6 +120,7 @@ type CardThrownData = {
     winningPlayerIndex: number | null;
     nextTurnIndex: number;
     timeoutSeconds: number;
+    pendingDelaySeconds: number;
     team1RoundPoints: number;
     team2RoundPoints: number;
     team1TotalScore: number;
@@ -264,13 +273,14 @@ function normalizeSnapshotRound(
         return null;
     }
 
+    const winningPlayerIndex = round.currentTrickWinningPlayerIndex ?? -1;
     const currentTrick =
         round.currentTrickNumber >= 0
             ? {
                   trickNumber: round.currentTrickNumber,
                   playedCards: round.currentTrickCards ?? [],
-                  winningPlayerIndex: -1,
-                  complete: false,
+                  winningPlayerIndex,
+                  complete: winningPlayerIndex >= 0,
               }
             : null;
 
@@ -309,7 +319,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     useWsEvent<GameSnapshotData>("game:snapshot", (data) => {
         console.log("Game snapshot received:", data);
         const currentRound = normalizeSnapshotRound(data.currentRound);
-        setNextTrickPending(null);
 
         setGame({
             id: data.gameId,
@@ -322,34 +331,54 @@ export function GameProvider({ children }: { children: ReactNode }) {
             currentRound,
         });
 
-        // The server sends the remaining seconds on the active phase timer so we can
-        // resume the countdown in sync with its scheduled timeout after a reconnect.
-        const remainingTimeout = data.currentRound?.timeoutSeconds ?? null;
+        // The server tells us which countdown is running (timerType) and how many seconds
+        // remain, so we rebuild the matching indicator in sync with its scheduled timeout
+        // after a reconnect. All timer durations come from the server, never hardcoded here.
+        const timerType = data.currentRound?.timerType ?? null;
+        const remaining = data.currentRound?.timeoutSeconds ?? null;
+        const startedAt = Date.now();
 
         if (currentRound?.roundStatus === RoundStatus.CHOOSING_TRUMP) {
             setTrumpChoice({
                 roundNumber: currentRound.roundNumber,
                 currentTurnIndex: currentRound.currentTurnIndex,
-                timeoutSeconds: remainingTimeout ?? TRUMP_CHOICE_TIMEOUT_SECONDS,
-                startedAt: Date.now(),
+                timeoutSeconds: remaining ?? 0,
+                startedAt,
             });
         } else {
             setTrumpChoice(null);
         }
 
-        if (
-            currentRound?.roundStatus === RoundStatus.PLAYING &&
-            remainingTimeout !== null
-        ) {
+        if (timerType === TIMER_TYPE.CARD_THROW && remaining !== null) {
             setTurnTimer({
-                roundNumber: currentRound.roundNumber,
-                trickNumber: currentRound.currentTrickNumber,
-                currentTurnIndex: currentRound.currentTurnIndex,
-                timeoutSeconds: remainingTimeout,
-                startedAt: Date.now(),
+                roundNumber: currentRound?.roundNumber ?? -1,
+                trickNumber: currentRound?.currentTrickNumber ?? -1,
+                currentTurnIndex: currentRound?.currentTurnIndex ?? -1,
+                timeoutSeconds: remaining,
+                startedAt,
             });
         } else {
             setTurnTimer(null);
+        }
+
+        if (
+            (timerType === TIMER_TYPE.NEXT_TRICK ||
+                timerType === TIMER_TYPE.NEXT_ROUND) &&
+            remaining !== null &&
+            currentRound
+        ) {
+            setNextTrickPending({
+                kind:
+                    timerType === TIMER_TYPE.NEXT_TRICK ? "trick" : "round",
+                roundNumber: currentRound.roundNumber,
+                completedTrickNumber: currentRound.currentTrickNumber,
+                winningPlayerIndex:
+                    data.currentRound?.currentTrickWinningPlayerIndex ?? null,
+                timeoutSeconds: remaining,
+                startedAt,
+            });
+        } else {
+            setNextTrickPending(null);
         }
 
         if (data.status === GameStatus.IN_PROGRESS) {
@@ -602,7 +631,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 roundNumber: data.roundNumber,
                 completedTrickNumber: data.trickNumber,
                 winningPlayerIndex: data.winningPlayerIndex,
-                timeoutSeconds: 3,
+                timeoutSeconds: data.pendingDelaySeconds,
                 startedAt: Date.now(),
             });
         } else if (data.trickComplete) {
@@ -611,7 +640,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 roundNumber: data.roundNumber,
                 completedTrickNumber: data.trickNumber,
                 winningPlayerIndex: data.winningPlayerIndex,
-                timeoutSeconds: 5,
+                timeoutSeconds: data.pendingDelaySeconds,
                 startedAt: Date.now(),
             });
         } else if (!data.trickComplete) {

@@ -17,6 +17,12 @@ public interface ScheduledTaskRegistry {
     void removeTasksForGame(ScheduledGameTask task);
     void removeTasksForGame(String gameId);
 
+    /**
+     * Removes all scheduled tasks of the given type for a game. Used to cancel a superseded
+     * timer (e.g. the previous turn's card-throw timeout) so only one remains active per game.
+     */
+    void removeGameTasksOfType(String gameId, ScheduledTaskType type);
+
     ScheduledGameTask getTaskById(String taskId);
 
     /**

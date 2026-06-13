@@ -30,12 +30,13 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
     private RoundSnapshot currentRound;
 
     public GameSnapshotEvent(BeloteGame game, String perspectiveUserId) {
-        this(game, perspectiveUserId, null);
+        this(game, perspectiveUserId, null, null);
     }
 
-    // timeoutSeconds is the remaining time on the active phase timer (trump choice / card throw),
-    // so a reconnecting client can resume the countdown in sync with the server's scheduled timeout.
-    public GameSnapshotEvent(BeloteGame game, String perspectiveUserId, Long timeoutSeconds) {
+    // timerType + timeoutSeconds describe the active countdown (which timer is running and how many
+    // seconds remain) so a reconnecting client can rebuild the correct indicator in sync with the
+    // server's scheduled timeout.
+    public GameSnapshotEvent(BeloteGame game, String perspectiveUserId, String timerType, Long timeoutSeconds) {
         super("game:snapshot", perspectiveUserId);
         this.gameId = game.getId();
         this.status = game.getStatus();
@@ -43,7 +44,7 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
         this.team1 = TeamSnapshot.from(game.getTeam1(), perspectiveUserId);
         this.team2 = TeamSnapshot.from(game.getTeam2(), perspectiveUserId);
         this.currentRound = game.getCurrentRound() != null
-                ? RoundSnapshot.from(game.getCurrentRound(), timeoutSeconds)
+                ? RoundSnapshot.from(game.getCurrentRound(), timerType, timeoutSeconds)
                 : null;
     }
 
@@ -110,8 +111,12 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
         private final int team2RoundPoints;
         private final List<Declaration> team1Declarations;
         private final List<Declaration> team2Declarations;
-        // remaining seconds on the active phase timer; null when no timer is running
+        // the active countdown: which timer is running (ScheduledTaskType name) and seconds remaining.
+        // Both null when no client-facing timer is active.
+        private final String timerType;
         private final Long timeoutSeconds;
+        // winner of the current trick once it is complete (for rebuilding the pending indicator); else null
+        private final Integer currentTrickWinningPlayerIndex;
 
         private RoundSnapshot(
                 int roundNumber,
@@ -124,7 +129,9 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
                 int team2RoundPoints,
                 List<Declaration> team1Declarations,
                 List<Declaration> team2Declarations,
-                Long timeoutSeconds
+                String timerType,
+                Long timeoutSeconds,
+                Integer currentTrickWinningPlayerIndex
         ) {
             this.roundNumber = roundNumber;
             this.roundStatus = roundStatus;
@@ -136,22 +143,31 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
             this.team2RoundPoints = team2RoundPoints;
             this.team1Declarations = team1Declarations;
             this.team2Declarations = team2Declarations;
+            this.timerType = timerType;
             this.timeoutSeconds = timeoutSeconds;
+            this.currentTrickWinningPlayerIndex = currentTrickWinningPlayerIndex;
         }
 
-        public static RoundSnapshot from(BeloteRound round, Long timeoutSeconds) {
+        public static RoundSnapshot from(BeloteRound round, String timerType, Long timeoutSeconds) {
+            var currentTrick = round.getCurrentTrick();
+            Integer winningPlayerIndex = currentTrick != null && currentTrick.isComplete()
+                    ? currentTrick.getWinningPlayerIndex()
+                    : null;
+
             return new RoundSnapshot(
                     round.getRoundNumber(),
                     round.getRoundStatus(),
                     round.getTrumpSuite(),
                     round.getCurrentTurnIndex(),
                     round.getCurrentTrickNumber(),
-                    round.getCurrentTrick() == null ? List.of() : round.getCurrentTrick().getPlayedCards(),
+                    currentTrick == null ? List.of() : currentTrick.getPlayedCards(),
                     round.getTeam1RoundScore(),
                     round.getTeam2RoundScore(),
                     round.getRoundTeam(0).getDeclarations(),
                     round.getRoundTeam(1).getDeclarations(),
-                    timeoutSeconds
+                    timerType,
+                    timeoutSeconds,
+                    winningPlayerIndex
             );
         }
     }

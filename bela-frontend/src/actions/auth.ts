@@ -11,7 +11,6 @@ async function storeCookie(key: string, value: string) {
     cookieStore.set(key, value, {
         httpOnly: true,
         secure: process.env.SECURE_COOKIES === "true",
-        sameSite: "lax",
         maxAge: AUTH_DURATION,
     });
 }

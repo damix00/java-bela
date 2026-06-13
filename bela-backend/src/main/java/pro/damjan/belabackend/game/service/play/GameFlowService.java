@@ -17,7 +17,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class GameFlowService {
 
-    private static final Duration NEXT_ROUND_DELAY = Duration.ofSeconds(5);
+    public static final Duration NEXT_ROUND_DELAY = Duration.ofSeconds(5);
 
     private final GameAccessService gameAccessService;
     private final BeloteGameEventPublisher gamePublisher;

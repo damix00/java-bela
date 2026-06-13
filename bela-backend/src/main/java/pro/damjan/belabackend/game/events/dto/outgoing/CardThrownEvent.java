@@ -18,6 +18,8 @@ public class CardThrownEvent extends OutgoingEvent {
     private Integer winningPlayerIndex;
     private int nextTurnIndex;
     private long timeoutSeconds;
+    // delay before the next trick / next round begins; 0 when nothing is pending
+    private long pendingDelaySeconds;
     private int team1RoundPoints;
     private int team2RoundPoints;
     private int team1TotalScore;
@@ -35,6 +37,7 @@ public class CardThrownEvent extends OutgoingEvent {
             Integer winningPlayerIndex,
             int nextTurnIndex,
             long timeoutSeconds,
+            long pendingDelaySeconds,
             int team1RoundPoints,
             int team2RoundPoints,
             int team1TotalScore,
@@ -52,6 +55,7 @@ public class CardThrownEvent extends OutgoingEvent {
         this.winningPlayerIndex = winningPlayerIndex;
         this.nextTurnIndex = nextTurnIndex;
         this.timeoutSeconds = timeoutSeconds;
+        this.pendingDelaySeconds = pendingDelaySeconds;
         this.team1RoundPoints = team1RoundPoints;
         this.team2RoundPoints = team2RoundPoints;
         this.team1TotalScore = team1TotalScore;

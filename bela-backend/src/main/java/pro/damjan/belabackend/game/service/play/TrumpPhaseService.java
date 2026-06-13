@@ -225,6 +225,9 @@ public class TrumpPhaseService {
             return;
         }
 
+        // Cancel the previous chooser's timeout so only the current turn's trump timer is live.
+        scheduledTaskRegistry.removeGameTasksOfType(game.getId(), ScheduledTaskType.CHOOSING_TRUMP_TIMEOUT_TASK);
+
         scheduledTaskRegistry.registerTask(
                 new ScheduledGameTask(
                         ScheduledTaskType.CHOOSING_TRUMP_TIMEOUT_TASK,

@@ -34,25 +34,34 @@ public class BeloteGameEventPublisher {
     private final WebSocketPublisher webSocketPublisher;
     private final ScheduledTaskRegistry scheduledTaskRegistry;
 
-    // Remaining seconds on the currently-running phase timer, so a (re)connecting client can
-    // resume the countdown in sync with the server's scheduled timeout. Null when no timer is active.
-    private Long activeTimerSeconds(BeloteGame game) {
-        BeloteRound round = game.getCurrentRound();
+    // Identifies which client-facing countdown is running for the current round so a (re)connecting
+    // client can rebuild the right indicator. Returns null when no client-facing timer is active.
+    private ScheduledTaskType activeTimerType(BeloteRound round) {
         if (round == null) {
             return null;
         }
 
-        ScheduledTaskType timerType = switch (round.getRoundStatus()) {
+        return switch (round.getRoundStatus()) {
             case CHOOSING_TRUMP -> ScheduledTaskType.CHOOSING_TRUMP_TIMEOUT_TASK;
-            case PLAYING -> ScheduledTaskType.CARD_THROW_TIMEOUT_TASK;
+            case PLAYING -> round.getCurrentTrick() != null && round.getCurrentTrick().isComplete()
+                    ? ScheduledTaskType.NEXT_TRICK_START_TASK
+                    : ScheduledTaskType.CARD_THROW_TIMEOUT_TASK;
+            case FINISHED -> ScheduledTaskType.ROUND_START_TASK;
             default -> null;
         };
+    }
 
-        if (timerType == null) {
-            return null;
-        }
+    // Builds a snapshot for the perspective user, including the active timer's type + remaining seconds,
+    // so the client resumes the countdown in sync with the server's scheduled timeout.
+    private GameSnapshotEvent buildSnapshot(BeloteGame game, String userId) {
+        ScheduledTaskType timerType = activeTimerType(game.getCurrentRound());
+        Long remainingSeconds = timerType == null
+                ? null
+                : scheduledTaskRegistry.getRemainingSeconds(game.getId(), timerType);
+        // Only advertise the timer type when its task is actually scheduled (remaining is non-null).
+        String timerTypeName = remainingSeconds == null ? null : timerType.name();
 
-        return scheduledTaskRegistry.getRemainingSeconds(game.getId(), timerType);
+        return new GameSnapshotEvent(game, userId, timerTypeName, remainingSeconds);
     }
 
     private void broadcastToGame(BeloteGame game, OutgoingEvent event) {
@@ -69,7 +78,7 @@ public class BeloteGameEventPublisher {
 
             webSocketPublisher.sendToActiveSession(
                     player.getUserId(),
-                    new GameSnapshotEvent(game, player.getUserId(), activeTimerSeconds(game))
+                    buildSnapshot(game, player.getUserId())
             );
         }
     }
@@ -77,7 +86,7 @@ public class BeloteGameEventPublisher {
     public void sendSnapshot(BeloteGame game, String userId) {
         webSocketPublisher.sendToActiveSession(
                 userId,
-                new GameSnapshotEvent(game, userId, activeTimerSeconds(game))
+                buildSnapshot(game, userId)
         );
     }
 
@@ -200,6 +209,7 @@ public class BeloteGameEventPublisher {
             boolean nextTrickPending,
             Integer winningPlayerIndex,
             long timeoutSeconds,
+            long pendingDelaySeconds,
             boolean bela
     ) {
         broadcastToGame(
@@ -215,6 +225,7 @@ public class BeloteGameEventPublisher {
                         winningPlayerIndex,
                         game.getCurrentRound().getCurrentTurnIndex(),
                         timeoutSeconds,
+                        pendingDelaySeconds,
                         game.getCurrentRound().getTeam1RoundScore(),
                         game.getCurrentRound().getTeam2RoundScore(),
                         game.getTeam1().getTotalScore(),

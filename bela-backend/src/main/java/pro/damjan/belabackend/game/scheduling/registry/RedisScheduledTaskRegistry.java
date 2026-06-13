@@ -72,6 +72,26 @@ public class RedisScheduledTaskRegistry implements ScheduledTaskRegistry {
     }
 
     @Override
+    public void removeGameTasksOfType(String gameId, ScheduledTaskType type) {
+        String gameIndexKey = getGameIndexKey(gameId);
+        var taskIds = redisTemplate.opsForSet().members(gameIndexKey);
+        if (taskIds == null) {
+            return;
+        }
+
+        for (String taskId : taskIds) {
+            ScheduledGameTask task = getTaskById(taskId);
+            if (task == null || task.getType() != type) {
+                continue;
+            }
+
+            redisTemplate.opsForZSet().remove(ZSET_KEY, taskId);
+            redisTemplate.delete(PAYLOAD_KEY_PREFIX + taskId);
+            redisTemplate.opsForSet().remove(gameIndexKey, taskId);
+        }
+    }
+
+    @Override
     public ScheduledGameTask getTaskById(String taskId) {
         String payload = redisTemplate.opsForValue().get(PAYLOAD_KEY_PREFIX + taskId);
 

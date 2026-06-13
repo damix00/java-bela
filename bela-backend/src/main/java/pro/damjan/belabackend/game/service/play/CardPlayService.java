@@ -88,6 +88,14 @@ public class CardPlayService {
                 round.getRoundStatus() == RoundStatus.PLAYING && !result.nextTrickPending()
                         ? CARD_THROW_TIMEOUT.toSeconds()
                         : 0;
+        long pendingDelaySeconds;
+        if (result.nextTrickPending()) {
+            pendingDelaySeconds = NEXT_TRICK_DELAY.toSeconds();
+        } else if (round.getRoundStatus() == RoundStatus.FINISHED) {
+            pendingDelaySeconds = GameFlowService.NEXT_ROUND_DELAY.toSeconds();
+        } else {
+            pendingDelaySeconds = 0;
+        }
         gamePublisher.cardThrown(
                 game,
                 roundNumber,
@@ -99,6 +107,7 @@ public class CardPlayService {
                 result.nextTrickPending(),
                 result.winningPlayerIndex(),
                 timeoutSeconds,
+                pendingDelaySeconds,
                 result.bela()
         );
 
@@ -182,6 +191,11 @@ public class CardPlayService {
         if (round == null || round.getRoundStatus() != RoundStatus.PLAYING) {
             return;
         }
+
+        // Cancel the previous turn's timeout so only the current turn's card-throw timer is live.
+        // Without this, a turn played before its 30s deadline leaves a stale task whose remaining
+        // time would be reported on reconnect instead of the current turn's.
+        scheduledTaskRegistry.removeGameTasksOfType(game.getId(), ScheduledTaskType.CARD_THROW_TIMEOUT_TASK);
 
         scheduledTaskRegistry.registerTask(
                 new ScheduledGameTask(
