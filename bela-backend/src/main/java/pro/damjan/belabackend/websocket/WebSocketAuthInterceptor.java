@@ -34,13 +34,19 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
                                    WebSocketHandler wsHandler, Map<String, Object> attributes) {
         if (request instanceof ServletServerHttpRequest servletRequest) {
-            Cookie[] cookies = servletRequest.getServletRequest().getCookies();
+            // Prefer the token from the handshake query param (works cross-origin,
+            // where the httpOnly cookie may not be attached), fall back to the cookie.
+            String token = servletRequest.getServletRequest().getParameter("token");
 
-            String token = Arrays.stream(cookies != null ? cookies : new Cookie[0])
-                    .filter(c -> "token".equals(c.getName()))
-                    .findFirst()
-                    .map(Cookie::getValue)
-                    .orElse(null);
+            if (token == null || token.isBlank()) {
+                Cookie[] cookies = servletRequest.getServletRequest().getCookies();
+
+                token = Arrays.stream(cookies != null ? cookies : new Cookie[0])
+                        .filter(c -> "token".equals(c.getName()))
+                        .findFirst()
+                        .map(Cookie::getValue)
+                        .orElse(null);
+            }
 
             try {
                 // Determine user ID (this might throw an exception if token is expired/invalid)

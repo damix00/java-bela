@@ -1,6 +1,7 @@
 package pro.damjan.belabackend.game.scheduling.registry;
 
 import pro.damjan.belabackend.game.scheduling.tasks.ScheduledGameTask;
+import pro.damjan.belabackend.game.scheduling.tasks.ScheduledTaskType;
 
 import java.util.List;
 
@@ -17,5 +18,11 @@ public interface ScheduledTaskRegistry {
     void removeTasksForGame(String gameId);
 
     ScheduledGameTask getTaskById(String taskId);
+
+    /**
+     * Returns the remaining seconds until the active task of the given type fires for the game,
+     * derived from the stored execution time (deadline). Returns null when no such task is scheduled.
+     */
+    Long getRemainingSeconds(String gameId, ScheduledTaskType type);
 
 }

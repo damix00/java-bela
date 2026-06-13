@@ -30,6 +30,12 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
     private RoundSnapshot currentRound;
 
     public GameSnapshotEvent(BeloteGame game, String perspectiveUserId) {
+        this(game, perspectiveUserId, null);
+    }
+
+    // timeoutSeconds is the remaining time on the active phase timer (trump choice / card throw),
+    // so a reconnecting client can resume the countdown in sync with the server's scheduled timeout.
+    public GameSnapshotEvent(BeloteGame game, String perspectiveUserId, Long timeoutSeconds) {
         super("game:snapshot", perspectiveUserId);
         this.gameId = game.getId();
         this.status = game.getStatus();
@@ -37,7 +43,7 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
         this.team1 = TeamSnapshot.from(game.getTeam1(), perspectiveUserId);
         this.team2 = TeamSnapshot.from(game.getTeam2(), perspectiveUserId);
         this.currentRound = game.getCurrentRound() != null
-                ? RoundSnapshot.from(game.getCurrentRound())
+                ? RoundSnapshot.from(game.getCurrentRound(), timeoutSeconds)
                 : null;
     }
 
@@ -104,6 +110,8 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
         private final int team2RoundPoints;
         private final List<Declaration> team1Declarations;
         private final List<Declaration> team2Declarations;
+        // remaining seconds on the active phase timer; null when no timer is running
+        private final Long timeoutSeconds;
 
         private RoundSnapshot(
                 int roundNumber,
@@ -115,7 +123,8 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
                 int team1RoundPoints,
                 int team2RoundPoints,
                 List<Declaration> team1Declarations,
-                List<Declaration> team2Declarations
+                List<Declaration> team2Declarations,
+                Long timeoutSeconds
         ) {
             this.roundNumber = roundNumber;
             this.roundStatus = roundStatus;
@@ -127,9 +136,10 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
             this.team2RoundPoints = team2RoundPoints;
             this.team1Declarations = team1Declarations;
             this.team2Declarations = team2Declarations;
+            this.timeoutSeconds = timeoutSeconds;
         }
 
-        public static RoundSnapshot from(BeloteRound round) {
+        public static RoundSnapshot from(BeloteRound round, Long timeoutSeconds) {
             return new RoundSnapshot(
                     round.getRoundNumber(),
                     round.getRoundStatus(),
@@ -140,7 +150,8 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
                     round.getTeam1RoundScore(),
                     round.getTeam2RoundScore(),
                     round.getRoundTeam(0).getDeclarations(),
-                    round.getRoundTeam(1).getDeclarations()
+                    round.getRoundTeam(1).getDeclarations(),
+                    timeoutSeconds
             );
         }
     }

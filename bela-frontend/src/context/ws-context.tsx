@@ -31,6 +31,7 @@ const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8080/ws";
 
 export function WebSocketProvider({ children }: { children: ReactNode }) {
     const auth = useAuth();
+    const token = auth.token;
 
     const [status, setStatus] = useState<ConnectionStatus>("disconnected");
     const wsRef = useRef<WebSocket | null>(null);
@@ -39,15 +40,19 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
     const attemptRef = useRef(0);
 
     const connect = useCallback(() => {
+        // No token means the handshake would be rejected with 401 — don't
+        // open a socket (and trigger the reconnect loop) until we have one.
+        if (!token) return;
         if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
         setStatus("connecting");
 
-        const ws = new WebSocket(WS_URL);
+        const ws = new WebSocket(`${WS_URL}?token=${encodeURIComponent(token)}`);
         wsRef.current = ws;
 
         ws.onopen = () => {
             setStatus("connected");
+            attemptRef.current = 0;
         };
 
         ws.onclose = () => {
@@ -84,7 +89,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
                 console.error("Failed to parse WebSocket message");
             }
         };
-    }, []);
+    }, [token]);
 
     const disconnect = useCallback(() => {
         if (reconnectTimeoutRef.current) {

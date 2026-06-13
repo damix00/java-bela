@@ -47,6 +47,8 @@ type GameSnapshotData = {
         team2RoundPoints: number;
         team1Declarations: Declaration[];
         team2Declarations: Declaration[];
+        // remaining seconds on the active phase timer; null when no timer is running
+        timeoutSeconds: number | null;
     } | null;
 };
 
@@ -320,15 +322,34 @@ export function GameProvider({ children }: { children: ReactNode }) {
             currentRound,
         });
 
+        // The server sends the remaining seconds on the active phase timer so we can
+        // resume the countdown in sync with its scheduled timeout after a reconnect.
+        const remainingTimeout = data.currentRound?.timeoutSeconds ?? null;
+
         if (currentRound?.roundStatus === RoundStatus.CHOOSING_TRUMP) {
             setTrumpChoice({
                 roundNumber: currentRound.roundNumber,
                 currentTurnIndex: currentRound.currentTurnIndex,
-                timeoutSeconds: TRUMP_CHOICE_TIMEOUT_SECONDS,
+                timeoutSeconds: remainingTimeout ?? TRUMP_CHOICE_TIMEOUT_SECONDS,
                 startedAt: Date.now(),
             });
         } else {
             setTrumpChoice(null);
+        }
+
+        if (
+            currentRound?.roundStatus === RoundStatus.PLAYING &&
+            remainingTimeout !== null
+        ) {
+            setTurnTimer({
+                roundNumber: currentRound.roundNumber,
+                trickNumber: currentRound.currentTrickNumber,
+                currentTurnIndex: currentRound.currentTurnIndex,
+                timeoutSeconds: remainingTimeout,
+                startedAt: Date.now(),
+            });
+        } else {
+            setTurnTimer(null);
         }
 
         if (data.status === GameStatus.IN_PROGRESS) {

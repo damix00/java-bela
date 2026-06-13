@@ -19,6 +19,8 @@ import pro.damjan.belabackend.game.model.card.Suite;
 import pro.damjan.belabackend.game.model.player.GamePlayer;
 import pro.damjan.belabackend.game.model.round.BeloteRound;
 import pro.damjan.belabackend.game.model.round.RoundStatus;
+import pro.damjan.belabackend.game.scheduling.registry.ScheduledTaskRegistry;
+import pro.damjan.belabackend.game.scheduling.tasks.ScheduledTaskType;
 import pro.damjan.belabackend.websocket.events.WebSocketPublisher;
 import pro.damjan.belabackend.websocket.events.dto.OutgoingEvent;
 
@@ -30,6 +32,28 @@ import java.util.Map;
 public class BeloteGameEventPublisher {
 
     private final WebSocketPublisher webSocketPublisher;
+    private final ScheduledTaskRegistry scheduledTaskRegistry;
+
+    // Remaining seconds on the currently-running phase timer, so a (re)connecting client can
+    // resume the countdown in sync with the server's scheduled timeout. Null when no timer is active.
+    private Long activeTimerSeconds(BeloteGame game) {
+        BeloteRound round = game.getCurrentRound();
+        if (round == null) {
+            return null;
+        }
+
+        ScheduledTaskType timerType = switch (round.getRoundStatus()) {
+            case CHOOSING_TRUMP -> ScheduledTaskType.CHOOSING_TRUMP_TIMEOUT_TASK;
+            case PLAYING -> ScheduledTaskType.CARD_THROW_TIMEOUT_TASK;
+            default -> null;
+        };
+
+        if (timerType == null) {
+            return null;
+        }
+
+        return scheduledTaskRegistry.getRemainingSeconds(game.getId(), timerType);
+    }
 
     private void broadcastToGame(BeloteGame game, OutgoingEvent event) {
         game.getPlayers().forEach(player -> {
@@ -45,7 +69,7 @@ public class BeloteGameEventPublisher {
 
             webSocketPublisher.sendToActiveSession(
                     player.getUserId(),
-                    new GameSnapshotEvent(game, player.getUserId())
+                    new GameSnapshotEvent(game, player.getUserId(), activeTimerSeconds(game))
             );
         }
     }
@@ -53,7 +77,7 @@ public class BeloteGameEventPublisher {
     public void sendSnapshot(BeloteGame game, String userId) {
         webSocketPublisher.sendToActiveSession(
                 userId,
-                new GameSnapshotEvent(game, userId)
+                new GameSnapshotEvent(game, userId, activeTimerSeconds(game))
         );
     }
 

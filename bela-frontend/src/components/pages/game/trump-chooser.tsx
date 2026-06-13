@@ -37,6 +37,12 @@ export default function TrumpChooser({
   const isMyTurn = currentTurnIndex === mySeatIndex;
   const isLastChooser = currentTurnIndex === (roundNumber + 3) % 4;
 
+  // Reset the clock when a new timer starts (e.g. on reconnect) so the countdown
+  // reflects the fresh startedAt immediately instead of on the next interval tick.
+  useEffect(() => {
+    setNow(startedAt);
+  }, [startedAt]);
+
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(timer);

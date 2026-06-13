@@ -44,6 +44,7 @@ export default function Button({
                 {...props}
                 href={href}
                 className={classNames}
+                // @ts-ignore
                 disabled={props.disabled || loading}>
                 {loading ? <Loader /> : props.children}
             </Link>

@@ -6,6 +6,7 @@ import lombok.Setter;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import pro.damjan.belabackend.game.scheduling.tasks.ScheduledGameTask;
+import pro.damjan.belabackend.game.scheduling.tasks.ScheduledTaskType;
 import tools.jackson.databind.ObjectMapper;
 
 @Getter @Setter
@@ -81,5 +82,30 @@ public class RedisScheduledTaskRegistry implements ScheduledTaskRegistry {
         return null;
     }
 
+    @Override
+    public Long getRemainingSeconds(String gameId, ScheduledTaskType type) {
+        var taskIds = redisTemplate.opsForSet().members(getGameIndexKey(gameId));
+        if (taskIds == null) {
+            return null;
+        }
+
+        long now = System.currentTimeMillis();
+        for (String taskId : taskIds) {
+            ScheduledGameTask task = getTaskById(taskId);
+            if (task == null || task.getType() != type) {
+                continue;
+            }
+
+            Double executionTime = redisTemplate.opsForZSet().score(ZSET_KEY, taskId);
+            if (executionTime == null) {
+                continue;
+            }
+
+            long remainingMillis = executionTime.longValue() - now;
+            return Math.max(0L, Math.round(remainingMillis / 1000.0));
+        }
+
+        return null;
+    }
 
 }
