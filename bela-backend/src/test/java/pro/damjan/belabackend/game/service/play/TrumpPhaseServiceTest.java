@@ -192,7 +192,8 @@ class TrumpPhaseServiceTest {
 
         assertThat(game.getCurrentRound().getRoundStatus()).isEqualTo(RoundStatus.DECLARATIONS);
         assertThat(game.getCurrentRound().getCurrentTrick()).isNull();
-        assertThat(game.getCurrentRound().getRoundTeam(0).getDeclarationPoints()).isEqualTo(200);
+        assertThat(game.getCurrentRound().getDeclarations(0).stream()
+                .mapToInt(pro.damjan.belabackend.game.model.card.Declaration::getPoints).sum()).isEqualTo(200);
         assertThat(game.getCurrentRound().getTeam1RoundScore()).isEqualTo(200);
 
         verify(gameAccessService).save(game);
@@ -201,7 +202,7 @@ class TrumpPhaseServiceTest {
         verify(cardPlayService, never()).playBotTurnOrSchedule(game);
         verify(scheduledTaskRegistry).registerTask(org.mockito.ArgumentMatchers.argThat(task ->
                 task.getType() == ScheduledTaskType.DECLARATIONS_COMPLETE_TASK
-                        && task.getDelay().equals(Duration.ofSeconds(4))
+                        && task.getDelay().equals(Duration.ofSeconds(10))
                         && task.getRequiredIntParameter("roundNumber") == 0
         ));
     }
@@ -228,7 +229,7 @@ class TrumpPhaseServiceTest {
         assertThat(game.getTeam2().getTotalScore()).isZero();
         assertThat(game.getCurrentRound().getRoundStatus()).isEqualTo(RoundStatus.FINISHED);
         assertThat(game.getCurrentRound().getCurrentTrick()).isNull();
-        assertThat(game.getCurrentRound().getRoundTeam(0).getDeclarations())
+        assertThat(game.getCurrentRound().getDeclarations(0))
                 .singleElement()
                 .extracting(declaration -> declaration.getType())
                 .isEqualTo(pro.damjan.belabackend.game.model.card.Declaration.Type.BELOTE);

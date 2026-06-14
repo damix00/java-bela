@@ -177,8 +177,8 @@ public class BeloteGameEventPublisher {
                             round.getTeam2RoundScore(),
                             game.getTeam1().getTotalScore(),
                             game.getTeam2().getTotalScore(),
-                            round.getRoundTeam(0).getDeclarations(),
-                            round.getRoundTeam(1).getDeclarations()
+                            round.getDeclarations(0),
+                            round.getDeclarations(1)
                     )
             );
         }

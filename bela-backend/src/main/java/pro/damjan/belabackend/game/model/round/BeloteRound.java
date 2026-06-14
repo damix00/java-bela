@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import pro.damjan.belabackend.game.model.card.Card;
 import pro.damjan.belabackend.game.model.card.Declaration;
+import pro.damjan.belabackend.game.model.card.DeclarationResolver;
 import pro.damjan.belabackend.game.model.card.Rank;
 import pro.damjan.belabackend.game.model.card.Suite;
 import pro.damjan.belabackend.game.model.player.GamePlayer;
@@ -44,6 +45,7 @@ public class BeloteRound implements Serializable {
     private List<Trick> tricks; // List of tricks played in this round, in order
     private RoundTeam team1 = new RoundTeam();
     private RoundTeam team2 = new RoundTeam();
+    private List<RoundPlayer> roundPlayers; // per-player round state, indexed by seat (0-3)
 
     private List<Trick> tricksOrEmpty() {
         if (tricks == null) {
@@ -53,12 +55,36 @@ public class BeloteRound implements Serializable {
         return tricks;
     }
 
+    private List<RoundPlayer> roundPlayersOrEmpty() {
+        if (roundPlayers == null || roundPlayers.isEmpty()) {
+            List<RoundPlayer> players = new ArrayList<>();
+            for (int seat = 0; seat < 4; seat++) {
+                players.add(new RoundPlayer(seat));
+            }
+            roundPlayers = players;
+        }
+
+        return roundPlayers;
+    }
+
+    public RoundPlayer getRoundPlayer(int seatIndex) {
+        if (seatIndex < 0 || seatIndex > 3) {
+            throw new IllegalArgumentException("Seat index must be between 0 and 3");
+        }
+        return roundPlayersOrEmpty().get(seatIndex);
+    }
+
+    public List<RoundPlayer> getRoundPlayers() {
+        return roundPlayersOrEmpty();
+    }
+
     public BeloteRound(int roundNumber, int startingPlayerIndex, RoundStatus roundStatus) {
         this.roundNumber = roundNumber;
         this.startingPlayerIndex = startingPlayerIndex;
         this.roundStatus = roundStatus;
 
         this.currentTurnIndex = startingPlayerIndex;
+        roundPlayersOrEmpty();
     }
 
     public boolean isChoosingTrump() {
@@ -133,7 +159,7 @@ public class BeloteRound implements Serializable {
                 .orElseThrow(() -> new IllegalStateException("Trick not found: " + trickNumber));
     }
 
-    public CardThrowResult throwCard(GamePlayer gamePlayer, Card card) {
+    public CardThrowResult throwCard(GamePlayer gamePlayer, Card card, boolean declareBela) {
         Trick currentTrick = getCurrentTrick();
         if (currentTrick == null || currentTrick.isComplete()) {
             throw new IllegalStateException("Cannot throw card, no active trick or current trick is already complete");
@@ -156,7 +182,7 @@ public class BeloteRound implements Serializable {
 
         gamePlayer.removeCard(card);
 
-        boolean bela = awardBelaIfCompleted(gamePlayer.getSeatIndex(), card);
+        boolean bela = awardBelaIfCompleted(gamePlayer.getSeatIndex(), card, declareBela);
 
         if (currentTrick.isComplete()) {
             int winningPlayerIndex = TrickValidator.determineTrickWinner(currentTrick, trumpSuite);
@@ -180,11 +206,12 @@ public class BeloteRound implements Serializable {
     }
 
     /**
-     * Bela (King + Queen of the trump suite) is announced on play: the +20 is awarded to the
-     * player's team at the moment they play the second of the two trump cards during tricks.
-     * Returns true if this card completed the bela.
+     * Bela (King + Queen of the trump suite) is optional and announced on play. A player declaring
+     * on either trump K/Q throw records the intent (OR-accumulated). The +20 is awarded — by
+     * appending a {@code BELA} declaration to that player's {@link RoundPlayer} — at the moment they
+     * complete the pair, but only if they declared. Returns true if this card awarded the bela.
      */
-    private boolean awardBelaIfCompleted(int seatIndex, Card card) {
+    private boolean awardBelaIfCompleted(int seatIndex, Card card, boolean declareBela) {
         if (trumpSuite == null || card.getSuite() != trumpSuite) {
             return false;
         }
@@ -192,10 +219,19 @@ public class BeloteRound implements Serializable {
             return false;
         }
 
+        RoundPlayer roundPlayer = getRoundPlayer(seatIndex);
+        if (declareBela) {
+            roundPlayer.setBelaDeclared(true);
+        }
+
         Rank partnerRank = card.getRank() == Rank.KING ? Rank.QUEEN : Rank.KING;
         Card partnerCard = findPlayedCard(seatIndex, trumpSuite, partnerRank);
         if (partnerCard == null) {
             return false; // the other half of the bela has not been played yet
+        }
+
+        if (!roundPlayer.isBelaDeclared()) {
+            return false; // pair completed but the player chose not to declare
         }
 
         List<Card> belaCards = new ArrayList<>();
@@ -207,8 +243,7 @@ public class BeloteRound implements Serializable {
             belaCards.add(card);
         }
 
-        getRoundTeamForPlayerIndex(seatIndex)
-                .addDeclaration(new Declaration(Declaration.Type.BELA, seatIndex, belaCards));
+        roundPlayer.addDeclaration(new Declaration(Declaration.Type.BELA, seatIndex, belaCards));
         return true;
     }
 
@@ -257,6 +292,82 @@ public class BeloteRound implements Serializable {
         return getRoundTeam(playerIndex % 2);
     }
 
+    /** Detects each player's declarations from their hand and stores them on their {@link RoundPlayer}. */
+    public void seedDeclarations(List<GamePlayer> players) {
+        for (GamePlayer player : players) {
+            getRoundPlayer(player.getSeatIndex()).setDeclarations(DeclarationResolver.detect(player));
+        }
+    }
+
+    /** Records that a player opts out of declaring; their declarations drop from the contest. */
+    public void declineDeclarations(int seatIndex) {
+        getRoundPlayer(seatIndex).setChoosesToDeclare(false);
+    }
+
+    /** True if any player holds a non-belot declaration that could be declared (drives the phase). */
+    public boolean hasDeclarations() {
+        return roundPlayersOrEmpty().stream()
+                .flatMap(player -> player.getDeclarations().stream())
+                .anyMatch(declaration -> declaration.getType() != Declaration.Type.BELOTE);
+    }
+
+    /** True if any player holds a belot (all 8 trump cards), which ends the round immediately. */
+    public boolean hasBelot() {
+        return roundPlayersOrEmpty().stream()
+                .flatMap(player -> player.getDeclarations().stream())
+                .anyMatch(declaration -> declaration.getType() == Declaration.Type.BELOTE);
+    }
+
+    /**
+     * Resolves the zvanja contest over only the players who chose to declare (bela excluded — it is
+     * non-contested). The resolver decides which team's zvanja score and, for belot, returns only the
+     * belot itself, so we defer to its per-team lists rather than re-deriving them here.
+     */
+    private DeclarationResolver.Result resolveDeclarations() {
+        List<DeclarationResolver.PlayerDeclarations> declaring = roundPlayersOrEmpty().stream()
+                .filter(RoundPlayer::isChoosesToDeclare)
+                .map(player -> new DeclarationResolver.PlayerDeclarations(
+                        player.getPlayerIndex(),
+                        player.getPlayerIndex() % 2,
+                        player.getDeclarations().stream()
+                                .filter(declaration -> declaration.getType() != Declaration.Type.BELA)
+                                .toList()
+                ))
+                .toList();
+
+        return DeclarationResolver.resolveFrom(declaring, startingPlayerIndex);
+    }
+
+    /**
+     * Declarations shown/scored for a team: the zvanja awarded by the resolver (only the winning
+     * team's, and only the belot for a belot hand), plus that team's bela declarations, which are
+     * always scored per-team regardless of the contest.
+     */
+    public List<Declaration> getDeclarations(int teamIndex) {
+        DeclarationResolver.Result result = resolveDeclarations();
+        List<Declaration> declarations = new ArrayList<>(
+                teamIndex == 0 ? result.team1Declarations() : result.team2Declarations());
+
+        for (RoundPlayer player : roundPlayersOrEmpty()) {
+            if (player.getPlayerIndex() % 2 != teamIndex) {
+                continue;
+            }
+            player.getDeclarations().stream()
+                    .filter(declaration -> declaration.getType() == Declaration.Type.BELA)
+                    .forEach(declarations::add);
+        }
+
+        return declarations;
+    }
+
+    private int getDeclarationPoints(int teamIndex) {
+        return getDeclarations(teamIndex).stream().mapToInt(Declaration::getPoints).sum();
+    }
+
+    public int getTeamPoints(int teamIndex) {
+        return getRoundTeam(teamIndex).getPoints() + getDeclarationPoints(teamIndex);
+    }
+
     public int getTeam1RoundScore() {
         return getFinalRoundScore(0);
     }
@@ -267,21 +378,21 @@ public class BeloteRound implements Serializable {
 
     private int getFinalRoundScore(int teamIndex) {
         if (roundStatus != RoundStatus.FINISHED) {
-            return getRoundTeam(teamIndex).getPoints();
+            return getTeamPoints(teamIndex);
         }
 
         int callerTeamIndex = team1.isCalledTrump() ? 0 : team2.isCalledTrump() ? 1 : -1;
         if (callerTeamIndex == -1) {
-            return getRoundTeam(teamIndex).getPoints();
+            return getTeamPoints(teamIndex);
         }
 
-        RoundTeam caller = getRoundTeam(callerTeamIndex);
-        RoundTeam other = getRoundTeam(1 - callerTeamIndex);
-        int totalPoints = caller.getPoints() + other.getPoints();
+        int callerPoints = getTeamPoints(callerTeamIndex);
+        int otherPoints = getTeamPoints(1 - callerTeamIndex);
+        int totalPoints = callerPoints + otherPoints;
 
         // The calling team must win MORE than half the points; an exact tie means they fall (pao).
-        if (caller.getPoints() * 2 > totalPoints) {
-            return getRoundTeam(teamIndex).getPoints();
+        if (callerPoints * 2 > totalPoints) {
+            return getTeamPoints(teamIndex);
         }
 
         // Caller fell (pao): the opposing team takes everything on the table,

@@ -12,7 +12,7 @@ import {
     getPlayersInSeatOrder,
     RoundStatus,
 } from "@/types/game";
-import { getLegalMoveCardKeys } from "@/lib/game-rules";
+import { canDeclareBela, getLegalMoveCardKeys } from "@/lib/game-rules";
 import Loader from "@/components/ui/loader";
 import ScoreBoard from "./score-board";
 import TrumpDisplay from "./trump-display";
@@ -26,6 +26,7 @@ import TurnTimeout from "./turn-timeout";
 import NextTrickIndicator from "./next-trick-indicator";
 import DeclarationRevealOverlay from "./declaration-reveal-overlay";
 import GameOverOverlay from "./game-over-overlay";
+import BelaPrompt from "./bela-prompt";
 
 export default function GameView() {
     const {
@@ -37,6 +38,7 @@ export default function GameView() {
         chooseTrump,
         passTrump,
         throwCard,
+        declineDeclarations,
     } = useGame();
     const { user } = useAuth();
     const trickDropRef = useRef<HTMLDivElement | null>(null);
@@ -51,6 +53,10 @@ export default function GameView() {
     });
     const [dismissedDeclarationsRound, setDismissedDeclarationsRound] =
         useState(-1);
+    const [belaPrompt, setBelaPrompt] = useState<{
+        card: Card;
+        source: "click" | "drag";
+    } | null>(null);
 
     // Map seat indices to visual positions relative to current user
     // Visual: 0=top (partner), 1=right, 2=bottom (me), 3=left
@@ -132,14 +138,23 @@ export default function GameView() {
         ];
     }, [game?.currentRound]);
 
-    // Auto-dismiss the declarations overlay after a few seconds so play can
-    // resume. Tracking the dismissed round (rather than a boolean) means the
+    // Auto-dismiss the post-round declarations reveal after a few seconds so play
+    // can resume. Tracking the dismissed round (rather than a boolean) means the
     // overlay reappears automatically when a new round's declarations arrive.
+    // During the live DECLARATIONS phase we do NOT auto-dismiss: the overlay (and
+    // its decline button) stays until the server's next-turn event moves the phase
+    // to "playing", so the window stays open for the whole server-side duration.
     const declarationsRoundNumber = game?.currentRound?.roundNumber ?? -1;
+    const roundStatus = game?.currentRound?.roundStatus ?? null;
     const declarationsDismissed =
         dismissedDeclarationsRound === declarationsRoundNumber;
     useEffect(() => {
-        if (phase !== "declarations" || declarations.length === 0) return;
+        if (
+            phase !== "declarations" ||
+            declarations.length === 0 ||
+            roundStatus !== RoundStatus.FINISHED
+        )
+            return;
 
         const timer = setTimeout(
             () => setDismissedDeclarationsRound(declarationsRoundNumber),
@@ -147,7 +162,7 @@ export default function GameView() {
         );
 
         return () => clearTimeout(timer);
-    }, [phase, declarationsRoundNumber, declarations.length]);
+    }, [phase, declarationsRoundNumber, declarations.length, roundStatus]);
 
     const getDeclarationPlayerLabel = useCallback(
         (playerIndex: number) => {
@@ -159,6 +174,29 @@ export default function GameView() {
         },
         [bottomPlayer, leftPlayer, rightPlayer, topPlayer],
     );
+
+    // The local player may decline declaring during the live DECLARATIONS phase,
+    // but only if they actually hold zvanja and haven't already declined.
+    const canDeclineDeclarations = useMemo(() => {
+        if (!bottomPlayer || roundStatus !== RoundStatus.DECLARATIONS) {
+            return false;
+        }
+
+        const declined =
+            game?.currentRound?.declinedDeclarationSeats ?? [];
+        if (declined.includes(bottomPlayer.seatIndex)) {
+            return false;
+        }
+
+        return declarations.some(
+            (declaration) => declaration.playerIndex === bottomPlayer.seatIndex,
+        );
+    }, [
+        bottomPlayer,
+        roundStatus,
+        game?.currentRound?.declinedDeclarationSeats,
+        declarations,
+    ]);
 
     // Current turn check
     const currentTurnSeatIndex = game?.currentRound?.currentTurnIndex ?? -1;
@@ -182,6 +220,17 @@ export default function GameView() {
                 : new Set<string>(),
         [bottomPlayer, currentTrick, trumpSuite],
     );
+    // Cards this player has already thrown in the current round, used to decide
+    // whether throwing a trump K/Q could complete the bela pair.
+    const myPlayedCards = useMemo<Card[]>(() => {
+        if (!bottomPlayer) return [];
+
+        return (game?.currentRound?.tricks ?? [])
+            .flatMap((trick) => trick.playedCards)
+            .filter((played) => played.playerIndex === bottomPlayer.seatIndex)
+            .map((played) => played.card);
+    }, [game?.currentRound?.tricks, bottomPlayer]);
+
     const tableStateKey = `${game?.currentRound?.roundNumber ?? -1}-${game?.currentRound?.currentTrickNumber ?? -1}`;
     const previewCard =
         tableState.trickKey === tableStateKey ? tableState.previewCard : null;
@@ -209,6 +258,18 @@ export default function GameView() {
               : "Winner";
     const nextRoundNumber = (nextTrickPending?.roundNumber ?? 0) + 2;
 
+    const commitThrow = useCallback(
+        (card: Card, source: "click" | "drag", declareBela: boolean) => {
+            setTableState({
+                trickKey: tableStateKey,
+                previewCard: source === "click" ? card : null,
+                isDraggingCard: false,
+            });
+            throwCard(card, declareBela);
+        },
+        [tableStateKey, throwCard],
+    );
+
     const handleThrowCard = useCallback(
         (card: Card, _index: number, source: "click" | "drag") => {
             if (!legalMoveCardKeys.has(getCardKey(card))) {
@@ -220,15 +281,37 @@ export default function GameView() {
                 return;
             }
 
-            setTableState({
-                trickKey: tableStateKey,
-                previewCard: source === "click" ? card : null,
-                isDraggingCard: false,
-            });
-            throwCard(card);
+            // Prompt for bela only when the trump K/Q pair can actually be
+            // completed; otherwise throw straight away with declareBela=false.
+            if (
+                bottomPlayer &&
+                canDeclareBela(
+                    card,
+                    trumpSuite,
+                    bottomPlayer.hand ?? [],
+                    myPlayedCards,
+                )
+            ) {
+                setBelaPrompt({ card, source });
+                return;
+            }
+
+            commitThrow(card, source, false);
         },
-        [legalMoveCardKeys, tableStateKey, throwCard],
+        [legalMoveCardKeys, bottomPlayer, trumpSuite, myPlayedCards, commitThrow],
     );
+
+    const handleBelaConfirm = useCallback(() => {
+        if (!belaPrompt) return;
+        commitThrow(belaPrompt.card, belaPrompt.source, true);
+        setBelaPrompt(null);
+    }, [belaPrompt, commitThrow]);
+
+    const handleBelaDecline = useCallback(() => {
+        if (!belaPrompt) return;
+        commitThrow(belaPrompt.card, belaPrompt.source, false);
+        setBelaPrompt(null);
+    }, [belaPrompt, commitThrow]);
 
     const handleInvalidCardClick = useCallback(() => {
         toast.error("Invalid move", {
@@ -293,8 +376,18 @@ export default function GameView() {
                             key="declarations"
                             declarations={declarations}
                             getPlayerLabel={getDeclarationPlayerLabel}
+                            canDecline={canDeclineDeclarations}
+                            onDecline={declineDeclarations}
                         />
                     )}
+                {belaPrompt && (
+                    <BelaPrompt
+                        key="bela-prompt"
+                        card={belaPrompt.card}
+                        onConfirm={handleBelaConfirm}
+                        onDecline={handleBelaDecline}
+                    />
+                )}
             </AnimatePresence>
 
             {/* Top bar: Score + Trump */}

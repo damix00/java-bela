@@ -41,7 +41,7 @@ class BeloteRoundScoringTest {
     void fallenCallerHandsAllPointsIncludingDeclarationsToOpponent() {
         BeloteRound round = finishedRoundWithCaller(0);
         round.getRoundTeam(0).addCardPoints(40);
-        round.getRoundTeam(0).addDeclaration(
+        round.getRoundPlayer(0).addDeclaration(
                 new Declaration(Declaration.Type.SEQUENCE_3, 0, List.of()));
         round.getRoundTeam(1).addCardPoints(122);
 
@@ -51,35 +51,79 @@ class BeloteRoundScoringTest {
     }
 
     @Test
-    void belaIsAwardedWhenTrumpKingAndQueenArePlayed() {
-        BeloteRound round = new BeloteRound(0, 0, RoundStatus.CHOOSING_TRUMP);
-        round.chooseTrump(TRUMP);
-        round.setRoundStatus(RoundStatus.PLAYING);
+    void belaIsAwardedWhenDeclaredOnFirstTrumpKingQueenCard() {
+        BeloteRound round = playingRound();
+        List<GamePlayer> players = belaPlayers();
 
-        GamePlayer p0 = player("p0", 0, List.of(
-                card(TRUMP, Rank.KING), card(TRUMP, Rank.QUEEN)));
-        GamePlayer p1 = player("p1", 1, List.of(
-                card(Suite.BELLS, Rank.SEVEN), card(Suite.BELLS, Rank.EIGHT)));
-        GamePlayer p2 = player("p2", 2, List.of(
-                card(Suite.ACORN, Rank.SEVEN), card(Suite.ACORN, Rank.EIGHT)));
-        GamePlayer p3 = player("p3", 3, List.of(
-                card(Suite.LEAF, Rank.SEVEN), card(Suite.LEAF, Rank.EIGHT)));
-        List<GamePlayer> players = List.of(p0, p1, p2, p3);
-
-        // Trick 1: seat 0 leads trump KING and wins it.
+        // Trick 1: seat 0 leads trump KING and declares bela on this first card.
         round.startNewTrick();
-        BeloteRound.CardThrowResult kingResult = playFromHand(round, p0);
-        playFromHand(round, p1);
-        playFromHand(round, p2);
-        playFromHand(round, p3);
+        BeloteRound.CardThrowResult kingResult = playFromHand(round, players.get(0), true);
+        playFromHand(round, players.get(1));
+        playFromHand(round, players.get(2));
+        playFromHand(round, players.get(3));
         assertThat(kingResult.bela()).isFalse(); // queen not played yet
 
-        // Trick 2: seat 0 (the winner) leads trump QUEEN, completing the bela.
+        // Trick 2: seat 0 leads trump QUEEN, completing the (already-declared) bela.
         round.startNewTrick();
-        BeloteRound.CardThrowResult queenResult = playFromHand(round, p0);
+        BeloteRound.CardThrowResult queenResult = playFromHand(round, players.get(0), false);
 
         assertThat(queenResult.bela()).isTrue();
-        assertThat(round.getRoundTeam(0).getDeclarationPoints()).isEqualTo(20);
+        assertThat(declarationPoints(round, 0)).isEqualTo(20);
+    }
+
+    @Test
+    void belaIsAwardedWhenDeclaredOnlyOnSecondCard() {
+        BeloteRound round = playingRound();
+        List<GamePlayer> players = belaPlayers();
+
+        // First card thrown WITHOUT declaring (e.g. accidentally declined)...
+        round.startNewTrick();
+        playFromHand(round, players.get(0), false);
+        playFromHand(round, players.get(1));
+        playFromHand(round, players.get(2));
+        playFromHand(round, players.get(3));
+
+        // ...then declared on the completing second card — still awarded.
+        round.startNewTrick();
+        BeloteRound.CardThrowResult queenResult = playFromHand(round, players.get(0), true);
+
+        assertThat(queenResult.bela()).isTrue();
+        assertThat(declarationPoints(round, 0)).isEqualTo(20);
+    }
+
+    @Test
+    void belaIsNotAwardedWhenNeverDeclared() {
+        BeloteRound round = playingRound();
+        List<GamePlayer> players = belaPlayers();
+
+        round.startNewTrick();
+        playFromHand(round, players.get(0), false);
+        playFromHand(round, players.get(1));
+        playFromHand(round, players.get(2));
+        playFromHand(round, players.get(3));
+
+        round.startNewTrick();
+        BeloteRound.CardThrowResult queenResult = playFromHand(round, players.get(0), false);
+
+        assertThat(queenResult.bela()).isFalse();
+        assertThat(declarationPoints(round, 0)).isZero();
+    }
+
+    @Test
+    void declinedDeclarationsDropFromTeamScore() {
+        BeloteRound round = new BeloteRound(0, 0, RoundStatus.CHOOSING_TRUMP);
+        round.chooseTrump(TRUMP);
+        round.setRoundStatus(RoundStatus.DECLARATIONS);
+
+        // Seat 0 (team 0) holds the only declaration.
+        round.getRoundPlayer(0).addDeclaration(
+                new Declaration(Declaration.Type.SEQUENCE_3, 0, List.of()));
+
+        assertThat(declarationPoints(round, 0)).isEqualTo(20);
+
+        round.declineDeclarations(0);
+
+        assertThat(declarationPoints(round, 0)).isZero();
     }
 
     @Test
@@ -167,9 +211,33 @@ class BeloteRoundScoringTest {
         return round;
     }
 
+    private BeloteRound playingRound() {
+        BeloteRound round = new BeloteRound(0, 0, RoundStatus.CHOOSING_TRUMP);
+        round.chooseTrump(TRUMP);
+        round.setRoundStatus(RoundStatus.PLAYING);
+        return round;
+    }
+
+    private List<GamePlayer> belaPlayers() {
+        return List.of(
+                player("p0", 0, List.of(card(TRUMP, Rank.KING), card(TRUMP, Rank.QUEEN))),
+                player("p1", 1, List.of(card(Suite.BELLS, Rank.SEVEN), card(Suite.BELLS, Rank.EIGHT))),
+                player("p2", 2, List.of(card(Suite.ACORN, Rank.SEVEN), card(Suite.ACORN, Rank.EIGHT))),
+                player("p3", 3, List.of(card(Suite.LEAF, Rank.SEVEN), card(Suite.LEAF, Rank.EIGHT)))
+        );
+    }
+
+    private int declarationPoints(BeloteRound round, int teamIndex) {
+        return round.getDeclarations(teamIndex).stream().mapToInt(Declaration::getPoints).sum();
+    }
+
     private BeloteRound.CardThrowResult playFromHand(BeloteRound round, GamePlayer player) {
+        return playFromHand(round, player, false);
+    }
+
+    private BeloteRound.CardThrowResult playFromHand(BeloteRound round, GamePlayer player, boolean declareBela) {
         Card card = player.getHand().getFirst();
-        return round.throwCard(player, card);
+        return round.throwCard(player, card, declareBela);
     }
 
     private GamePlayer player(String userId, int seat, List<Card> hand) {

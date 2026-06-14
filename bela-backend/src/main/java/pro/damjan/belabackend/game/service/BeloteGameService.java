@@ -65,8 +65,12 @@ public class BeloteGameService {
         withUserGameLock(userId, () -> trumpPhaseService.passTrump(userId));
     }
 
-    public void throwCard(String userId, Suite suite, Rank rank) {
-        withUserGameLock(userId, () -> cardPlayService.throwCard(userId, suite, rank));
+    public void declineDeclarations(String userId) {
+        withUserGameLock(userId, () -> trumpPhaseService.declineDeclarations(userId));
+    }
+
+    public void throwCard(String userId, Suite suite, Rank rank, boolean declareBela) {
+        withUserGameLock(userId, () -> cardPlayService.throwCard(userId, suite, rank, declareBela));
     }
 
     public void handleCardThrowTimeout(String gameId, int roundNumber, int trickNumber, int turnIndex) {

@@ -7,6 +7,7 @@ import {
     useState,
     ReactNode,
 } from "react";
+import { toast } from "sonner";
 import { useWebSocket } from "./ws-context";
 import { useWsEvent } from "@/hooks/ws/use-event";
 import { useLobby } from "./lobby-context";
@@ -51,6 +52,7 @@ type GameSnapshotData = {
         team2RoundPoints: number;
         team1Declarations: Declaration[];
         team2Declarations: Declaration[];
+        declinedDeclarationSeats: number[];
         // the active countdown: which timer is running and how many seconds remain.
         // Both null when no client-facing timer is active.
         timerType: string | null;
@@ -125,6 +127,7 @@ type CardThrownData = {
     team2RoundPoints: number;
     team1TotalScore: number;
     team2TotalScore: number;
+    bela: boolean;
 };
 
 type GameEndedData = {
@@ -176,7 +179,8 @@ type GameContextType = {
     setPhase: (phase: GamePhase) => void;
     chooseTrump: (suite: Suite) => void;
     passTrump: () => void;
-    throwCard: (card: Card) => void;
+    throwCard: (card: Card, declareBela?: boolean) => void;
+    declineDeclarations: () => void;
 };
 
 const GameContext = createContext<GameContextType>({
@@ -190,6 +194,7 @@ const GameContext = createContext<GameContextType>({
     chooseTrump: () => {},
     passTrump: () => {},
     throwCard: () => {},
+    declineDeclarations: () => {},
 });
 
 function sameCard(a: Card, b: Card) {
@@ -294,6 +299,7 @@ function normalizeSnapshotRound(
         team2RoundPoints: round.team2RoundPoints,
         team1Declarations: round.team1Declarations ?? [],
         team2Declarations: round.team2Declarations ?? [],
+        declinedDeclarationSeats: round.declinedDeclarationSeats ?? [],
         tricks: currentTrick ? [currentTrick] : [],
         currentTrick,
     };
@@ -416,6 +422,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 team2RoundPoints: data.team2RoundPoints,
                 team1Declarations: [],
                 team2Declarations: [],
+                declinedDeclarationSeats: [],
                 tricks: [],
                 currentTrick: null,
             };
@@ -625,6 +632,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
 
     useWsEvent<CardThrownData>("game:cardThrown", (data) => {
+        if (data.bela) {
+            toast.success("Bela! +20");
+        }
+
         if (data.nextTrickPending) {
             setNextTrickPending({
                 kind: "trick",
@@ -803,11 +814,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
         ws.send("game:trump:pass", null);
     };
 
-    const throwCard = (card: Card) => {
+    const throwCard = (card: Card, declareBela = false) => {
         ws.send("game:card:throw", {
             suite: card.suite,
             rank: card.rank,
+            declareBela,
         });
+    };
+
+    const declineDeclarations = () => {
+        // The backend re-broadcasts a fresh snapshot after recording the decline,
+        // so local state updates through the game:snapshot handler.
+        ws.send("game:declarations:decline", null);
     };
 
     return (
@@ -823,6 +841,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 chooseTrump,
                 passTrump,
                 throwCard,
+                declineDeclarations,
             }}
         >
             {children}

@@ -29,8 +29,13 @@ public class BeloteGameEventHandler {
         beloteGameService.passTrump(user.getId());
     }
 
+    @OnEvent("game:declarations:decline")
+    public void declineDeclarations(User user) {
+        beloteGameService.declineDeclarations(user.getId());
+    }
+
     @OnEvent("game:card:throw")
     public void throwCard(User user, ThrowCardCommand command) {
-        beloteGameService.throwCard(user.getId(), command.getSuite(), command.getRank());
+        beloteGameService.throwCard(user.getId(), command.getSuite(), command.getRank(), command.isDeclareBela());
     }
 }

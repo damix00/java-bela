@@ -88,6 +88,8 @@ export type BeloteRound = {
     team2RoundPoints: number;
     team1Declarations: Declaration[];
     team2Declarations: Declaration[];
+    // seat indices of players who opted out of declaring their zvanja this round
+    declinedDeclarationSeats: number[];
     tricks: Trick[];
     currentTrick: Trick | null;
 };

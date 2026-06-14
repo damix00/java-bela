@@ -63,7 +63,7 @@ class CardPlayServiceTest {
         preplayCard(game, 2, Suite.HEARTS, Rank.NINE);
         when(gameAccessService.requireUserGame("p3")).thenReturn(game);
 
-        cardPlayService.throwCard("p3", Suite.HEARTS, Rank.ACE);
+        cardPlayService.throwCard("p3", Suite.HEARTS, Rank.ACE, false);
 
         var round = game.getCurrentRound();
         assertThat(round.getRoundStatus()).isEqualTo(RoundStatus.PLAYING);
@@ -95,6 +95,7 @@ class CardPlayServiceTest {
                 eq(true),
                 eq(3),
                 eq(0L),
+                eq(3L),
                 eq(false)
         );
         verify(gamePublisher, never()).cardTurnStarted(game, 30L);
@@ -112,6 +113,7 @@ class CardPlayServiceTest {
                 eq(true),
                 eq(3),
                 eq(0L),
+                eq(3L),
                 eq(false)
         );
         order.verify(scheduledTaskRegistry).registerTask(any(ScheduledGameTask.class));
@@ -153,7 +155,7 @@ class CardPlayServiceTest {
         preplayCard(game, 2, Suite.HEARTS, Rank.NINE);
         when(gameAccessService.requireUserGame("p3")).thenReturn(game);
 
-        cardPlayService.throwCard("p3", Suite.HEARTS, Rank.ACE);
+        cardPlayService.throwCard("p3", Suite.HEARTS, Rank.ACE, false);
 
         var round = game.getCurrentRound();
         assertThat(round.getRoundStatus()).isEqualTo(RoundStatus.FINISHED);
@@ -183,6 +185,7 @@ class CardPlayServiceTest {
                 eq(false),
                 eq(3),
                 eq(0L),
+                eq(5L),
                 eq(false)
         );
     }
@@ -201,7 +204,7 @@ class CardPlayServiceTest {
         preplayCard(game, 2, Suite.HEARTS, Rank.NINE);
         when(gameAccessService.requireUserGame("p3")).thenReturn(game);
 
-        cardPlayService.throwCard("p3", Suite.HEARTS, Rank.ACE);
+        cardPlayService.throwCard("p3", Suite.HEARTS, Rank.ACE, false);
 
         assertThat(game.getCurrentRound().getRoundStatus()).isEqualTo(RoundStatus.FINISHED);
         assertThat(game.getStatus()).isEqualTo(GameStatus.FINISHED);
@@ -217,7 +220,7 @@ class CardPlayServiceTest {
         InOrder order = inOrder(gamePublisher);
         order.verify(gamePublisher).cardThrown(
                 eq(game), eq(0), eq(0), eq(3), any(Card.class),
-                eq(false), eq(true), eq(false), eq(3), eq(0L), eq(false)
+                eq(false), eq(true), eq(false), eq(3), eq(0L), eq(5L), eq(false)
         );
         order.verify(gamePublisher).gameEnded(game);
     }
@@ -238,7 +241,7 @@ class CardPlayServiceTest {
         preplayCard(game, 2, Suite.HEARTS, Rank.NINE);
         when(gameAccessService.requireUserGame("p3")).thenReturn(game);
 
-        cardPlayService.throwCard("p3", Suite.HEARTS, Rank.ACE);
+        cardPlayService.throwCard("p3", Suite.HEARTS, Rank.ACE, false);
 
         assertThat(game.getTeam1().getTotalScore()).isEqualTo(1011);
         assertThat(game.getTeam2().getTotalScore()).isEqualTo(1011);
@@ -263,13 +266,14 @@ class CardPlayServiceTest {
         game.getCurrentRound().getRoundTeam(0).setCalledTrump(true);
         Declaration declaration = new Declaration();
         declaration.setType(Declaration.Type.SEQUENCE_3);
-        game.getCurrentRound().getRoundTeam(1).setDeclarations(List.of(declaration));
+        // Seat 1 (team 1) holds the declaration; team 1 wins the (uncontested) declaration contest.
+        game.getCurrentRound().getRoundPlayer(1).addDeclaration(declaration);
         preplayCard(game, 0, Suite.HEARTS, Rank.SEVEN);
         preplayCard(game, 1, Suite.HEARTS, Rank.EIGHT);
         preplayCard(game, 2, Suite.HEARTS, Rank.NINE);
         when(gameAccessService.requireUserGame("p3")).thenReturn(game);
 
-        cardPlayService.throwCard("p3", Suite.HEARTS, Rank.ACE);
+        cardPlayService.throwCard("p3", Suite.HEARTS, Rank.ACE, false);
 
         assertThat(game.getCurrentRound().getTeam1RoundScore()).isZero();
         assertThat(game.getCurrentRound().getTeam2RoundScore()).isEqualTo(41);
@@ -290,7 +294,7 @@ class CardPlayServiceTest {
         cardPlayService.handleCardThrowTimeout("game-1", 0, 99, 0);
 
         verify(gameAccessService, never()).save(any());
-        verify(gamePublisher, never()).cardThrown(any(), any(Integer.class), any(Integer.class), any(Integer.class), any(), any(Boolean.class), any(Boolean.class), any(Boolean.class), any(), any(Long.class), any(Boolean.class));
+        verify(gamePublisher, never()).cardThrown(any(), any(Integer.class), any(Integer.class), any(Integer.class), any(), any(Boolean.class), any(Boolean.class), any(Boolean.class), any(), any(Long.class), any(Long.class), any(Boolean.class));
         verify(scheduledTaskRegistry, never()).registerTask(any());
     }
 
@@ -304,13 +308,13 @@ class CardPlayServiceTest {
         );
         when(gameAccessService.requireUserGame("p1")).thenReturn(game);
 
-        assertThatThrownBy(() -> cardPlayService.throwCard("p1", Suite.HEARTS, Rank.EIGHT))
+        assertThatThrownBy(() -> cardPlayService.throwCard("p1", Suite.HEARTS, Rank.EIGHT, false))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("It is not this player's turn to throw a card");
 
         game.getCurrentRound().setRoundStatus(RoundStatus.FINISHED);
         when(gameAccessService.requireUserGame("p0")).thenReturn(game);
-        assertThatThrownBy(() -> cardPlayService.throwCard("p0", Suite.HEARTS, Rank.SEVEN))
+        assertThatThrownBy(() -> cardPlayService.throwCard("p0", Suite.HEARTS, Rank.SEVEN, false))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Round is not accepting cards");
 
@@ -321,19 +325,19 @@ class CardPlayServiceTest {
                 List.of(card(Suite.HEARTS, Rank.ACE))
         );
         when(gameAccessService.requireUserGame("p0")).thenReturn(hiddenGame);
-        assertThatThrownBy(() -> cardPlayService.throwCard("p0", Suite.HEARTS, Rank.SEVEN))
+        assertThatThrownBy(() -> cardPlayService.throwCard("p0", Suite.HEARTS, Rank.SEVEN, false))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Player does not have this card");
 
         when(gameAccessService.requireUserGame("p0")).thenReturn(hiddenGame);
-        assertThatThrownBy(() -> cardPlayService.throwCard("p0", Suite.BELLS, Rank.SEVEN))
+        assertThatThrownBy(() -> cardPlayService.throwCard("p0", Suite.BELLS, Rank.SEVEN, false))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Player does not have this card");
 
         BeloteGame noTrickGame = gameWithRoundStatus(RoundStatus.PLAYING);
         noTrickGame.getPlayer(0).receiveCards(List.of(card(Suite.HEARTS, Rank.SEVEN)));
         when(gameAccessService.requireUserGame("p0")).thenReturn(noTrickGame);
-        assertThatThrownBy(() -> cardPlayService.throwCard("p0", Suite.HEARTS, Rank.SEVEN))
+        assertThatThrownBy(() -> cardPlayService.throwCard("p0", Suite.HEARTS, Rank.SEVEN, false))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Cannot throw card, no active trick or current trick is already complete");
     }
@@ -351,7 +355,7 @@ class CardPlayServiceTest {
         preplayCard(game, 2, Suite.HEARTS, Rank.NINE);
         when(gameAccessService.requireUserGame("p3")).thenReturn(game);
 
-        cardPlayService.throwCard("p3", Suite.HEARTS, Rank.ACE);
+        cardPlayService.throwCard("p3", Suite.HEARTS, Rank.ACE, false);
 
         verify(scheduledTaskRegistry).registerTask(org.mockito.ArgumentMatchers.argThat(task ->
                 task.getType() == ScheduledTaskType.NEXT_TRICK_START_TASK
@@ -377,7 +381,7 @@ class CardPlayServiceTest {
         );
         when(gameAccessService.requireUserGame("p0")).thenReturn(game);
 
-        cardPlayService.throwCard("p0", Suite.HEARTS, Rank.SEVEN);
+        cardPlayService.throwCard("p0", Suite.HEARTS, Rank.SEVEN, false);
 
         verify(scheduledTaskRegistry).registerTask(org.mockito.ArgumentMatchers.argThat(task ->
                 task.getType() == ScheduledTaskType.CARD_THROW_TIMEOUT_TASK
@@ -385,8 +389,8 @@ class CardPlayServiceTest {
                         && task.getRequiredIntParameter("trickNumber") == 0
                         && task.getRequiredIntParameter("turnIndex") == 1
         ));
-        verify(gamePublisher).cardThrown(eq(game), eq(0), eq(0), eq(0), any(Card.class), eq(false), eq(false), eq(false), eq(null), eq(30L), eq(false));
-        verify(gamePublisher, never()).cardThrown(eq(game), eq(0), eq(0), eq(1), any(Card.class), eq(true), eq(false), eq(false), eq(null), eq(30L), eq(false));
+        verify(gamePublisher).cardThrown(eq(game), eq(0), eq(0), eq(0), any(Card.class), eq(false), eq(false), eq(false), eq(null), eq(30L), eq(0L), eq(false));
+        verify(gamePublisher, never()).cardThrown(eq(game), eq(0), eq(0), eq(1), any(Card.class), eq(true), eq(false), eq(false), eq(null), eq(30L), eq(0L), eq(false));
     }
 
     @Test
@@ -406,7 +410,7 @@ class CardPlayServiceTest {
         preplayCard(game, 2, Suite.HEARTS, Rank.NINE);
         when(gameAccessService.requireUserGame("p3")).thenReturn(game);
 
-        cardPlayService.throwCard("p3", Suite.HEARTS, Rank.ACE);
+        cardPlayService.throwCard("p3", Suite.HEARTS, Rank.ACE, false);
 
         assertThat(game.getCurrentRound().getTricks()).hasSize(1);
         assertThat(game.getCurrentRound().getTricks().get(0).isComplete()).isTrue();
@@ -506,7 +510,7 @@ class CardPlayServiceTest {
                 .filter(c -> c.getSuite() == suite && c.getRank() == rank)
                 .findFirst()
                 .orElseThrow();
-        var result = game.getCurrentRound().throwCard(player, card);
+        var result = game.getCurrentRound().throwCard(player, card, false);
         assertThat(result.legalMove()).isTrue();
     }
 

@@ -11,6 +11,7 @@ public class ThrowCardCommand extends IncomingEvent {
 
     private Suite suite;
     private Rank rank;
+    private boolean declareBela;
 
     public ThrowCardCommand() {}
 }

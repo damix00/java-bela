@@ -36,7 +36,7 @@ public final class DeclarationResolver {
         }
     }
 
-    private record PlayerDeclarations(
+    public record PlayerDeclarations(
             int playerIndex,
             int teamIndex,
             List<Declaration> declarations
@@ -48,6 +48,11 @@ public final class DeclarationResolver {
             Declaration declaration
     ) {}
 
+    /** Detects the declarations a player holds in their hand (used to seed per-player state). */
+    public static List<Declaration> detect(GamePlayer player) {
+        return detectDeclarations(player);
+    }
+
     public static Result resolve(List<GamePlayer> players, int startingPlayerIndex) {
         List<PlayerDeclarations> playerDeclarations = players
                 .stream()
@@ -58,6 +63,10 @@ public final class DeclarationResolver {
                 ))
                 .toList();
 
+        return resolveFrom(playerDeclarations, startingPlayerIndex);
+    }
+
+    public static Result resolveFrom(List<PlayerDeclarations> playerDeclarations, int startingPlayerIndex) {
         Optional<PlayerDeclarations> belotWinner = playerDeclarations
                 .stream()
                 .filter(player -> player.declarations()

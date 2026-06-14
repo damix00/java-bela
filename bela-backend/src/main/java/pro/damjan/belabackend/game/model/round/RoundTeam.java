@@ -2,30 +2,25 @@ package pro.damjan.belabackend.game.model.round;
 
 import lombok.Getter;
 import lombok.Setter;
-import pro.damjan.belabackend.game.model.card.Declaration;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
+/**
+ * Team-level state for a single round. Holds only what is genuinely team-scoped and not derivable
+ * elsewhere: the card points accumulated from won tricks (plus the +10 last-trick and +90 sweep
+ * bonuses) and whether this team called the trump. Declarations live per-player on
+ * {@link RoundPlayer}; declaration totals are derived at the {@link BeloteRound} level.
+ */
 @Getter
 public class RoundTeam implements Serializable {
 
     private int cardPoints; // Points from cards won in tricks
 
     @Setter
-    private List<Declaration> declarations = new ArrayList<>();
-    @Setter
     private boolean calledTrump; // Whether this team called the trump suite for this round
 
     public int getPoints() {
-        return cardPoints + getDeclarationPoints();
-    }
-
-    public int getDeclarationPoints() {
-        return declarations == null
-                ? 0
-                : declarations.stream().mapToInt(Declaration::getPoints).sum();
+        return cardPoints;
     }
 
     public void addCardPoints(int points) {
@@ -34,17 +29,5 @@ public class RoundTeam implements Serializable {
         }
 
         this.cardPoints += points;
-    }
-
-    /**
-     * Appends a declaration, tolerating an immutable list (the declaration resolver assigns
-     * {@code List.of()} to the losing team) by copying into a mutable list when needed.
-     */
-    public void addDeclaration(Declaration declaration) {
-        List<Declaration> updated = declarations == null
-                ? new ArrayList<>()
-                : new ArrayList<>(declarations);
-        updated.add(declaration);
-        this.declarations = updated;
     }
 }

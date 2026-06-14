@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import pro.damjan.belabackend.game.events.BeloteGameEventPublisher;
 import pro.damjan.belabackend.game.model.BeloteGame;
 import pro.damjan.belabackend.game.model.card.Card;
-import pro.damjan.belabackend.game.model.card.DeclarationResolver;
 import pro.damjan.belabackend.game.model.card.Suite;
 import pro.damjan.belabackend.game.model.player.GamePlayer;
 import pro.damjan.belabackend.game.model.round.BeloteRound;
@@ -28,7 +27,7 @@ public class TrumpPhaseService {
 
     private static final Duration BOT_TRUMP_CHOICE_DELAY = Duration.ofSeconds(1);
     private static final Duration TRUMP_CHOICE_TIMEOUT = Duration.ofSeconds(10);
-    private static final Duration DECLARATION_REVEAL_DELAY = Duration.ofSeconds(4);
+    private static final Duration DECLARATION_REVEAL_DELAY = Duration.ofSeconds(10);
 
     private final GameAccessService gameAccessService;
     private final BeloteGameEventPublisher gamePublisher;
@@ -123,6 +122,27 @@ public class TrumpPhaseService {
         chooseBotTrumpOrSchedule(game);
     }
 
+    public void declineDeclarations(String userId) {
+        BeloteGame game = gameAccessService.requireUserGame(userId);
+        BeloteRound round = game.getCurrentRound();
+
+        if (round == null || round.getRoundStatus() != RoundStatus.DECLARATIONS) {
+            throw new IllegalStateException("Declarations cannot be declined outside the declarations phase");
+        }
+
+        GamePlayer player = game.getPlayers().stream()
+                .filter(p -> p.getUserId().equals(userId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Player is not part of this game"));
+
+        round.declineDeclarations(player.getSeatIndex());
+
+        gameAccessService.save(game);
+        // Declarations are derived on demand from the live choice flags, so a fresh snapshot
+        // reflects the recomputed winning team for every player.
+        gamePublisher.broadcastSnapshot(game);
+    }
+
     private GamePlayer getCurrentTrumpChooser(BeloteGame game) {
         var round = game.getCurrentRound();
 
@@ -155,11 +175,9 @@ public class TrumpPhaseService {
             player.updateTrumpSuite(suite);
         }
 
-        var declarations = DeclarationResolver.resolve(game.getPlayers(), round.getStartingPlayerIndex());
-        round.getRoundTeam(0).setDeclarations(declarations.team1Declarations());
-        round.getRoundTeam(1).setDeclarations(declarations.team2Declarations());
+        round.seedDeclarations(game.getPlayers());
 
-        if (declarations.belot()) {
+        if (round.hasBelot()) {
             round.setRoundStatus(RoundStatus.FINISHED);
             game.finishCurrentRoundScoring();
 
@@ -169,7 +187,7 @@ public class TrumpPhaseService {
             return;
         }
 
-        if (declarations.hasWinningTeam()) {
+        if (round.hasDeclarations()) {
             round.setRoundStatus(RoundStatus.DECLARATIONS);
 
             gameAccessService.save(game);

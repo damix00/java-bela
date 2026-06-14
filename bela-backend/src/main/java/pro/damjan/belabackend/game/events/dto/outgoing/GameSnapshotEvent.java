@@ -111,6 +111,8 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
         private final int team2RoundPoints;
         private final List<Declaration> team1Declarations;
         private final List<Declaration> team2Declarations;
+        // seat indices of players who opted out of declaring their declarations this round
+        private final List<Integer> declinedDeclarationSeats;
         // the active countdown: which timer is running (ScheduledTaskType name) and seconds remaining.
         // Both null when no client-facing timer is active.
         private final String timerType;
@@ -129,6 +131,7 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
                 int team2RoundPoints,
                 List<Declaration> team1Declarations,
                 List<Declaration> team2Declarations,
+                List<Integer> declinedDeclarationSeats,
                 String timerType,
                 Long timeoutSeconds,
                 Integer currentTrickWinningPlayerIndex
@@ -143,6 +146,7 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
             this.team2RoundPoints = team2RoundPoints;
             this.team1Declarations = team1Declarations;
             this.team2Declarations = team2Declarations;
+            this.declinedDeclarationSeats = declinedDeclarationSeats;
             this.timerType = timerType;
             this.timeoutSeconds = timeoutSeconds;
             this.currentTrickWinningPlayerIndex = currentTrickWinningPlayerIndex;
@@ -154,6 +158,11 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
                     ? currentTrick.getWinningPlayerIndex()
                     : null;
 
+            List<Integer> declinedSeats = round.getRoundPlayers().stream()
+                    .filter(player -> !player.isChoosesToDeclare())
+                    .map(pro.damjan.belabackend.game.model.round.RoundPlayer::getPlayerIndex)
+                    .toList();
+
             return new RoundSnapshot(
                     round.getRoundNumber(),
                     round.getRoundStatus(),
@@ -163,8 +172,9 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
                     currentTrick == null ? List.of() : currentTrick.getPlayedCards(),
                     round.getTeam1RoundScore(),
                     round.getTeam2RoundScore(),
-                    round.getRoundTeam(0).getDeclarations(),
-                    round.getRoundTeam(1).getDeclarations(),
+                    round.getDeclarations(0),
+                    round.getDeclarations(1),
+                    declinedSeats,
                     timerType,
                     timeoutSeconds,
                     winningPlayerIndex

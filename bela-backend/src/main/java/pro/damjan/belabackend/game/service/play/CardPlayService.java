@@ -33,7 +33,7 @@ public class CardPlayService {
     private final ScheduledTaskRegistry scheduledTaskRegistry;
     private final GameFlowService gameFlowService;
 
-    public void throwCard(String userId, Suite suite, Rank rank) {
+    public void throwCard(String userId, Suite suite, Rank rank, boolean declareBela) {
         BeloteGame game = gameAccessService.requireUserGame(userId);
 
         var round = game.getCurrentRound();
@@ -47,7 +47,7 @@ public class CardPlayService {
         }
 
         Card card = findPlayableCard(player, suite, rank);
-        throwCard(game, player, card, false);
+        throwCard(game, player, card, false, declareBela);
     }
 
     public void handleCardThrowTimeout(String gameId, int roundNumber, int trickNumber, int turnIndex) {
@@ -66,14 +66,15 @@ public class CardPlayService {
 
         GamePlayer player = game.getPlayer(turnIndex);
         Card card = chooseCardForTimeout(round.getCurrentTrick(), round.getTrumpSuite(), player);
-        throwCard(game, player, card, true);
+        // Auto-play (bot or human timeout) declares by default — declaring is the default behavior.
+        throwCard(game, player, card, true, true);
     }
 
-    private void throwCard(BeloteGame game, GamePlayer player, Card card, boolean expired) {
+    private void throwCard(BeloteGame game, GamePlayer player, Card card, boolean expired, boolean declareBela) {
         var round = game.getCurrentRound();
         int roundNumber = round.getRoundNumber();
 
-        var result = round.throwCard(player, card);
+        var result = round.throwCard(player, card, declareBela);
         if (!result.legalMove()) {
             throw new IllegalStateException("Illegal card throw");
         }

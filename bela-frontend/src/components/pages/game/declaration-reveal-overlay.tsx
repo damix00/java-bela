@@ -1,6 +1,8 @@
 "use client";
 
 import { motion } from "motion/react";
+import { CircleSlash } from "lucide-react";
+import Button from "@/components/input/button";
 import {
     Card,
     Declaration,
@@ -44,9 +46,13 @@ function compactCardLabel(card: Card) {
 export default function DeclarationRevealOverlay({
     declarations,
     getPlayerLabel,
+    canDecline = false,
+    onDecline,
 }: {
     declarations: Declaration[];
     getPlayerLabel: (playerIndex: number) => string;
+    canDecline?: boolean;
+    onDecline?: () => void;
 }) {
     const totalPoints = declarations.reduce(
         (sum, declaration) => sum + declaration.points,
@@ -124,6 +130,19 @@ export default function DeclarationRevealOverlay({
                         </motion.div>
                     ))}
                 </div>
+
+                {canDecline && (
+                    <div className="border-t border-white/10 px-3 py-3 md:px-4">
+                        <Button
+                            type="button"
+                            variant="ghostPrimary"
+                            className="h-9 w-full gap-2 text-xs"
+                            onClick={onDecline}>
+                            <CircleSlash className="h-4 w-4" />
+                            Don&apos;t declare
+                        </Button>
+                    </div>
+                )}
             </motion.div>
         </motion.div>
     );

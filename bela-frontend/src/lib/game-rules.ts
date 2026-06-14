@@ -17,8 +17,32 @@ const TRUMP_POINTS: Record<Rank, number> = {
   [Rank.JACK]: 20,
 };
 
-function isTrump(card: Card, trumpSuite: Suite | null) {
+export function isTrump(card: Card, trumpSuite: Suite | null) {
   return trumpSuite ? card.suite === trumpSuite : card.trump;
+}
+
+// Bela (+20) is the trump King + Queen pair, declared on play. Only worth prompting
+// for when the player can actually complete the pair: the partner trump card is still
+// in hand or was already played by this player earlier in the round.
+export function canDeclareBela(
+  card: Card,
+  trumpSuite: Suite | null,
+  hand: Card[],
+  myPlayedCards: Card[],
+) {
+  if (!isTrump(card, trumpSuite)) {
+    return false;
+  }
+
+  if (card.rank !== Rank.KING && card.rank !== Rank.QUEEN) {
+    return false;
+  }
+
+  const partnerRank = card.rank === Rank.KING ? Rank.QUEEN : Rank.KING;
+  const matchesPartner = (candidate: Card) =>
+    candidate.suite === card.suite && candidate.rank === partnerRank;
+
+  return hand.some(matchesPartner) || myPlayedCards.some(matchesPartner);
 }
 
 function getPoints(card: Card, trumpSuite: Suite | null) {
