@@ -9,7 +9,7 @@ import { useRef, useState } from "react";
 import TextInput from "@/components/input/text-input";
 
 export default function GameHomeScreen() {
-    const { user } = useAuth();
+    const { user, clearAuth } = useAuth();
     const { status } = useWebSocket();
     const [matchmaking, setMatchmaking] = useState(false);
     const ws = useWebSocket();
@@ -37,7 +37,11 @@ export default function GameHomeScreen() {
                         variant="text"
                         size="sm"
                         onClick={() =>
-                            logout().then(() => (window.location.href = "/"))
+                            logout().then(() => {
+                                // Tear the socket down before navigating away
+                                clearAuth();
+                                window.location.href = "/";
+                            })
                         }>
                         Log Out
                     </Button>

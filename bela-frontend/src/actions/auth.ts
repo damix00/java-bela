@@ -1,87 +1,133 @@
 "use server";
 
-import { AUTH_DURATION, internalApiFetch } from "@/api/internal";
-import { AuthResponse } from "@/api/types/user";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
-async function storeCookie(key: string, value: string) {
-    const cookieStore = await cookies();
+import { internalApiFetch } from "@/api/internal";
+import { AuthResponse, BackendAuthResponse, User } from "@/api/types/user";
+import {
+    ACCESS_TOKEN_COOKIE,
+    REFRESH_TOKEN_COOKIE,
+    USER_COOKIE,
+    accessTokenExpiryMs,
+    clearSessionCookies,
+    setSessionCookies,
+} from "@/actions/cookies";
 
-    cookieStore.set(key, value, {
-        httpOnly: true,
-        secure: process.env.SECURE_COOKIES === "true",
-        maxAge: AUTH_DURATION,
+export type AuthActionResult =
+    | { ok: true; auth: AuthResponse }
+    | { ok: false; error: string };
+
+/**
+ * Every credential exchange goes through the Next server: the refresh token has to become an
+ * httpOnly cookie on *this* origin, which a cross-origin Set-Cookie from the backend cannot do.
+ * Nothing here ever returns the refresh token to the caller.
+ */
+async function authenticate(endpoint: string, body?: unknown): Promise<AuthActionResult> {
+    const result = await internalApiFetch<BackendAuthResponse>(endpoint, {
+        method: "POST",
+        ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     });
-}
 
-export async function storeAuthData(data: AuthResponse) {
-    await storeCookie("token", data.jwt);
-    await storeCookie("user", JSON.stringify(data.user));
-}
-
-async function getData(): Promise<AuthResponse | null> {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
-    const user = cookieStore.get("user")?.value;
-
-    if (token && user) {
+    if (!result.ok || !result.data) {
         return {
-            jwt: token,
-            user: JSON.parse(user),
+            ok: false,
+            error: result.error?.message ?? "Something went wrong. Please try again.",
         };
     }
 
-    return null;
+    const cookieStore = await cookies();
+    setSessionCookies(cookieStore, result.data);
+
+    return {
+        ok: true,
+        auth: {
+            accessToken: result.data.accessToken,
+            expiresIn: result.data.expiresIn,
+            user: result.data.user,
+        },
+    };
 }
 
-export async function refreshToken(): Promise<AuthResponse | null> {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
+export async function login(email: string, password: string): Promise<AuthActionResult> {
+    return authenticate("/auth/login", { email, password });
+}
 
-    const resp = await internalApiFetch<AuthResponse>("/auth/refresh", {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
+export async function register(
+    username: string,
+    email: string,
+    password: string,
+): Promise<AuthActionResult> {
+    return authenticate("/auth/register", { username, email, password });
+}
 
-    if (resp.data) {
-        await storeAuthData(resp.data);
-
-        return resp.data;
-    }
-
-    return null;
+export async function loginAnonymous(): Promise<AuthActionResult> {
+    return authenticate("/auth/login/anonymous");
 }
 
 export async function logout() {
     const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
+    const refreshToken = cookieStore.get(REFRESH_TOKEN_COOKIE)?.value;
 
-    // await internalApiFetch("/auth/logout", {
-    //     method: "POST",
-    //     headers: {
-    //         Authorization: `Bearer ${token}`,
-    //     },
-    // });
-
-    cookieStore.delete("token");
-    cookieStore.delete("user");
-}
-
-export async function getCurrentUser(): Promise<AuthResponse | null> {
-    const data = await getData();
-
-    if (data) {
-        return data;
+    if (refreshToken) {
+        // A backend outage must not leave the user stuck logged in locally
+        await internalApiFetch("/auth/logout", {
+            method: "POST",
+            body: JSON.stringify({ refreshToken }),
+        }).catch(() => null);
     }
 
-    return null;
+    clearSessionCookies(cookieStore);
+}
+
+/**
+ * Reads the session for server rendering. Presence of the refresh cookie is what counts —
+ * the access token may well be expired, and that is not the same as being logged out.
+ */
+export async function getCurrentUser(): Promise<User | null> {
+    const cookieStore = await cookies();
+
+    if (!cookieStore.get(REFRESH_TOKEN_COOKIE)?.value) {
+        return null;
+    }
+
+    const user = cookieStore.get(USER_COOKIE)?.value;
+    if (!user) {
+        return null;
+    }
+
+    try {
+        return JSON.parse(user) as User;
+    } catch {
+        return null;
+    }
 }
 
 export async function isAuthenticated(): Promise<boolean> {
-    const data = await getData();
+    return (await getCurrentUser()) !== null;
+}
 
-    return !!data;
+/**
+ * Seeds the client auth store on a full page load. The access token is only handed over if
+ * it is still fresh; otherwise the client bootstraps itself through /api/auth/refresh, since
+ * a Server Component cannot set cookies and so cannot refresh anything itself.
+ */
+export async function getInitialSession(): Promise<{
+    user: User | null;
+    token: string | null;
+    expiresAt: number;
+}> {
+    const user = await getCurrentUser();
+    if (!user) {
+        return { user: null, token: null, expiresAt: 0 };
+    }
+
+    const cookieStore = await cookies();
+    const token = cookieStore.get(ACCESS_TOKEN_COOKIE)?.value ?? null;
+    const expiresAt = token ? accessTokenExpiryMs(token) : 0;
+
+    if (!token || expiresAt <= Date.now()) {
+        return { user, token: null, expiresAt: 0 };
+    }
+
+    return { user, token, expiresAt };
 }

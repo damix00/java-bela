@@ -4,9 +4,7 @@ import { useForm } from "@tanstack/react-form";
 import Button from "@/components/input/button";
 import TextInput from "@/components/input/text-input";
 import { useState } from "react";
-import { apiFetch } from "@/api/client";
-import { AuthResponse } from "@/api/types/user";
-import { storeAuthData } from "@/actions/auth";
+import { register } from "@/actions/auth";
 import { toast } from "sonner";
 
 export default function SignupForm() {
@@ -22,30 +20,23 @@ export default function SignupForm() {
         onSubmit: async ({ value }) => {
             setLoading(true);
             try {
-                const response = await apiFetch<AuthResponse>("/auth/register", {
-                    method: "POST",
-                    body: JSON.stringify({
-                        username: value.username,
-                        email: value.email,
-                        password: value.password,
-                    }),
-                });
+                const result = await register(
+                    value.username,
+                    value.email,
+                    value.password,
+                );
 
-                if (!response.data) {
+                if (!result.ok) {
                     throw new Error(
-                        response.error || "Registration failed. Please try again.",
+                        result.error || "Registration failed. Please try again.",
                     );
                 }
-
-                await storeAuthData(response.data);
 
                 toast.success("Welcome to Belote.gg!", {
                     description: "Your account has been created successfully.",
                 });
 
                 window.location.href = "/";
-
-                console.log("Registered user:", response.data);
             } catch (error) {
                 console.error("Registration failed:", error);
 

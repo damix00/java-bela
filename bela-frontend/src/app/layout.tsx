@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
-import { getCurrentUser, refreshToken } from "@/actions/auth";
+import { getInitialSession } from "@/actions/auth";
 import { Toaster } from "sonner";
 
 const inter = Inter({
@@ -39,7 +39,7 @@ export default async function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const authData = await getCurrentUser();
+    const session = await getInitialSession();
 
     return (
         <html
@@ -61,8 +61,9 @@ export default async function RootLayout({
                     }}
                 />
                 <AuthProvider
-                    initialUser={authData?.user ?? null}
-                    initialToken={authData?.jwt ?? ""}>
+                    initialUser={session.user}
+                    initialToken={session.token}
+                    initialExpiresAt={session.expiresAt}>
                     {children}
                 </AuthProvider>
             </body>

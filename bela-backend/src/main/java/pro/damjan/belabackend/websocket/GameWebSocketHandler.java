@@ -38,7 +38,14 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
-    public void afterConnectionEstablished(WebSocketSession session) {
+    public void afterConnectionEstablished(WebSocketSession session) throws IOException {
+        if (session.getAttributes().containsKey(WebSocketAuthInterceptor.AUTH_ERROR_ATTRIBUTE)) {
+            // The handshake could not be authenticated. Closing with an application code is the
+            // only signal a browser client can actually read, so it can stop reconnecting.
+            session.close(new CloseStatus(4401, "unauthorized"));
+            return;
+        }
+
         String userId = (String) session.getAttributes().get("userId");
         UserSession userSession = (UserSession) session.getAttributes().get("userSession");
 
@@ -94,6 +101,12 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         String userId = (String) session.getAttributes().get("userId");
         UserSession userSession = (UserSession) session.getAttributes().get("userSession");
+
+        if (userId == null || userSession == null) {
+            // A handshake we rejected and closed immediately; there is nothing to tear down
+            // (and sessions.get(null) would throw)
+            return;
+        }
 
         Set<WebSocketSession> userSessions = sessions.get(userId);
 

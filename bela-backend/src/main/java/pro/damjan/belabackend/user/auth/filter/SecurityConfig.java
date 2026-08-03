@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import pro.damjan.belabackend.security.jwt.JwtAuthEntryPoint;
 import pro.damjan.belabackend.user.UserRepository;
 
 @Configuration
@@ -19,6 +20,7 @@ import pro.damjan.belabackend.user.UserRepository;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final JwtAuthEntryPoint jwtAuthEntryPoint;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -37,10 +39,12 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/auth/me", "/auth/logout-all").authenticated()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(handling -> handling.authenticationEntryPoint(jwtAuthEntryPoint))
                 // no cookies
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)

@@ -4,9 +4,7 @@ import { useForm } from "@tanstack/react-form";
 import Button from "@/components/input/button";
 import TextInput from "@/components/input/text-input";
 import { useState } from "react";
-import { apiFetch } from "@/api/client";
-import { AuthResponse } from "@/api/types/user";
-import { storeAuthData } from "@/actions/auth";
+import { login, loginAnonymous } from "@/actions/auth";
 import { toast } from "sonner";
 
 export default function LoginForm() {
@@ -18,26 +16,19 @@ export default function LoginForm() {
         onSubmit: async ({ value }) => {
             setLoading(true);
             try {
-                const response = await apiFetch<AuthResponse>("/auth/login", {
-                    method: "POST",
-                    body: JSON.stringify({
-                        email: value.email,
-                        password: value.password,
-                    }),
-                });
+                // Credentials go through the Next server so the refresh token can be
+                // set as an httpOnly cookie on this origin
+                const result = await login(value.email, value.password);
 
-                if (!response.data) {
+                if (!result.ok) {
                     throw new Error(
-                        response.error ||
+                        result.error ||
                             "Login failed. Please check your credentials.",
                     );
                 }
 
-                await storeAuthData(response.data);
-
+                // Full reload so the server components re-render with the new cookies
                 window.location.href = "/";
-
-                console.log("Logged in user:", response.data);
             } catch (error) {
                 console.error("Login failed:", error);
 
@@ -152,25 +143,16 @@ export default function LoginForm() {
                 or{" "}
                 <span
                     onClick={async () => {
-                        const response = await apiFetch<AuthResponse>(
-                            "/auth/login/anonymous",
-                            {
-                                method: "POST",
-                            },
-                        );
+                        const result = await loginAnonymous();
 
-                        if (!response.data) {
-                            throw new Error(
-                                response.error ||
-                                    "Login failed. Please check your credentials.",
-                            );
+                        if (!result.ok) {
+                            toast.error("Login failed", {
+                                description: result.error,
+                            });
+                            return;
                         }
 
-                        await storeAuthData(response.data);
-
                         window.location.href = "/";
-
-                        console.log("Logged in user:", response.data);
                     }}
                     className="text-primary hover:underline select-none cursor-pointer">
                     Continue as Guest

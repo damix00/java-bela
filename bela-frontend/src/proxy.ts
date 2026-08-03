@@ -1,61 +1,25 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { internalApiFetch, AUTH_DURATION } from "@/api/internal";
-import { AuthResponse } from "@/api/types/user";
 
-export async function proxy(request: NextRequest) {
-    const response = NextResponse.next();
+import { REFRESH_TOKEN_COOKIE } from "@/actions/cookies";
 
-    const token = request.cookies.get("token")?.value;
+/**
+ * Cookie-local only, no network I/O. Proxy runs on every matched request and may be deployed
+ * to the edge, so refreshing the session here — as this file used to — meant one backend
+ * round trip per navigation, and a single transient 5xx logged everyone out. Refreshing now
+ * lives in /api/auth/refresh, driven by the client when a request actually comes back 401.
+ */
+export function proxy(request: NextRequest) {
+    const hasSession = !!request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
 
-    if (token) {
-        // Fetch a new token and user data from the backend
-        const resp = await internalApiFetch<AuthResponse>("/auth/refresh", {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-
-        if (resp.data) {
-            const { jwt, user } = resp.data;
-
-            const cookieOptions = {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict" as const,
-                maxAge: AUTH_DURATION,
-            };
-
-            // 1. Set on the response so the browser updates its cookies
-            response.cookies.set("token", jwt, cookieOptions);
-            response.cookies.set("user", JSON.stringify(user), cookieOptions);
-
-            // 2. Set on the request so downstream Server Components (like RootLayout) can see the updated cookies immediately during this request
-            response.cookies.set("token", jwt, cookieOptions);
-            request.cookies.set("token", jwt);
-            request.cookies.set("user", JSON.stringify(user));
-        } else {
-            // If the refresh token was rejected, we should clear the cookies
-            response.cookies.delete("token");
-            response.cookies.delete("user");
-            request.cookies.delete("token");
-            request.cookies.delete("user");
-        }
+    if (!hasSession) {
+        return NextResponse.redirect(new URL("/login", request.url));
     }
 
-    return response;
+    return NextResponse.next();
 }
 
 export const config = {
-    matcher: [
-        /*
-         * Match all request paths except for the ones starting with:
-         * - api (API routes)
-         * - _next/static (static files)
-         * - _next/image (image optimization files)
-         * - favicon.ico, sitemap.xml, robots.txt (metadata files)
-         */
-        "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
-    ],
+    // Only the authenticated game routes; everything else needs no gate at all.
+    matcher: ["/home/:path*", "/play/:path*"],
 };

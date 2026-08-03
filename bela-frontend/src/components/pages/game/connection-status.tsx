@@ -35,6 +35,26 @@ export function ConnectionOverlay() {
         return null;
     }
 
+    // Terminal: no amount of waiting brings the session back, so offer the way out
+    // instead of spinning forever.
+    if (status === "auth-failed") {
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                <div className="flex flex-col items-center gap-3 rounded-xl bg-neutral-900/90 px-8 py-6 text-center text-white shadow-xl">
+                    <p className="text-sm font-medium">Your session expired</p>
+                    <p className="text-xs text-white/60">
+                        Sign in again to get back to your game.
+                    </p>
+                    <a
+                        href="/login"
+                        className="mt-1 rounded-lg bg-white px-4 py-2 text-xs font-semibold text-black">
+                        Log in
+                    </a>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
             <div className="flex flex-col items-center gap-3 rounded-xl bg-neutral-900/90 px-8 py-6 text-center text-white shadow-xl">

@@ -5,13 +5,25 @@ export const INTERNAL_API_URL =
 
 export const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY_SB;
 
-export const AUTH_DURATION =
-    parseInt(process.env.AUTH_LOGIN_DURATION_DAYS || "90") * 24 * 60 * 60; // in seconds
+const REQUEST_TIMEOUT_MS = 5000;
+
+export type ApiError = {
+    message?: string;
+    code?: string;
+};
+
+export type InternalApiResult<T> = {
+    ok: boolean;
+    /** 0 means the request never reached the backend. */
+    status: number;
+    data: T | null;
+    error: ApiError | null;
+};
 
 export async function internalApiFetch<T>(
     endpoint: string,
     options: RequestInit = {},
-): Promise<{ status: number; data: T | null }> {
+): Promise<InternalApiResult<T>> {
     const url = `${INTERNAL_API_URL}${endpoint}`;
 
     const headers = {
@@ -19,19 +31,40 @@ export async function internalApiFetch<T>(
         "X-Internal-Source-Token": INTERNAL_API_KEY || "",
     };
 
-    const response = await fetch(url, {
-        ...options,
-        headers: {
-            ...headers,
-            ...options.headers,
-        },
-        cache: "no-store",
-    });
-
-    if (!response.ok) {
-        return { status: response.status, data: null };
+    let response: Response;
+    try {
+        response = await fetch(url, {
+            ...options,
+            headers: {
+                ...headers,
+                ...options.headers,
+            },
+            cache: "no-store",
+            signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        });
+    } catch (error) {
+        // Status 0 keeps callers from mistaking a backend outage for a rejected session
+        return {
+            ok: false,
+            status: 0,
+            data: null,
+            error: {
+                code: "NETWORK",
+                message: error instanceof Error ? error.message : "Network error",
+            },
+        };
     }
 
-    const data = await response.json();
-    return { status: response.status, data };
+    if (!response.ok) {
+        // The error body carries the backend's `code`, which callers branch on
+        const error = (await response.json().catch(() => null)) as ApiError | null;
+        return { ok: false, status: response.status, data: null, error };
+    }
+
+    if (response.status === 204) {
+        return { ok: true, status: response.status, data: null, error: null };
+    }
+
+    const data = (await response.json()) as T;
+    return { ok: true, status: response.status, data, error: null };
 }

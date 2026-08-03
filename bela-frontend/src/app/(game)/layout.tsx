@@ -7,6 +7,8 @@ export default async function GameLayout({
 }: {
     children: React.ReactNode;
 }) {
+    // getCurrentUser keys off the refresh cookie, so an expired access token — the normal
+    // state after 15 minutes — does not bounce a logged-in user out.
     const user = await getCurrentUser();
 
     if (!user) {

@@ -1,10 +1,7 @@
 package pro.damjan.belabackend.websocket;
 
-import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
@@ -18,13 +15,23 @@ import pro.damjan.belabackend.user.presence.session.SessionMetadata;
 import pro.damjan.belabackend.user.presence.session.SessionService;
 import pro.damjan.belabackend.user.presence.session.UserSession;
 
-import java.util.Arrays;
 import java.util.Map;
 
+/**
+ * Authenticates the handshake only; a socket stays valid for its lifetime once open, and every
+ * reconnect brings a fresh access token.
+ *
+ * <p>On failure this accepts the handshake and flags it, rather than returning 401. A browser
+ * WebSocket cannot observe a failed handshake's HTTP status — onclose reports 1006, which is
+ * indistinguishable from "server is down" — so the client would retry forever. Accepting and
+ * then closing with an application close code is the only way to tell it to stop.
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class WebSocketAuthInterceptor implements HandshakeInterceptor {
+
+    public static final String AUTH_ERROR_ATTRIBUTE = "authError";
 
     private final JwtService jwtService;
     private final SessionService sessionService;
@@ -33,64 +40,46 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
                                    WebSocketHandler wsHandler, Map<String, Object> attributes) {
-        if (request instanceof ServletServerHttpRequest servletRequest) {
-            // Prefer the token from the handshake query param (works cross-origin,
-            // where the httpOnly cookie may not be attached), fall back to the cookie.
-            String token = servletRequest.getServletRequest().getParameter("token");
-
-            if (token == null || token.isBlank()) {
-                Cookie[] cookies = servletRequest.getServletRequest().getCookies();
-
-                token = Arrays.stream(cookies != null ? cookies : new Cookie[0])
-                        .filter(c -> "token".equals(c.getName()))
-                        .findFirst()
-                        .map(Cookie::getValue)
-                        .orElse(null);
-            }
-
-            try {
-                // Determine user ID (this might throw an exception if token is expired/invalid)
-                String userId = jwtService.getIdFromToken(token);
-
-                if (userId != null) {
-                    User user = userService.getUserById(userId);
-
-                    if (user == null) {
-                        log.warn("WebSocket connection attempt with non-existent user ID [{}]", userId);
-                        response.setStatusCode(HttpStatus.UNAUTHORIZED);
-                        return false;
-                    }
-
-                    // Create a new session
-                    UserSession userSession = sessionService.createSession(
-                            userId,
-                            SessionMetadata.builder()
-                                    .userAgent(servletRequest.getServletRequest().getHeader("User-Agent"))
-                                    .ipAddress(servletRequest.getServletRequest().getRemoteAddr())
-                                    .build()
-                    );
-
-                    if (userSession == null) {
-                        throw new Exception("Something went wrong while creating user session");
-                    }
-
-                    attributes.put("userId", userId);
-                    attributes.put("user", user);
-
-                    attributes.put("userSession", userSession);
-
-                    return true;
-                }
-                else {
-                    log.warn("WebSocket connection attempt with invalid token");
-                }
-            } catch (Exception e) {
-                // Log exception if needed
-            }
+        if (!(request instanceof ServletServerHttpRequest servletRequest)) {
+            attributes.put(AUTH_ERROR_ATTRIBUTE, true);
+            return true;
         }
 
-        response.setStatusCode(HttpStatus.UNAUTHORIZED);
-        return false;
+        String token = servletRequest.getServletRequest().getParameter("token");
+        String userId = jwtService.getIdFromToken(token);
+
+        if (userId == null) {
+            log.warn("WebSocket handshake with a missing or invalid token");
+            attributes.put(AUTH_ERROR_ATTRIBUTE, true);
+            return true;
+        }
+
+        User user = userService.getUserById(userId);
+        if (user == null) {
+            log.warn("WebSocket handshake for non-existent user ID [{}]", userId);
+            attributes.put(AUTH_ERROR_ATTRIBUTE, true);
+            return true;
+        }
+
+        UserSession userSession = sessionService.createSession(
+                userId,
+                SessionMetadata.builder()
+                        .userAgent(servletRequest.getServletRequest().getHeader("User-Agent"))
+                        .ipAddress(servletRequest.getServletRequest().getRemoteAddr())
+                        .build()
+        );
+
+        if (userSession == null) {
+            log.error("Failed to create a user session for [{}] during WebSocket handshake", userId);
+            attributes.put(AUTH_ERROR_ATTRIBUTE, true);
+            return true;
+        }
+
+        attributes.put("userId", userId);
+        attributes.put("user", user);
+        attributes.put("userSession", userSession);
+
+        return true;
     }
 
     @Override

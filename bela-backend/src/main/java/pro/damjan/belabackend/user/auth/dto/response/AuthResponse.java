@@ -2,21 +2,24 @@ package pro.damjan.belabackend.user.auth.dto.response;
 
 import lombok.Getter;
 import lombok.Setter;
-import pro.damjan.belabackend.user.User;
 
 @Getter
 @Setter
 public class AuthResponse {
 
-    private String jwt;
-    private UserResponse user;
+    private String accessToken;
 
-    public static AuthResponse fromUserAndToken(User user, String jwt) {
-        AuthResponse response = new AuthResponse();
-        response.setJwt(jwt);
-        response.setUser(
-                UserResponse.fromUser(user)
-        );
-        return response;
-    }
+    /**
+     * Null when a rotation landed inside the grace window: the caller already holds a valid
+     * refresh token and should keep it rather than overwrite it.
+     */
+    private String refreshToken;
+
+    /** Access token lifetime, in seconds. */
+    private long expiresIn;
+
+    /** Refresh token lifetime, in seconds. Zero when refreshToken is null. */
+    private long refreshExpiresIn;
+
+    private UserResponse user;
 }
