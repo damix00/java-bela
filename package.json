@@ -3,22 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "description": "Belote card game — Spring Boot API and Next.js web client",
-  "workspaces": [
-    "packages/*"
-  ],
+  "packageManager": "pnpm@11.10.0",
   "engines": {
-    "node": ">=22"
+    "node": ">=22",
+    "pnpm": ">=10"
   },
   "scripts": {
-    "dev": "npm run redis:up && concurrently -n api,web -c blue,magenta \"npm:dev:api\" \"npm:dev:web\"",
+    "dev": "pnpm redis:up && concurrently -n api,web -c blue,magenta \"pnpm:dev:api\" \"pnpm:dev:web\"",
     "dev:api": "cd apps/api && ./gradlew bootRun",
-    "dev:web": "npm --prefix apps/web run dev",
-    "build": "npm run build:api && npm run build:web",
+    "dev:web": "pnpm --filter web dev",
+    "build": "pnpm build:api && pnpm build:web",
     "build:api": "cd apps/api && ./gradlew build",
-    "build:web": "npm --prefix apps/web run build",
+    "build:web": "pnpm --filter web build",
     "test": "cd apps/api && ./gradlew test",
-    "lint": "npm --prefix apps/web run lint",
-    "typecheck": "npm --workspace @bela/protocol run typecheck",
+    "lint": "pnpm --filter web lint",
+    "typecheck": "pnpm -r typecheck",
     "protocol": "cd apps/api && ./gradlew generateTypeScript",
     "redis:up": "docker compose up -d redis",
     "redis:down": "docker compose down"

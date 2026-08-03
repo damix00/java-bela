@@ -1,0 +1,16 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+  # Frozen reference copy of the old client. Excluded so its dependency tree is
+  # never installed; it still runs standalone on npm from its own directory.
+  - "!apps/web-deprecated"
+
+# Carried over from the pnpm-workspace.yaml that create-next-app wrote into
+# apps/web; build-script policy belongs at the workspace root, and a nested
+# workspace file would have made apps/web its own workspace root.
+#
+# Both are native-binary packages that create-next-app leaves unbuilt by
+# default. Verified that lint and build both pass without them.
+allowBuilds:
+  sharp: false
+  unrs-resolver: false

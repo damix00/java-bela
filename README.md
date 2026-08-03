@@ -7,38 +7,44 @@ Belote (bela) card game — a Spring Boot API and a Next.js web client.
 ```
 apps/
   api/              Spring Boot, Java 25, Gradle. Redis-backed game state.
-  web/              The new web client. Empty — to be built.
+  web/              Next.js 16 client (App Router, Tailwind 4, TypeScript).
   web-deprecated/   The previous Next.js client. Reference only, frozen.
 packages/
   protocol/         TypeScript wire types, generated from the Java DTOs.
 ```
 
+The workspace is managed with **pnpm**. `apps/web-deprecated` is deliberately
+excluded from it (see `pnpm-workspace.yaml`) so its dependency tree is never
+installed; it still runs standalone on npm from its own directory.
+
 ## Prerequisites
 
 - JDK 25 (Gradle auto-provisions it if missing)
-- Node.js 22+
+- Node.js 22+ and pnpm 10+
 - Docker, for Redis
+- Postgres on `localhost:5432` (database `bela`)
 
 ## Getting started
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
-`npm run dev` starts Redis in Docker, then runs the API and the web client
-together with prefixed logs. Until `apps/web` exists, only the API starts.
+`pnpm dev` starts Redis in Docker, then runs the API and the web client
+together with prefixed logs.
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | Redis + API + web |
-| `npm run dev:api` | API only |
-| `npm run dev:web` | Web only |
-| `npm run build` | Build both apps |
-| `npm test` | API test suite |
-| `npm run lint` | Lint the web app |
-| `npm run protocol` | Regenerate `packages/protocol` from the Java DTOs |
-| `npm run redis:up` / `redis:down` | Redis lifecycle |
+| `pnpm dev` | Redis + API + web |
+| `pnpm dev:api` | API only |
+| `pnpm dev:web` | Web only |
+| `pnpm build` | Build both apps |
+| `pnpm test` | API test suite |
+| `pnpm lint` | Lint the web app |
+| `pnpm typecheck` | Type check every workspace package |
+| `pnpm protocol` | Regenerate `packages/protocol` from the Java DTOs |
+| `pnpm redis:up` / `redis:down` | Redis lifecycle |
 
 ## The protocol package
 
@@ -47,8 +53,13 @@ that reads the DTO classes through Jackson's serialization rules, so the
 TypeScript property names match what actually goes over the wire. It is checked
 into git — never edit it by hand.
 
-**After changing any Java DTO, run `npm run protocol` and commit the result.**
+**After changing any Java DTO, run `pnpm protocol` and commit the result.**
 CI regenerates and fails on a diff, so stale types cannot merge.
+
+Consume it from the web app with `import { Suite, type CardThrownEvent } from
+"@bela/protocol"`. The package ships raw TypeScript rather than compiled
+output; Turbopack and `tsc` both handle that without `transpilePackages`,
+including the runtime enums.
 
 `packages/protocol/src/index.ts` is hand-maintained. It holds the event-name to
 payload mapping (`ServerEvents`, `ClientEvents`), which reflection cannot
@@ -59,18 +70,21 @@ Note the WebSocket envelopes are asymmetric: server frames are
 `{"event": name, "data": payload}`, client frames are
 `{"event": name, "body": payload}`.
 
-## Starting the web rewrite
+## The web rewrite
 
-`apps/web` is intentionally empty. When you scaffold the new app:
+`apps/web` is a bare `create-next-app` scaffold — TypeScript, App Router,
+Tailwind 4, ESLint, `src/`, `@/*` alias — matching the stack of the app it
+replaces. Nothing has been ported from `web-deprecated`; that is deliberate.
 
-1. Add `"apps/web"` to the `workspaces` array in the root `package.json`. It is
-   omitted today because npm errors on a workspace path with no `package.json`.
-2. Add `"@bela/protocol": "*"` to the new app's dependencies.
+Two differences from the old app worth knowing:
 
-`web-deprecated` is deliberately **not** a workspace — an `apps/*` glob would
-pull its dependency tree into the root install for an app that is never built
-again. It still runs standalone via
-`npm --prefix apps/web-deprecated run dev`.
+- The React Compiler is **off**. The old app enabled it via
+  `babel-plugin-react-compiler`. Add `reactCompiler: true` to `next.config.ts`
+  if you want it back.
+- `sharp` and `unrs-resolver` are left unbuilt (`allowBuilds` in
+  `pnpm-workspace.yaml`), which is create-next-app's default. Lint and
+  production builds both pass without them. Flip to `true` if you hit image
+  optimization limits in production.
 
 ## Java 25 note
 

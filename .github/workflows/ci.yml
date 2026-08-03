@@ -125,36 +125,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # apps/web stays empty until the rewrite lands. Skip rather than fail.
-      - name: Check for web app
-        id: check
-        run: |
-          if [ -f apps/web/package.json ]; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::apps/web has no package.json yet - skipping web checks."
-          fi
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
 
       - name: Set up Node.js
-        if: steps.check.outputs.exists == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: npm
+          cache: pnpm
 
       - name: Install dependencies
-        if: steps.check.outputs.exists == 'true'
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
-        if: steps.check.outputs.exists == 'true'
-        run: npm run lint
+        run: pnpm run lint
 
       - name: Type check
-        if: steps.check.outputs.exists == 'true'
-        run: npm --prefix apps/web exec tsc -- --noEmit
+        run: pnpm run typecheck
 
       - name: Build
-        if: steps.check.outputs.exists == 'true'
-        run: npm run build:web
+        run: pnpm run build:web
