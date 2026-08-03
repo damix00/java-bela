@@ -7,12 +7,65 @@ on:
     branches: [main]
 
 jobs:
-  backend:
-    name: Backend (Gradle)
+  # Path filtering lives in a job rather than in `on.*.paths` so that every job
+  # still reports a status. Workflow-level path filters make required checks
+  # hang forever on PRs that don't touch the filtered paths.
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.filter.outputs.api }}
+      web: ${{ steps.filter.outputs.web }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            api:
+              - 'apps/api/**'
+              - 'packages/protocol/**'
+              - '.github/workflows/ci.yml'
+            web:
+              - 'apps/web/**'
+              - 'packages/**'
+              - 'package.json'
+              - '.github/workflows/ci.yml'
+
+  api:
+    name: API (Gradle)
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: bela-backend
+        working-directory: apps/api
+    # BelaBackendApplicationTests.contextLoads() boots the full Spring context,
+    # which needs both Postgres and Redis. Without these the job fails before
+    # running a single assertion.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: bela
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
 
@@ -32,33 +85,76 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: backend-test-report
-          path: bela-backend/build/reports/tests/test
+          name: api-test-report
+          path: apps/api/build/reports/tests/test
 
-  frontend:
-    name: Frontend (Next.js)
+  protocol:
+    name: Protocol types in sync
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: bela-frontend
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Regenerate protocol types
+        working-directory: apps/api
+        run: ./gradlew generateTypeScript
+
+      # Fails when a Java DTO changed but `npm run protocol` was never re-run.
+      - name: Check for drift
+        run: |
+          if ! git diff --exit-code -- packages/protocol; then
+            echo "::error::packages/protocol is stale. Run 'npm run protocol' and commit the result."
+            exit 1
+          fi
+
+  web:
+    name: Web (Next.js)
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # apps/web stays empty until the rewrite lands. Skip rather than fail.
+      - name: Check for web app
+        id: check
+        run: |
+          if [ -f apps/web/package.json ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::apps/web has no package.json yet - skipping web checks."
+          fi
+
       - name: Set up Node.js
+        if: steps.check.outputs.exists == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: bela-frontend/package-lock.json
 
       - name: Install dependencies
+        if: steps.check.outputs.exists == 'true'
         run: npm ci
 
       - name: Lint
+        if: steps.check.outputs.exists == 'true'
         run: npm run lint
 
       - name: Type check
-        run: npx tsc --noEmit
+        if: steps.check.outputs.exists == 'true'
+        run: npm --prefix apps/web exec tsc -- --noEmit
 
       - name: Build
-        run: npm run build
+        if: steps.check.outputs.exists == 'true'
+        run: npm run build:web

@@ -1,0 +1,7 @@
+plugins {
+    // Lets Gradle auto-provision JDKs, including the Java 25 daemon JVM that
+    // the TypeScript generator needs in order to read our class files.
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+rootProject.name = 'bela-backend'

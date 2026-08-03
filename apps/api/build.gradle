@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '4.0.3'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'cz.habarta.typescript-generator' version '3.2.1263'
 }
 
 group = 'pro.damjan'
@@ -54,4 +55,42 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 
+}
+
+// Emits TypeScript for the WebSocket/REST wire protocol into packages/protocol.
+// Reads the classes through Jackson's rules, so the generated property names
+// match what actually goes over the wire (e.g. Card.isTrump -> "trump").
+tasks.named('generateTypeScript') {
+    jsonLibrary = 'jackson2'
+    outputKind = 'module'
+    outputFileType = 'implementationFile'
+    outputFile = "${rootDir}/../../packages/protocol/src/generated.ts"
+    mapEnum = 'asEnum'
+    nonConstEnums = true
+    mapClasses = 'asInterfaces'
+    noFileComment = true
+    sortDeclarations = true
+
+    classPatterns = [
+            'pro.damjan.belabackend.**.dto.**',
+            'pro.damjan.belabackend.game.model.**',
+            'pro.damjan.belabackend.lobby.model.**',
+            'pro.damjan.belabackend.user.auth.refresh.RefreshError',
+            'pro.damjan.belabackend.user.auth.Role',
+            'pro.damjan.belabackend.user.presence.PresenceStatus',
+            'pro.damjan.belabackend.security.jwt.TokenError',
+    ]
+
+    excludeClassPatterns = [
+            'pro.damjan.belabackend.**.*Resolver',
+            'pro.damjan.belabackend.**.*Validator',
+            'pro.damjan.belabackend.**.*Ordering',
+            // Lombok @Builder nested classes are build-time helpers, never on the
+            // wire. Their binary names contain '$', so match with a bare '**'.
+            'pro.damjan.belabackend.**Builder',
+    ]
+
+    // Marker interface; would otherwise emit an empty `interface Serializable {}`
+    // that every model pointlessly extends.
+    excludeClasses = ['java.io.Serializable']
 }

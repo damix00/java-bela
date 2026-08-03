@@ -1,2 +1,17 @@
-.DS_STORE
+# OS
+.DS_Store
+
+# Redis dumps
 *.rdb
+
+# Node (root workspace)
+node_modules/
+
+# Editors
+.idea/
+*.iml
+.vscode/
+
+# Env
+.env
+.env.local
