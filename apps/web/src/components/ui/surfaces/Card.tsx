@@ -40,8 +40,6 @@ export default function Card({
     className,
     ...props
 }: CardProps) {
-    console.log(interactive, props.children);
-
     return (
         <div
             className={cn(

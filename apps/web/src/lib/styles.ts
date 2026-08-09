@@ -5,6 +5,10 @@
 export const lift =
   "transition-transform duration-[120ms] hover:-translate-x-[3px] hover:-translate-y-[3px] motion-reduce:transition-none motion-reduce:hover:translate-x-0 motion-reduce:hover:translate-y-0";
 
+/** Same slide, but owned by a block whose button is only one part of it. */
+export const liftOnButtonHover =
+  "transition-transform duration-[120ms] has-[button:hover]:-translate-x-[3px] has-[button:hover]:-translate-y-[3px] motion-reduce:transition-none motion-reduce:has-[button:hover]:translate-x-0 motion-reduce:has-[button:hover]:translate-y-0";
+
 /** Thick offset outline, matching the 4px ink borders. */
 export const focusRing =
   "focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-rust";

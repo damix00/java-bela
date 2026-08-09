@@ -18,21 +18,29 @@ const sizes = {
 type ButtonVariants = {
   tone?: keyof typeof tones;
   size?: keyof typeof sizes;
+  /**
+   * Welded into a larger block (see `WaitlistForm`) — the wrapper carries the
+   * hard shadow and the hover slide for the whole thing.
+   */
+  joined?: boolean;
 };
 
-function buttonClass({ tone = "rust", size = "md" }: ButtonVariants) {
+function buttonClass({ tone = "rust", size = "md", joined }: ButtonVariants) {
   return cn(
-    lift,
+    !joined && lift,
     focusRing,
     "inline-block rounded-none border-ink font-display font-extrabold no-underline",
     tones[tone],
     sizes[size],
+    // After `sizes`, which is where the shadow it drops comes from.
+    joined && "shadow-none",
   );
 }
 
 export function Button({
   tone,
   size,
+  joined,
   type = "button",
   className,
   ...props
@@ -40,7 +48,11 @@ export function Button({
   return (
     <button
       type={type}
-      className={cn("cursor-pointer", buttonClass({ tone, size }), className)}
+      className={cn(
+        "cursor-pointer",
+        buttonClass({ tone, size, joined }),
+        className,
+      )}
       {...props}
     />
   );
@@ -50,10 +62,14 @@ export function Button({
 export function ButtonLink({
   tone,
   size,
+  joined,
   className,
   ...props
 }: ComponentProps<"a"> & ButtonVariants) {
   return (
-    <a className={cn(buttonClass({ tone, size }), className)} {...props} />
+    <a
+      className={cn(buttonClass({ tone, size, joined }), className)}
+      {...props}
+    />
   );
 }
