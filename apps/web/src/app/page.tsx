@@ -1,11 +1,10 @@
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
-import FaqSection from "@/components/pages/home/FaqSection";
-import Hero from "@/components/pages/home/Hero";
-import HowItPlaysSection from "@/components/pages/home/HowItPlaysSection";
-import LeaderboardSection from "@/components/pages/home/LeaderboardSection";
-import RankedSection from "@/components/pages/home/RankedSection";
-import WaitlistSection from "@/components/pages/home/WaitlistSection";
+import FaqSection from "@/components/pages/home/sections/FaqSection";
+import Hero from "@/components/pages/home/sections/Hero";
+import LeaderboardSection from "@/components/pages/home/sections/LeaderboardSection";
+import RankedSection from "@/components/pages/home/sections/RankedSection";
+import WaitlistSection from "@/components/pages/home/sections/WaitlistSection";
 
 export default function Page() {
   return (
@@ -14,7 +13,6 @@ export default function Page() {
       <main>
         <Hero />
         <RankedSection />
-        <HowItPlaysSection />
         <LeaderboardSection />
         <FaqSection />
         <WaitlistSection />
