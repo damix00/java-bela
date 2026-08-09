@@ -1,26 +1,29 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  --color-ink: #16210f;
+  --color-cream: #f3f1e7;
+  --color-sage: #e2e5cf;
+  --color-rust: #d1603d;
+  --color-forest: #2f5d3a;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* text tints */
+  --color-moss: #4a5140;
+  --color-stone: #5c6350;
+  --color-ember: #2b0f06;
+  --color-mint: #d8e4da;
+  --color-mint-soft: #e2ece4;
+  --color-mint-line: #cfe0d2;
+  --color-ash: #b6bfab;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* hard neo-brutalist offsets — no blur, no spread */
+  --shadow-hard-sm: 5px 5px 0 #16210f;
+  --shadow-hard: 6px 6px 0 #16210f;
+  --shadow-hard-lg: 8px 8px 0 #16210f;
+  --shadow-hard-xl: 12px 12px 0 #d1603d;
+  --shadow-hard-rust: 8px 8px 0 #d1603d;
 }
