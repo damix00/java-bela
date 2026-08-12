@@ -1,0 +1,55 @@
+# ============ Build directories ============
+build/
+build-*/
+cmake-build-*/
+out/
+bin/
+target/
+*.ninja
+
+# ============ CMake ============
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+compile_commands.json
+CTestTestfile.cmake
+Testing/
+CMakeUserPresets.json
+*.cmake.user
+*.cmake
+
+# ============ C/C++ objects & binaries ============
+*.o
+*.obj
+*.a
+*.so
+*.so.*
+*.dylib
+*.dll
+*.dll.a
+*.lib
+*.dylib
+*.exe
+*.out
+*.app
+*.bin
+*.pdb
+*.ilk
+*.d
+*.gcda
+*.gcno
+*.gcov
+*.profraw
+*.profdata
+*.log
+
+# ============ IDE / Editor ============
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+.DS_Store

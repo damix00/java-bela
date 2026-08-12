@@ -29,7 +29,7 @@ export default function Section({
       id={id}
       className={cn(
         tones[tone],
-        padded && "px-5 py-16 md:px-14 md:py-20",
+        padded && "px-8 py-16 md:px-28 md:py-20 lg:px-48 xl:px-72",
         divided && "border-b-4 border-ink",
         // Anchored sections must clear the sticky header.
         id && "scroll-mt-24",

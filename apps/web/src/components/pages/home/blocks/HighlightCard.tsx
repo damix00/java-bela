@@ -10,8 +10,9 @@ type HighlightCardProps = {
 };
 
 /**
- * Wide bento tile: a headline and a short paragraph, vertically centred.
- * Always cream — the surface is what tells these apart from the small tiles.
+ * Wide bento tile: a headline and one line under it, vertically centred.
+ * Always cream, and never badged — the icons belong to the small tiles, which
+ * is what keeps the two kinds apart.
  */
 export default function HighlightCard({ title, children }: HighlightCardProps) {
     return (
@@ -19,7 +20,7 @@ export default function HighlightCard({ title, children }: HighlightCardProps) {
             <Heading as="h3" size="card">
                 {title}
             </Heading>
-            <Text>{children}</Text>
+            <Text size="md">{children}</Text>
         </Card>
     );
 }

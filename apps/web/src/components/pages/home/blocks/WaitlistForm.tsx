@@ -1,7 +1,7 @@
 import { Button } from "@/components/controls/Button";
 import TextInput from "@/components/controls/TextInput";
 import { cn } from "@/lib/cn";
-import { liftOnButtonHover } from "@/lib/styles";
+import { pressOnButton } from "@/lib/styles";
 
 type WaitlistFormProps = {
   /** Unique per instance — the page renders this form twice. */
@@ -22,10 +22,10 @@ export default function WaitlistForm({
 }: WaitlistFormProps) {
   return (
     // Input and button read as one welded block, so the block — not the
-    // button alone — is what sits above the shadow and slides on hover.
+    // button alone — is what sits above the shadow and moves on press.
     <form
       className={cn(
-        liftOnButtonHover,
+        pressOnButton,
         "flex w-full flex-col items-stretch shadow-hard sm:w-auto sm:flex-row",
       )}
     >

@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react";
 
 import { cn } from "@/lib/cn";
-import { focusRing, lift } from "@/lib/styles";
+import { focusRing, hitAreaJoined, pressMd, pressSm } from "@/lib/styles";
 
 const tones = {
   rust: "bg-rust text-cream hover:text-cream",
@@ -15,21 +15,28 @@ const sizes = {
   lg: "border-4 px-[26px] py-4 text-[17px] shadow-hard",
 } as const;
 
+// Keyed to the resting shadow each size drops, since travel is derived from it.
+const presses = {
+  sm: pressSm,
+  md: pressMd,
+  lg: pressMd,
+} as const;
+
 type ButtonVariants = {
   tone?: keyof typeof tones;
   size?: keyof typeof sizes;
   /**
    * Welded into a larger block (see `WaitlistForm`) — the wrapper carries the
-   * hard shadow and the hover slide for the whole thing.
+   * hard shadow and the press physics for the whole thing.
    */
   joined?: boolean;
 };
 
 function buttonClass({ tone = "rust", size = "md", joined }: ButtonVariants) {
   return cn(
-    !joined && lift,
+    joined ? hitAreaJoined : presses[size],
     focusRing,
-    "inline-block rounded-none border-ink font-display font-extrabold no-underline",
+    "inline-block rounded-none border-ink font-display font-extrabold no-underline select-none",
     tones[tone],
     sizes[size],
     // After `sizes`, which is where the shadow it drops comes from.

@@ -9,7 +9,7 @@ const footerLinks = [
 
 export default function SiteFooter() {
   return (
-    <footer className="flex flex-wrap items-center gap-[26px] bg-ink px-5 py-7 md:px-14">
+    <footer className="flex flex-wrap items-center gap-[26px] bg-ink px-8 py-7 md:px-28 lg:px-48 xl:px-72">
       <Logo tone="cream" className="mr-auto" />
       {footerLinks.map((link) => (
         <TextLink key={link.label} href={link.href} tone="ash">

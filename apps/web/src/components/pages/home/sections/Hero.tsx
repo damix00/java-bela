@@ -14,10 +14,9 @@ export default function Hero() {
                         actually counts.
                     </span>
                 </Heading>
-                <Text size="xl" className="max-w-[38ch] text-pretty">
-                    Competitive Bela on a real ELO ladder. Sit down with your
-                    usual four, or queue solo and let the rating decide who you
-                    get.
+                <Text size="xl" className="max-w-[34ch] text-pretty">
+                    Ranked play on a real ELO ladder. Your usual four, or a
+                    queue that matches you.
                 </Text>
                 <WaitlistForm
                     id="hero-email"

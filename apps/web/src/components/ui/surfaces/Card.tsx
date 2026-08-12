@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react";
 
 import { cn } from "@/lib/cn";
-import { lift } from "@/lib/styles";
+import { pressLg } from "@/lib/styles";
 
 const tones = {
     cream: "bg-cream",
@@ -28,7 +28,7 @@ type CardProps = ComponentProps<"div"> & {
     tone?: keyof typeof tones;
     shadow?: keyof typeof shadows;
     padding?: keyof typeof paddings;
-    /** Slides toward its shadow on hover. */
+    /** Takes the same press physics as `Button`. Needs a shadow to move against. */
     interactive?: boolean;
 };
 
@@ -47,7 +47,7 @@ export default function Card({
                 tones[tone],
                 shadows[shadow],
                 paddings[padding],
-                interactive && lift,
+                interactive && shadow !== "none" && pressLg,
                 className,
             )}
             {...props}

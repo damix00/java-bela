@@ -13,9 +13,8 @@ export default function WaitlistSection() {
       <Heading size="statement" tone="cream">
         Deal us in.
       </Heading>
-      <Text size="lg" tone="mint" weight="medium" className="max-w-[44ch]">
-        Join the waitlist and we&rsquo;ll send one email when belote.gg opens.
-        That&rsquo;s the whole plan.
+      <Text size="lg" tone="mint" weight="medium">
+        One email when belote.gg opens. That&rsquo;s it.
       </Text>
       <WaitlistForm
         id="waitlist-email"

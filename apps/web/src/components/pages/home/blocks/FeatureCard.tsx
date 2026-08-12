@@ -1,24 +1,25 @@
+import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import Card from "@/components/ui/surfaces/Card";
+import { IconBadge } from "@/components/ui/graphics/Icon";
 import Text from "@/components/ui/typography/Text";
 
 type FeatureCardProps = {
     /** Ornament pinned to the top of the tile. */
-    mark: ReactNode;
+    glyph: LucideIcon;
     children: ReactNode;
 };
 
 /**
- * Small bento tile: an ornament up top, one line of copy below. Always sage —
- * the surface marks it as a supporting tile, so the grid stays readable.
+ * Small bento tile: an icon up top, a few words below. Always sage — the
+ * surface marks it as a supporting tile, so the grid stays readable.
  */
-export default function FeatureCard({ mark, children }: FeatureCardProps) {
+export default function FeatureCard({ glyph, children }: FeatureCardProps) {
     return (
         <Card tone="sage" className="min-h-[172px] justify-between">
-            {/* Fixed band keeps the copy on one baseline across every tile. */}
-            <span className="flex h-9 items-center">{mark}</span>
-            <Text size="sm" tone="ink" weight="medium">
+            <IconBadge glyph={glyph} />
+            <Text size="md" tone="ink" weight="medium">
                 {children}
             </Text>
         </Card>
