@@ -1,0 +1,80 @@
+{
+  "meta": {
+    "title": "belote.gg — Play Bela Online | Competitive Belot, Ranked ELO",
+    "description": "Play Bela online on a real ELO ladder. Competitive Belot with ranked seasons, zvanja counted for you, private tables for friends and offline AI. Web, iOS and Android."
+  },
+  "nav": {
+    "ranked": "Ranked",
+    "faq": "FAQ",
+    "cta": "Join the waitlist",
+    "languageLabel": "Language"
+  },
+  "hero": {
+    "headingLead": "Bela online, with a rank that",
+    "headingAccent": "actually counts.",
+    "sub": "Ranked play on a real ELO ladder. Your usual four, or a queue that matches you.",
+    "submit": "Get early access",
+    "caption": "hero shot — ranked table, mid-hand"
+  },
+  "form": {
+    "emailLabel": "Email address",
+    "emailPlaceholder": "you@example.com"
+  },
+  "ranked": {
+    "heading": "Built for people who keep score",
+    "sub": "Counting, signalling, nerve — scored properly.",
+    "ladder": {
+      "title": "A ladder that can go down",
+      "body": "Win, climb. Lose, drop. Seasons reset."
+    },
+    "invite": {
+      "title": "One link, four seats",
+      "body": "Send it. They sit down."
+    },
+    "ai": {
+      "title": "An AI that counts trumps",
+      "body": "Offline. Remembers every card."
+    },
+    "noAds": "No ads. No coins.",
+    "devices": "Phone, tablet, browser.",
+    "replays": "Replays after every hand.",
+    "fairPlay": "Fair play on ranked tables."
+  },
+  "leaderboard": {
+    "caption": "screenshot — leaderboard / season standings",
+    "heading": "Everyone at your table thinks they’re the best.",
+    "sub": "One rating. One leaderboard. Every hand on the record.",
+    "cta": "Claim your rank"
+  },
+  "faq": {
+    "heading": "Questions before you sit down",
+    "items": [
+      {
+        "question": "Is it free?",
+        "answer": "Yes, our platform is free to play."
+      },
+      {
+        "question": "Do my friends need an account?",
+        "answer": "No, you don't need an account to play."
+      },
+      {
+        "question": "What if someone disconnects?",
+        "answer": "A bot takes over for them, so the game can continue."
+      },
+      {
+        "question": "Can I play offline?",
+        "answer": "No, the game is online-only."
+      }
+    ]
+  },
+  "waitlist": {
+    "heading": "Deal us in.",
+    "sub": "One email when belote.gg opens. That’s it.",
+    "submit": "Join the waitlist"
+  },
+  "footer": {
+    "rules": "Rules of Bela",
+    "faq": "FAQ",
+    "contact": "Contact"
+  }
+}

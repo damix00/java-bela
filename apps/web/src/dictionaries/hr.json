@@ -1,0 +1,80 @@
+{
+  "meta": {
+    "title": "belote.gg — Igraj belu online | Natjecateljski belot, rangirani ELO",
+    "description": "Igraj belu online na pravoj ELO ljestvici. Natjecateljski belot s rangiranim sezonama, zvanja se broje umjesto tebe, privatni stolovi za prijatelje i offline AI. Web, iOS i Android."
+  },
+  "nav": {
+    "ranked": "Rangirano",
+    "faq": "Pitanja",
+    "cta": "Na listu čekanja",
+    "languageLabel": "Jezik"
+  },
+  "hero": {
+    "headingLead": "Bela online, s rangom koji",
+    "headingAccent": "stvarno vrijedi.",
+    "sub": "Rangirane partije na pravoj ELO ljestvici. Tvoja stalna četvorka ili red koji te spoji s ekipom.",
+    "submit": "Rani pristup",
+    "caption": "hero shot — rangirani stol, sredina dijeljenja"
+  },
+  "form": {
+    "emailLabel": "Email adresa",
+    "emailPlaceholder": "ti@primjer.com"
+  },
+  "ranked": {
+    "heading": "Za one koji pišu bodove",
+    "sub": "Brojanje, signali, živci — pošteno bodovano.",
+    "ladder": {
+      "title": "Ljestvica koja ide i prema dolje",
+      "body": "Pobjeda, gore. Poraz, dolje. Sezone se resetiraju."
+    },
+    "invite": {
+      "title": "Jedan link, četiri mjesta",
+      "body": "Pošalji ga. Sjedaju za stol."
+    },
+    "ai": {
+      "title": "AI koji broji adute",
+      "body": "Offline. Pamti svaku kartu."
+    },
+    "noAds": "Bez reklama. Bez žetona.",
+    "devices": "Mobitel, tablet, preglednik.",
+    "replays": "Snimke nakon svakog dijeljenja.",
+    "fairPlay": "Fer igra za rangiranim stolovima."
+  },
+  "leaderboard": {
+    "caption": "screenshot — ljestvica / poredak sezone",
+    "heading": "Svatko za tvojim stolom misli da je najbolji.",
+    "sub": "Jedan rejting. Jedna ljestvica. Svako dijeljenje zapisano.",
+    "cta": "Uzmi svoj rang"
+  },
+  "faq": {
+    "heading": "Pitanja prije nego sjedneš",
+    "items": [
+      {
+        "question": "Je li besplatno?",
+        "answer": "Da, igranje na našoj platformi je besplatno."
+      },
+      {
+        "question": "Trebaju li moji prijatelji račun?",
+        "answer": "Ne, za igru ti ne treba račun."
+      },
+      {
+        "question": "Što ako se netko odspoji?",
+        "answer": "Bot preuzme njegovo mjesto pa igra ide dalje."
+      },
+      {
+        "question": "Mogu li igrati offline?",
+        "answer": "Ne, igra radi samo online."
+      }
+    ]
+  },
+  "waitlist": {
+    "heading": "Podijeli i nama.",
+    "sub": "Jedan email kad belote.gg otvori vrata. To je sve.",
+    "submit": "Na listu čekanja"
+  },
+  "footer": {
+    "rules": "Pravila bele",
+    "faq": "Pitanja",
+    "contact": "Kontakt"
+  }
+}

@@ -7,70 +7,61 @@ import Card from "@/components/ui/surfaces/Card";
 import Heading from "@/components/ui/typography/Heading";
 import { IconBadge } from "@/components/ui/graphics/Icon";
 import Text from "@/components/ui/typography/Text";
+import type { Dictionary } from "@/dictionaries";
+
+type RankedSectionProps = {
+  copy: Dictionary["ranked"];
+};
 
 /**
  * Bento grid on a three-surface system: rust for the one lead tile, cream for
  * the wide headline tiles, sage for the small supporting ones. Every tile
  * carries the same ink shadow.
  */
-export default function RankedSection() {
-    return (
-        <Section id="ranked">
-            <Heading className="mb-3">Built for people who keep score</Heading>
-            <Text size="lg" className="mb-11">
-                Counting, signalling, nerve — scored properly.
+export default function RankedSection({ copy }: RankedSectionProps) {
+  return (
+    <Section id="ranked">
+      <Heading className="mb-3">{copy.heading}</Heading>
+      <Text size="lg" className="mb-11">
+        {copy.sub}
+      </Text>
+
+      <div className="grid gap-[22px] md:grid-cols-2 lg:auto-rows-[minmax(172px,auto)] lg:grid-cols-4">
+        <Card
+          tone="rust"
+          padding="lg"
+          className="justify-between gap-8 md:col-span-2 lg:row-span-2"
+        >
+          <IconBadge glyph={TrendingUp} size="lg" className="size-14" />
+          <div>
+            <Heading as="h3" size="cardHero" tone="cream" className="max-w-[13ch]">
+              {copy.ladder.title}
+            </Heading>
+            <Text
+              size="lg"
+              tone="ember"
+              weight="medium"
+              className="mt-4 max-w-[26ch]"
+            >
+              {copy.ladder.body}
             </Text>
+          </div>
+        </Card>
 
-            <div className="grid gap-[22px] md:grid-cols-2 lg:auto-rows-[minmax(172px,auto)] lg:grid-cols-4">
-                <Card
-                    tone="rust"
-                    padding="lg"
-                    className="justify-between gap-8 md:col-span-2 lg:row-span-2">
-                    <IconBadge
-                        glyph={TrendingUp}
-                        size="lg"
-                        className="size-14"
-                    />
-                    <div>
-                        <Heading
-                            as="h3"
-                            size="cardHero"
-                            tone="cream"
-                            className="max-w-[13ch]">
-                            A ladder that can go down
-                        </Heading>
-                        <Text
-                            size="lg"
-                            tone="ember"
-                            weight="medium"
-                            className="mt-4 max-w-[26ch]">
-                            Win, climb. Lose, drop. Seasons reset.
-                        </Text>
-                    </div>
-                </Card>
+        <HighlightCard title={copy.invite.title}>
+          {copy.invite.body}
+        </HighlightCard>
 
-                <HighlightCard title="One link, four seats">
-                    Send it. They sit down.
-                </HighlightCard>
+        <FeatureCard glyph={Ban}>{copy.noAds}</FeatureCard>
 
-                <FeatureCard glyph={Ban}>No ads. No coins.</FeatureCard>
+        <FeatureCard glyph={Smartphone}>{copy.devices}</FeatureCard>
 
-                <FeatureCard glyph={Smartphone}>
-                    Phone, tablet, browser.
-                </FeatureCard>
+        <HighlightCard title={copy.ai.title}>{copy.ai.body}</HighlightCard>
 
-                <HighlightCard title="An AI that counts trumps">
-                    Offline. Remembers every card.
-                </HighlightCard>
+        <FeatureCard glyph={Rewind}>{copy.replays}</FeatureCard>
 
-                <FeatureCard glyph={Rewind}>
-                    Replays after every hand.
-                </FeatureCard>
-
-                <FeatureCard glyph={ShieldCheck}>
-                    Fair play on ranked tables.
-                </FeatureCard>
-            </div>
-        </Section>
-    );
+        <FeatureCard glyph={ShieldCheck}>{copy.fairPlay}</FeatureCard>
+      </div>
+    </Section>
+  );
 }
