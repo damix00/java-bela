@@ -4,10 +4,9 @@ import {
   JetBrains_Mono,
   Public_Sans,
 } from "next/font/google";
-import { notFound } from "next/navigation";
 
-import { getDictionary } from "@/dictionaries";
-import { isLocale, locales } from "@/lib/i18n";
+import { localePage } from "@/dictionaries";
+import { locales } from "@/lib/i18n";
 import "../globals.css";
 
 const bricolage = Bricolage_Grotesque({
@@ -35,15 +34,13 @@ export const dynamicParams = false;
 export async function generateMetadata({
   params,
 }: LayoutProps<"/[lang]">): Promise<Metadata> {
-  const { lang } = await params;
-
-  if (!isLocale(lang)) notFound();
-
-  const dict = await getDictionary(lang);
+  const { lang, dict } = await localePage(params);
 
   return {
     metadataBase: new URL("https://belote.gg"),
-    title: dict.meta.title,
+    // Only the landing page names itself in full; every other screen supplies
+    // its own short title and gets the brand appended.
+    title: { default: dict.meta.title, template: "%s — belote.gg" },
     description: dict.meta.description,
     alternates: {
       canonical: `/${lang}`,
@@ -63,9 +60,7 @@ export default async function RootLayout({
   children,
   params,
 }: LayoutProps<"/[lang]">) {
-  const { lang } = await params;
-
-  if (!isLocale(lang)) notFound();
+  const { lang } = await localePage(params);
 
   return (
     <html

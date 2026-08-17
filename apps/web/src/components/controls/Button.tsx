@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ComponentProps } from "react";
 
 import { cn } from "@/lib/cn";
@@ -7,6 +8,8 @@ const tones = {
   rust: "bg-rust text-cream hover:text-cream",
   forest: "bg-forest text-cream hover:text-cream",
   ink: "bg-ink text-cream hover:text-cream",
+  /** The quieter half of a pair — same block, no fill. */
+  cream: "bg-cream text-ink hover:text-ink",
 } as const;
 
 const sizes = {
@@ -26,8 +29,8 @@ type ButtonVariants = {
   tone?: keyof typeof tones;
   size?: keyof typeof sizes;
   /**
-   * Welded into a larger block (see `WaitlistForm`) — the wrapper carries the
-   * hard shadow and the press physics for the whole thing.
+   * Welded into a larger block — the wrapper carries the hard shadow and the
+   * press physics for the whole thing, so input and button move as one.
    */
   joined?: boolean;
 };
@@ -65,16 +68,16 @@ export function Button({
   );
 }
 
-/** Same block, rendered as an anchor — for CTAs that navigate. */
+/** Same block, rendered as a link — for CTAs that navigate. */
 export function ButtonLink({
   tone,
   size,
   joined,
   className,
   ...props
-}: ComponentProps<"a"> & ButtonVariants) {
+}: ComponentProps<typeof Link> & ButtonVariants) {
   return (
-    <a
+    <Link
       className={cn(buttonClass({ tone, size, joined }), className)}
       {...props}
     />

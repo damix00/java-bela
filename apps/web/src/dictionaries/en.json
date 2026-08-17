@@ -1,80 +1,179 @@
 {
-  "meta": {
-    "title": "belote.gg — Play Bela Online | Competitive Belot, Ranked ELO",
-    "description": "Play Bela online on a real ELO ladder. Competitive Belot with ranked seasons, zvanja counted for you, private tables for friends and offline AI. Web, iOS and Android."
-  },
-  "nav": {
-    "ranked": "Ranked",
-    "faq": "FAQ",
-    "cta": "Join the waitlist",
-    "languageLabel": "Language"
-  },
-  "hero": {
-    "headingLead": "Bela online, with a rank that",
-    "headingAccent": "actually counts.",
-    "sub": "Ranked play on a real ELO ladder. Your usual four, or a queue that matches you.",
-    "submit": "Get early access",
-    "caption": "hero shot — ranked table, mid-hand"
-  },
-  "form": {
-    "emailLabel": "Email address",
-    "emailPlaceholder": "you@example.com"
-  },
-  "ranked": {
-    "heading": "Built for people who keep score",
-    "sub": "Counting, signalling, nerve — scored properly.",
-    "ladder": {
-      "title": "A ladder that can go down",
-      "body": "Win, climb. Lose, drop. Seasons reset."
+    "meta": {
+        "title": "belote.gg — Play Belote Online | Ranked ELO Ladder",
+        "description": "Play belote online on a real ELO ladder. Ranked seasons, declarations and tricks scored for you, private tables for your friends, and an AI opponent offline. Web, iOS and Android."
     },
-    "invite": {
-      "title": "One link, four seats",
-      "body": "Send it. They sit down."
+    "nav": {
+        "ranked": "Ranked",
+        "faq": "FAQ",
+        "languageLabel": "Language"
     },
-    "ai": {
-      "title": "An AI that counts trumps",
-      "body": "Offline. Remembers every card."
+    "cta": {
+        "signIn": "Sign in",
+        "signUp": "Create account",
+        "haveAccount": "Already have an account?",
+        "getStarted": "Get started"
     },
-    "noAds": "No ads. No coins.",
-    "devices": "Phone, tablet, browser.",
-    "replays": "Replays after every hand.",
-    "fairPlay": "Fair play on ranked tables."
-  },
-  "leaderboard": {
-    "caption": "screenshot — leaderboard / season standings",
-    "heading": "Everyone at your table thinks they’re the best.",
-    "sub": "One rating. One leaderboard. Every hand on the record.",
-    "cta": "Claim your rank"
-  },
-  "faq": {
-    "heading": "Questions before you sit down",
-    "items": [
-      {
-        "question": "Is it free?",
-        "answer": "Yes, our platform is free to play."
-      },
-      {
-        "question": "Do my friends need an account?",
-        "answer": "No, you don't need an account to play."
-      },
-      {
-        "question": "What if someone disconnects?",
-        "answer": "A bot takes over for them, so the game can continue."
-      },
-      {
-        "question": "Can I play offline?",
-        "answer": "No, the game is online-only."
-      }
-    ]
-  },
-  "waitlist": {
-    "heading": "Deal us in.",
-    "sub": "One email when belote.gg opens. That’s it.",
-    "submit": "Join the waitlist"
-  },
-  "footer": {
-    "rules": "Rules of Bela",
-    "faq": "FAQ",
-    "contact": "Contact"
-  }
+    "hero": {
+        "headingLead": "Belote online. A rank you",
+        "headingAccent": "have to earn.",
+        "sub": "Play ranked on a real ELO ladder. Bring your regular four—or queue up and find a table.",
+        "cta": "Take a seat",
+        "caption": "hero shot — ranked table, mid-hand"
+    },
+    "form": {
+        "emailPlaceholder": "you@example.com"
+    },
+    "auth": {
+        "common": {
+            "email": "Email",
+            "password": "Password",
+            "show": "Show password",
+            "hide": "Hide password",
+            "backToSignIn": "Back to sign in",
+            "back": "Back",
+            "digit": "Digit",
+            "avatarOption": "Avatar"
+        },
+        "signIn": {
+            "title": "Sign in",
+            "promo": "Your rating is exactly where you left it.",
+            "heading": "Welcome back",
+            "noAccount": "No account yet?",
+            "createOne": "Create one",
+            "forgot": "Forgot?",
+            "remember": "Keep me signed in on this device",
+            "submit": "Sign in",
+            "or": "or",
+            "guest": "Play as guest",
+            "guestNote": "Guest games are unranked and aren't saved."
+        },
+        "signUp": {
+            "title": "Create account",
+            "heading": "Create your account",
+            "already": "Already playing?",
+            "signIn": "Sign in",
+            "rule": "At least 8 characters",
+            "agreeLead": "I agree to the",
+            "terms": "terms",
+            "agreeMid": "and",
+            "privacy": "privacy policy",
+            "submit": "Create account",
+            "perksHeading": "What you get with an account",
+            "perks": [
+                "A rating that moves both ways, season after season.",
+                "Every game saved, with declarations and tricks scored for you.",
+                "Private tables you can reopen with the same four players."
+            ]
+        },
+        "forgot": {
+            "title": "Forgot password",
+            "heading": "Forgot your password?",
+            "body": "Enter the email on your account and we’ll send you a reset link. It expires after one hour.",
+            "submit": "Send reset link"
+        },
+        "checkEmail": {
+            "title": "Check your email",
+            "heading": "Check your email",
+            "bodyLead": "If",
+            "bodyRest": "has an account, a reset link is on its way. Check your spam folder if it doesn’t show up.",
+            "resend": "Resend link",
+            "timer": "available in 0:42"
+        },
+        "reset": {
+            "title": "Set a new password",
+            "heading": "Set a new password",
+            "body": "Saving this will sign you out on every other device.",
+            "label": "New password",
+            "strength": "strong",
+            "submit": "Save and sign in"
+        },
+        "twoFactor": {
+            "title": "Two-factor code",
+            "heading": "Enter your code",
+            "body": "Enter the six-digit code from your authenticator app. We only ask for it on devices we don’t recognise.",
+            "submit": "Verify",
+            "recovery": "Use a recovery code"
+        },
+        "username": {
+            "title": "Pick a username",
+            "step": "Step 1 of 1",
+            "heading": "Choose a username",
+            "label": "Username",
+            "available": "available",
+            "hint": "Shown on the leaderboard. You can change it once per season.",
+            "avatar": "Avatar",
+            "submit": "Enter the lobby",
+            "previewLabel": "Leaderboard preview",
+            "unrated": "unrated",
+            "note": "Your rating appears after five placement games."
+        },
+        "welcome": {
+            "title": "Account created",
+            "heading": "You’re in,",
+            "body": "Five placement games and you’ll have a rating. Join the queue on your own, or open a table and invite your usual three.",
+            "primary": "Play a placement game",
+            "secondary": "Open a private table",
+            "placement": "placement"
+        }
+    },
+    "ranked": {
+        "heading": "Built for people who keep score",
+        "sub": "Counting, signalling, nerve — all of it scored properly.",
+        "ladder": {
+            "title": "A ladder you can fall down",
+            "body": "Win and you climb. Lose and you drop. Every season resets."
+        },
+        "invite": {
+            "title": "One link, four seats",
+            "body": "Send it. They sit down."
+        },
+        "ai": {
+            "title": "An AI that counts trumps",
+            "body": "Plays offline. Remembers every card."
+        },
+        "noAds": "No ads. No coins.",
+        "devices": "Phone, tablet, browser.",
+        "replays": "Replays after every game.",
+        "fairPlay": "Fair play on ranked tables."
+    },
+    "leaderboard": {
+        "caption": "screenshot — leaderboard / season standings",
+        "heading": "Everyone at your table thinks they’re the best.",
+        "sub": "One rating. One leaderboard. Every game on the record.",
+        "cta": "Claim your rank"
+    },
+    "closing": {
+        "heading": "Take a seat.",
+        "sub": "Five placement games and you’re on the ladder. You can be there tonight.",
+        "cta": "Play your first game"
+    },
+    "faq": {
+        "heading": "Questions before you sit down",
+        "items": [
+            {
+                "question": "Is it free?",
+                "answer": "Yes. Belote.gg is free to play — no ads, and nothing to buy."
+            },
+            {
+                "question": "Do my friends need an account?",
+                "answer": "No. Send them your table link and they can play as guests. Ranked games need an account."
+            },
+            {
+                "question": "What if someone disconnects?",
+                "answer": "The AI takes their seat so the game can finish, and hands it back the moment they return."
+            },
+            {
+                "question": "Can I play offline?",
+                "answer": "Ranked games need a connection. Offline, you can play against the AI."
+            }
+        ]
+    },
+    "footer": {
+        "rules": "Belote rules",
+        "faq": "FAQ",
+        "contact": "Contact",
+        "terms": "Terms",
+        "privacy": "Privacy"
+    }
 }

@@ -1,80 +1,179 @@
 {
-  "meta": {
-    "title": "belote.gg — Igraj belu online | Natjecateljski belot, rangirani ELO",
-    "description": "Igraj belu online na pravoj ELO ljestvici. Natjecateljski belot s rangiranim sezonama, zvanja se broje umjesto tebe, privatni stolovi za prijatelje i offline AI. Web, iOS i Android."
-  },
-  "nav": {
-    "ranked": "Rangirano",
-    "faq": "Pitanja",
-    "cta": "Na listu čekanja",
-    "languageLabel": "Jezik"
-  },
-  "hero": {
-    "headingLead": "Bela online, s rangom koji",
-    "headingAccent": "stvarno vrijedi.",
-    "sub": "Rangirane partije na pravoj ELO ljestvici. Tvoja stalna četvorka ili red koji te spoji s ekipom.",
-    "submit": "Rani pristup",
-    "caption": "hero shot — rangirani stol, sredina dijeljenja"
-  },
-  "form": {
-    "emailLabel": "Email adresa",
-    "emailPlaceholder": "ti@primjer.com"
-  },
-  "ranked": {
-    "heading": "Za one koji pišu bodove",
-    "sub": "Brojanje, signali, živci — pošteno bodovano.",
-    "ladder": {
-      "title": "Ljestvica koja ide i prema dolje",
-      "body": "Pobjeda, gore. Poraz, dolje. Sezone se resetiraju."
+    "meta": {
+        "title": "belote.gg — Igraj belu online | Natjecateljski belot, rangirani ELO",
+        "description": "Igraj belu online na pravoj ELO ljestvici. Rangirane sezone, štihovi i zvanja se broje umjesto tebe, privatni stolovi za prijatelje i AI protivnik offline. Web, iOS i Android."
     },
-    "invite": {
-      "title": "Jedan link, četiri mjesta",
-      "body": "Pošalji ga. Sjedaju za stol."
+    "nav": {
+        "ranked": "Rangirano",
+        "faq": "Pitanja",
+        "languageLabel": "Jezik"
     },
-    "ai": {
-      "title": "AI koji broji adute",
-      "body": "Offline. Pamti svaku kartu."
+    "cta": {
+        "signIn": "Prijavi se",
+        "signUp": "Otvori račun",
+        "haveAccount": "Već imaš račun?",
+        "getStarted": "Započni"
     },
-    "noAds": "Bez reklama. Bez žetona.",
-    "devices": "Mobitel, tablet, preglednik.",
-    "replays": "Snimke nakon svakog dijeljenja.",
-    "fairPlay": "Fer igra za rangiranim stolovima."
-  },
-  "leaderboard": {
-    "caption": "screenshot — ljestvica / poredak sezone",
-    "heading": "Svatko za tvojim stolom misli da je najbolji.",
-    "sub": "Jedan rejting. Jedna ljestvica. Svako dijeljenje zapisano.",
-    "cta": "Uzmi svoj rang"
-  },
-  "faq": {
-    "heading": "Pitanja prije nego sjedneš",
-    "items": [
-      {
-        "question": "Je li besplatno?",
-        "answer": "Da, igranje na našoj platformi je besplatno."
-      },
-      {
-        "question": "Trebaju li moji prijatelji račun?",
-        "answer": "Ne, za igru ti ne treba račun."
-      },
-      {
-        "question": "Što ako se netko odspoji?",
-        "answer": "Bot preuzme njegovo mjesto pa igra ide dalje."
-      },
-      {
-        "question": "Mogu li igrati offline?",
-        "answer": "Ne, igra radi samo online."
-      }
-    ]
-  },
-  "waitlist": {
-    "heading": "Podijeli i nama.",
-    "sub": "Jedan email kad belote.gg otvori vrata. To je sve.",
-    "submit": "Na listu čekanja"
-  },
-  "footer": {
-    "rules": "Pravila bele",
-    "faq": "Pitanja",
-    "contact": "Kontakt"
-  }
+    "hero": {
+        "headingLead": "Bela online. Rang koji moraš",
+        "headingAccent": "zaslužiti.",
+        "sub": "Igraj rangirano na pravoj ELO ljestvici. Dovedi svoju stalnu četvorku ili stani u red i pronađi stol.",
+        "cta": "Sjedni za stol",
+        "caption": "hero shot — rangirani stol, sredina dijeljenja"
+    },
+    "form": {
+        "emailPlaceholder": "ti@primjer.com"
+    },
+    "auth": {
+        "common": {
+            "email": "Email",
+            "password": "Lozinka",
+            "show": "Prikaži lozinku",
+            "hide": "Sakrij lozinku",
+            "backToSignIn": "Natrag na prijavu",
+            "back": "Natrag",
+            "digit": "Znamenka",
+            "avatarOption": "Avatar"
+        },
+        "signIn": {
+            "title": "Prijava",
+            "promo": "Tvoj rejting je točno tamo gdje si ga ostavio.",
+            "heading": "Dobro došao natrag",
+            "noAccount": "Još nemaš račun?",
+            "createOne": "Otvori ga",
+            "forgot": "Zaboravio?",
+            "remember": "Ostani prijavljen na ovom uređaju",
+            "submit": "Prijavi se",
+            "or": "ili",
+            "guest": "Igraj kao gost",
+            "guestNote": "Gostujuće partije se ne rangiraju i ne spremaju se."
+        },
+        "signUp": {
+            "title": "Otvori račun",
+            "heading": "Otvori svoj račun",
+            "already": "Već igraš?",
+            "signIn": "Prijavi se",
+            "rule": "Najmanje 8 znakova",
+            "agreeLead": "Slažem se s",
+            "terms": "uvjetima",
+            "agreeMid": "i",
+            "privacy": "pravilima privatnosti",
+            "submit": "Otvori račun",
+            "perksHeading": "Što dobivaš s računom",
+            "perks": [
+                "Rejting koji ide u oba smjera, sezonu za sezonom.",
+                "Svaka odigrana partija ostaje zapisana — sa štihovima i zvanjima.",
+                "Privatni stolovi koje otvaraš uvijek s istom četvorkom."
+            ]
+        },
+        "forgot": {
+            "title": "Zaboravljena lozinka",
+            "heading": "Zaboravljena lozinka?",
+            "body": "Upiši email s računa i šaljemo ti link za promjenu lozinke. Vrijedi jedan sat.",
+            "submit": "Pošalji link"
+        },
+        "checkEmail": {
+            "title": "Provjeri email",
+            "heading": "Provjeri email",
+            "bodyLead": "Ako",
+            "bodyRest": "ima račun, link za promjenu je na putu. Provjeri spam ako se ne pojavi.",
+            "resend": "Pošalji ponovno",
+            "timer": "dostupno za 0:42"
+        },
+        "reset": {
+            "title": "Nova lozinka",
+            "heading": "Postavi novu lozinku",
+            "body": "Kad ovo spremiš, odjavljujemo te sa svih ostalih uređaja.",
+            "label": "Nova lozinka",
+            "strength": "jaka",
+            "submit": "Spremi i prijavi se"
+        },
+        "twoFactor": {
+            "title": "Dvofaktorski kod",
+            "heading": "Upiši kod",
+            "body": "Upiši šesteroznamenkasti kod iz aplikacije za autentifikaciju. Tražimo ga samo na uređajima koje ne prepoznajemo.",
+            "submit": "Potvrdi",
+            "recovery": "Koristi kod za oporavak"
+        },
+        "username": {
+            "title": "Odaberi ime",
+            "step": "Korak 1 od 1",
+            "heading": "Odaberi korisničko ime",
+            "label": "Korisničko ime",
+            "available": "slobodno",
+            "hint": "Prikazuje se na ljestvici. Možeš ga promijeniti jednom po sezoni.",
+            "avatar": "Avatar",
+            "submit": "Uđi u predvorje",
+            "previewLabel": "Pregled na ljestvici",
+            "unrated": "bez ranga",
+            "note": "Tvoj rejting se pojavljuje nakon pet kvalifikacijskih partija."
+        },
+        "welcome": {
+            "title": "Račun otvoren",
+            "heading": "Unutra si,",
+            "body": "Još pet kvalifikacijskih partija i imaš rejting. Uđi u red sam ili otvori stol i pozovi svoju stalnu trojku.",
+            "primary": "Odigraj kvalifikacijsku partiju",
+            "secondary": "Otvori privatni stol",
+            "placement": "kvalifikacije"
+        }
+    },
+    "ranked": {
+        "heading": "Za one koji pišu bodove",
+        "sub": "Brojanje, signali, živci — sve pošteno bodovano.",
+        "ladder": {
+            "title": "Ljestvica po kojoj se i pada",
+            "body": "Pobjeda te diže. Poraz te spušta. Svaka sezona kreće ispočetka."
+        },
+        "invite": {
+            "title": "Jedan link, četiri mjesta",
+            "body": "Pošalji ga. Sjedaju za stol."
+        },
+        "ai": {
+            "title": "AI koji broji adute",
+            "body": "Igra offline. Pamti svaku kartu."
+        },
+        "noAds": "Bez reklama. Bez žetona.",
+        "devices": "Mobitel, tablet, preglednik.",
+        "replays": "Snimke nakon svake partije.",
+        "fairPlay": "Fer igra za rangiranim stolovima."
+    },
+    "leaderboard": {
+        "caption": "screenshot — ljestvica / poredak sezone",
+        "heading": "Svatko za tvojim stolom misli da je najbolji.",
+        "sub": "Jedan rejting. Jedna ljestvica. Svaka partija zapisana.",
+        "cta": "Uzmi svoj rang"
+    },
+    "closing": {
+        "heading": "Sjedni za stol.",
+        "sub": "Pet kvalifikacijskih partija i na ljestvici si. Možeš to večeras.",
+        "cta": "Odigraj prvu partiju"
+    },
+    "faq": {
+        "heading": "Pitanja prije nego sjedneš",
+        "items": [
+            {
+                "question": "Je li besplatno?",
+                "answer": "Da. Belote.gg je besplatan za igru — bez reklama i bez kupovina."
+            },
+            {
+                "question": "Trebaju li moji prijatelji račun?",
+                "answer": "Ne. Pošalji im link na stol i mogu igrati kao gosti. Za rangirane partije treba račun."
+            },
+            {
+                "question": "Što ako se netko odspoji?",
+                "answer": "AI preuzme njegovo mjesto da partija može do kraja i vraća mu ga čim se vrati."
+            },
+            {
+                "question": "Mogu li igrati offline?",
+                "answer": "Za rangirane partije treba internet. Offline možeš igrati protiv AI-ja."
+            }
+        ]
+    },
+    "footer": {
+        "rules": "Pravila bele",
+        "faq": "Pitanja",
+        "contact": "Kontakt",
+        "terms": "Uvjeti",
+        "privacy": "Privatnost"
+    }
 }

@@ -11,11 +11,13 @@ const tones = {
     ink: "bg-ink",
 } as const;
 
-// Cards cast one shadow colour on purpose — a second one reads as a mistake
-// next to the first. Rust is reserved for the hero's MediaPanel.
+// A card casts one shadow colour at a time — two on the same block read as a
+// mistake. Rust is the accent: it marks the one card in a set that the page is
+// steering towards (create account, the code prompt, the welcome band).
 const shadows = {
     none: "",
     ink: "shadow-hard-lg",
+    rust: "shadow-hard-rust",
 } as const;
 
 const paddings = {

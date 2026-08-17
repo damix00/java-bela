@@ -4,12 +4,18 @@ import MediaPanel from "@/components/ui/surfaces/MediaPanel";
 import Section from "@/components/layout/Section";
 import Text from "@/components/ui/typography/Text";
 import type { Dictionary } from "@/dictionaries";
+import type { Locale } from "@/lib/i18n";
+import { authPath } from "@/lib/routes";
 
 type LeaderboardSectionProps = {
   copy: Dictionary["leaderboard"];
+  locale: Locale;
 };
 
-export default function LeaderboardSection({ copy }: LeaderboardSectionProps) {
+export default function LeaderboardSection({
+  copy,
+  locale,
+}: LeaderboardSectionProps) {
   return (
     <Section padded={false} className="grid items-stretch lg:grid-cols-2">
       <MediaPanel
@@ -26,7 +32,11 @@ export default function LeaderboardSection({ copy }: LeaderboardSectionProps) {
         <Text size="xl" tone="mint" weight="medium">
           {copy.sub}
         </Text>
-        <ButtonLink href="#waitlist" size="lg" className="self-start">
+        <ButtonLink
+          href={authPath(locale, "signUp")}
+          size="lg"
+          className="self-start"
+        >
           {copy.cta}
         </ButtonLink>
       </div>

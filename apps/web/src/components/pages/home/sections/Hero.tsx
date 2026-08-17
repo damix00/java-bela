@@ -1,16 +1,18 @@
-import WaitlistForm from "@/components/pages/home/blocks/WaitlistForm";
+import JoinCta from "@/components/pages/home/blocks/JoinCta";
 import Heading from "@/components/ui/typography/Heading";
 import MediaPanel from "@/components/ui/surfaces/MediaPanel";
 import Section from "@/components/layout/Section";
 import Text from "@/components/ui/typography/Text";
 import type { Dictionary } from "@/dictionaries";
+import type { Locale } from "@/lib/i18n";
 
 type HeroProps = {
   copy: Dictionary["hero"];
-  form: Dictionary["form"];
+  cta: Dictionary["cta"];
+  locale: Locale;
 };
 
-export default function Hero({ copy, form }: HeroProps) {
+export default function Hero({ copy, cta, locale }: HeroProps) {
   return (
     <Section className="grid items-center gap-14 py-14 md:pt-[84px] md:pb-[76px] lg:grid-cols-[1.05fr_.95fr]">
       <div className="flex flex-col items-start gap-[30px]">
@@ -26,12 +28,10 @@ export default function Hero({ copy, form }: HeroProps) {
         <Text size="xl" className="max-w-[34ch] text-pretty">
           {copy.sub}
         </Text>
-        <WaitlistForm
-          id="hero-email"
-          submitLabel={copy.submit}
-          copy={form}
-          buttonTone="forest"
-          inputClassName="sm:w-[280px]"
+        <JoinCta
+          label={copy.cta}
+          locale={locale}
+          signIn={{ prompt: cta.haveAccount, label: cta.signIn }}
         />
       </div>
 

@@ -37,19 +37,27 @@
 // the bottom and right are extended — those are the edges that retreat on
 // hover. (On press the top-left retreats instead, but a held button keeps
 // `:active` regardless of the pointer, and `:active` is what's being shown.)
+//
+// The overhang also has to *grow* by the travel on hover. The pseudo-element is
+// a child, so it slides along with the block: whatever its resting size, its
+// outer edge lands `travel` short of where it sat at rest, leaving a band that
+// is hoverable at rest but not once hovered — hover, slide, lose the pointer,
+// unhover, slide back, hover again. Adding the travel a second time on hover
+// pins that outer edge to the same screen position in both states, so the band
+// closes and the hit area only ever gains ground.
 const hitAreaBase =
   "relative after:absolute after:top-0 after:left-0 after:content-['']";
-/** 3px border + 2px travel. */
-const hitAreaSm = `${hitAreaBase} after:-right-[5px] after:-bottom-[5px]`;
-/** 4px border + 3px travel. */
-const hitAreaMd = `${hitAreaBase} after:-right-[7px] after:-bottom-[7px]`;
-/** 4px border + 4px travel. */
-const hitAreaLg = `${hitAreaBase} after:-right-[8px] after:-bottom-[8px]`;
+/** 3px border + 2px travel, + 2px more to stay put while hovered. */
+const hitAreaSm = `${hitAreaBase} after:-right-[5px] after:-bottom-[5px] hover:after:-right-[7px] hover:after:-bottom-[7px]`;
+/** 4px border + 3px travel, + 3px more to stay put while hovered. */
+const hitAreaMd = `${hitAreaBase} after:-right-[7px] after:-bottom-[7px] hover:after:-right-[10px] hover:after:-bottom-[10px]`;
+/** 4px border + 4px travel, + 4px more to stay put while hovered. */
+const hitAreaLg = `${hitAreaBase} after:-right-[8px] after:-bottom-[8px] hover:after:-right-[12px] hover:after:-bottom-[12px]`;
 
 /**
- * Hit-area overhang on its own, for a button that is welded into a larger block
- * (see `WaitlistForm`): the wrapper moves, but the button is what gets hovered,
- * so the button still needs the stabiliser.
+ * Hit-area overhang on its own, for a button that is welded into a larger
+ * block: the wrapper moves, but the button is what gets hovered, so the button
+ * still needs the stabiliser.
  */
 export const hitAreaJoined = hitAreaMd;
 
@@ -70,7 +78,8 @@ export const pressMd = `${hitAreaMd} ${pressBase} hover:-translate-x-[3px] hover
 export const pressLg = `${hitAreaLg} ${pressBase} hover:-translate-x-[4px] hover:-translate-y-[4px] hover:shadow-[12px_12px_0_var(--color-ink)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-[4px_4px_0_var(--color-ink)]`;
 
 /**
- * The `md` physics, owned by a block whose button is only one part of it. The
+ * The `md` physics, owned by a block whose button is only one part of it — a
+ * field with a submit welded to its edge, say. The
  * pressed state is marked important because Tailwind emits these two arbitrary
  * variants in alphabetical order — `active` lands before `hover`, and a press
  * is also a hover, so it would otherwise never win.
@@ -81,6 +90,24 @@ export const pressOnButton =
 /** Thick offset outline, matching the 4px ink borders. */
 export const focusRing =
   "focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-rust";
+
+// Fields. The ink frame is the same 4px rule the cards and buttons are drawn
+// with, so a control reads as another block on the page rather than a widget
+// borrowed from the browser. Two shapes: `inputBox` is a field that owns its
+// own frame, `inputBare` is one that has been dropped inside `inputFrame`
+// alongside something else — a reveal toggle, an availability note — so the
+// pair reads as a single welded control.
+const inputType = "rounded-none font-sans text-[17px] text-ink outline-none";
+
+/** Field that draws its own frame. */
+export const inputBox = `${inputType} w-full border-4 border-ink px-5 py-4 focus:bg-paper`;
+
+/** Frame around a field plus whatever sits next to it. */
+export const inputFrame =
+  "flex items-center border-4 border-ink bg-white focus-within:bg-paper";
+
+/** Field inside an `inputFrame` — the frame is already drawn around it. */
+export const inputBare = `${inputType} w-full min-w-0 border-none bg-transparent px-5 py-4`;
 
 /** Diagonal canvas weave used behind screenshot placeholders. */
 export const hatch =

@@ -15,6 +15,10 @@
   --color-mint-soft: #e2ece4;
   --color-mint-line: #cfe0d2;
   --color-ash: #b6bfab;
+  /* warmer than white — a field that has the caret in it */
+  --color-paper: #fffdf3;
+  /* unfilled: the empty half of a meter, a pip not yet earned */
+  --color-canvas: #dcd9c6;
 
   --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;

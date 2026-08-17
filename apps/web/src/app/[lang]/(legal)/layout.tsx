@@ -1,0 +1,37 @@
+import Link from "next/link";
+
+import LanguageSwitcher from "@/components/controls/LanguageSwitcher";
+import SiteFooter from "@/components/layout/SiteFooter";
+import Logo from "@/components/ui/brand/Logo";
+import { localePage } from "@/dictionaries";
+import { homePath } from "@/lib/routes";
+import { focusRing } from "@/lib/styles";
+
+/**
+ * Chrome for the legal pages. `SiteHeader` doesn't come along: its nav is
+ * in-page anchors for the landing page, and `#ranked` from here would be a
+ * link to nothing. Logo, language, and the footer — which is where most
+ * people will have clicked in from.
+ */
+export default async function LegalLayout({
+  children,
+  params,
+}: LayoutProps<"/[lang]">) {
+  const { lang, dict } = await localePage(params);
+
+  return (
+    <>
+      <header className="sticky top-0 z-20 flex items-center gap-[30px] border-b-4 border-ink bg-sage px-8 py-4 md:px-28 md:py-5 lg:px-48 xl:px-72">
+        <Link
+          href={homePath(lang)}
+          className={`${focusRing} mr-auto no-underline`}
+        >
+          <Logo withMark />
+        </Link>
+        <LanguageSwitcher current={lang} label={dict.nav.languageLabel} />
+      </header>
+      <main>{children}</main>
+      <SiteFooter copy={dict.footer} locale={lang} />
+    </>
+  );
+}
