@@ -1,6 +1,12 @@
 @import "tailwindcss";
 
 @theme {
+  /* These two are the page's only neutrals, and the one rule they follow is
+     that a block never repeats the colour of the band under it. Cream ringed by
+     sage reads as a different, warmer white than cream in an open field, so a
+     card that matches its band looks like a third neutral even though the hex
+     is identical. The landing page runs sage bands with cream blocks on them,
+     apart from the bento band, which is the inverse and reads as the break. */
   --color-ink: #16210f;
   --color-cream: #f3f1e7;
   --color-sage: #e2e5cf;

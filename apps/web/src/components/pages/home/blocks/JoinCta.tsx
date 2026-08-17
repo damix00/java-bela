@@ -6,17 +6,17 @@ import type { Locale } from "@/lib/i18n";
 import { authPath } from "@/lib/routes";
 
 type JoinCtaProps = {
-  /** The band's own verb — no two of these read the same. */
-  label: string;
-  locale: Locale;
-  /** Whichever of the two reads as an accent against the band behind it. */
-  tone?: "forest" | "rust";
-  /**
-   * The quiet way back for someone who already has an account. Only the hero
-   * carries it; further down the page, the header is still one scroll away.
-   */
-  signIn?: { prompt: string; label: string };
-  className?: string;
+    /** The band's own verb — no two of these read the same. */
+    label: string;
+    locale: Locale;
+    /** Whichever of the two reads as an accent against the band behind it. */
+    tone?: "forest" | "rust";
+    /**
+     * The quiet way back for someone who already has an account. Only the hero
+     * carries it; further down the page, the header is still one scroll away.
+     */
+    signIn?: { prompt: string; label: string };
+    className?: string;
 };
 
 /**
@@ -25,25 +25,27 @@ type JoinCtaProps = {
  * made every section read as the same widget pasted again.
  */
 export default function JoinCta({
-  label,
-  locale,
-  tone = "forest",
-  signIn,
-  className,
+    label,
+    locale,
+    tone = "forest",
+    signIn,
+    className,
 }: JoinCtaProps) {
-  return (
-    <div className={cn("flex flex-col items-start gap-[18px]", className)}>
-      <ButtonLink href={authPath(locale, "signUp")} tone={tone} size="lg">
-        {label}
-      </ButtonLink>
-      {signIn && (
-        <Text size="xs">
-          {signIn.prompt}{" "}
-          <TextLink href={authPath(locale, "signIn")} weight="semibold">
-            {signIn.label}
-          </TextLink>
-        </Text>
-      )}
-    </div>
-  );
+    return (
+        <div className={cn("flex flex-col items-start gap-[18px]", className)}>
+            <ButtonLink href={authPath(locale, "signUp")} tone={tone} size="lg">
+                {label}
+            </ButtonLink>
+            {signIn && (
+                <Text size="xs">
+                    {signIn.prompt}{" "}
+                    <TextLink
+                        href={authPath(locale, "signIn")}
+                        weight="semibold">
+                        {signIn.label}
+                    </TextLink>
+                </Text>
+            )}
+        </div>
+    );
 }

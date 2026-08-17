@@ -11,12 +11,15 @@ type HighlightCardProps = {
 
 /**
  * Wide bento tile: a headline and one line under it, vertically centred.
- * Always cream, and never badged — the icons belong to the small tiles, which
- * is what keeps the two kinds apart.
+ * Sage, like every other neutral tile in the grid — the band under it is cream,
+ * and a tile that repeats its band's surface has only its border to exist by.
+ * Width and the missing icon badge are what keep this apart from `FeatureCard`.
  */
 export default function HighlightCard({ title, children }: HighlightCardProps) {
     return (
-        <Card className="min-h-[172px] justify-center gap-2.5 md:col-span-2">
+        <Card
+            tone="sage"
+            className="min-h-[172px] justify-center gap-2.5 md:col-span-2">
             <Heading as="h3" size="card">
                 {title}
             </Heading>

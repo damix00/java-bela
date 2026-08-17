@@ -2,8 +2,11 @@ import type { ComponentProps } from "react";
 
 import { cn } from "@/lib/cn";
 
+// Every band paints its own surface — sage included, even though it matches the
+// body. A band that inherits its background can't be reordered without changing
+// colour, and the cards on it are tuned to the band, not to the page.
 const tones = {
-  cream: "",
+  cream: "bg-cream",
   sage: "bg-sage",
   forest: "bg-forest",
 } as const;

@@ -12,8 +12,8 @@ type FeatureCardProps = {
 };
 
 /**
- * Small bento tile: an icon up top, a few words below. Always sage — the
- * surface marks it as a supporting tile, so the grid stays readable.
+ * Small bento tile: an icon up top, a few words below. Sage, the counter-surface
+ * to the cream band it sits on — see `HighlightCard`, which takes the same one.
  */
 export default function FeatureCard({ glyph, children }: FeatureCardProps) {
     return (

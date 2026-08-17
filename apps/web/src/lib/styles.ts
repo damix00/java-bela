@@ -109,6 +109,10 @@ export const inputFrame =
 /** Field inside an `inputFrame` — the frame is already drawn around it. */
 export const inputBare = `${inputType} w-full min-w-0 border-none bg-transparent px-5 py-4`;
 
-/** Diagonal canvas weave used behind screenshot placeholders. */
+/**
+ * Diagonal canvas weave used behind screenshot placeholders. Both stripes are
+ * palette tokens — the weave is the page's two darkest neutrals against each
+ * other, not a pair of one-off greys that read as a surface of their own.
+ */
 export const hatch =
-  "bg-[repeating-linear-gradient(45deg,#dcd9c6_0_10px,#e6e3d2_10px_20px)]";
+  "bg-[repeating-linear-gradient(45deg,var(--color-canvas)_0_10px,var(--color-sage)_10px_20px)]";
