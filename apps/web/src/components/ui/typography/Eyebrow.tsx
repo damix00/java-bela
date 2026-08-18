@@ -18,9 +18,9 @@ type EyebrowProps = Omit<ComponentProps<"span">, "ref"> & {
 };
 
 /**
- * The small monospaced caps label — field names, step counters, stat captions.
- * Set in mono so it reads as machine annotation next to the display type,
- * never as another voice in the copy.
+ * The small caps label — field names, step counters, stat captions.
+ * Tracked-out uppercase so it reads as machine annotation next to the display
+ * type, never as another voice in the copy.
  */
 export default function Eyebrow({
   as: Tag = "span",
@@ -31,7 +31,7 @@ export default function Eyebrow({
   return (
     <Tag
       className={cn(
-        "font-mono text-[11px] font-semibold tracking-[.1em] uppercase",
+        "text-[11px] font-semibold tracking-[.1em] uppercase",
         tones[tone],
         className,
       )}

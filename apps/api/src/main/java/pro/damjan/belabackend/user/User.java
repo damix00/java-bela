@@ -26,10 +26,18 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    private String avatarUrl;
+    // Profile information
 
     @Column(nullable = false, unique = true)
     private String username;
+
+    private String bio;
+
+    private String avatarUrl;
+
+    private String countryCode;
+
+    // Auth and security
 
     @Column(nullable = true, unique = true)
     private String email;

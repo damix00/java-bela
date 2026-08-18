@@ -1,17 +1,14 @@
-import type { Metadata } from "next";
-
 import ForgotPasswordScreen from "@/components/pages/auth/sections/ForgotPasswordScreen";
 import { localePage } from "@/dictionaries";
+import { localeMetadata } from "@/lib/metadata";
 
-export async function generateMetadata({
+export const generateMetadata = localeMetadata(
+  (dict) => dict.auth.forgot.title,
+);
+
+export default async function Page({
   params,
-}: PageProps<"/[lang]/forgot-password">): Promise<Metadata> {
-  const { dict } = await localePage(params);
-
-  return { title: dict.auth.forgot.title };
-}
-
-export default async function Page({ params }: PageProps<"/[lang]/forgot-password">) {
+}: PageProps<"/[lang]/forgot-password">) {
   const { lang, dict } = await localePage(params);
 
   return (

@@ -34,7 +34,7 @@ export default function CheckEmailScreen({ copy }: CheckEmailScreenProps) {
         <Button tone="cream" size="sm" className="text-[16px]">
           {copy.resend}
         </Button>
-        <Text as="span" size="xs" className="font-mono text-[12px] text-stone">
+        <Text as="span" size="xs" className="text-[12px] text-stone">
           {copy.timer}
         </Text>
       </div>

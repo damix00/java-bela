@@ -28,7 +28,6 @@
 
   --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 
   /* hard neo-brutalist offsets — no blur, no spread */
   --shadow-hard-sm: 5px 5px 0 #16210f;

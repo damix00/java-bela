@@ -36,7 +36,7 @@ export default function LadderPreview({ rows, className }: LadderPreviewProps) {
         <span className="mr-auto text-[17px] font-bold text-ink">
           {own.name}
         </span>
-        <span className="font-mono text-[15px] font-semibold text-ink">
+        <span className="text-[15px] font-semibold text-ink">
           {own.rating}
         </span>
       </div>
@@ -49,7 +49,7 @@ export default function LadderPreview({ rows, className }: LadderPreviewProps) {
           className="size-[34px] shrink-0 border-[3px] border-ash bg-sage"
         />
         <span className="mr-auto text-[16px] font-semibold">{next.name}</span>
-        <span className="font-mono text-[14px]">{next.rating}</span>
+        <span className="text-[14px]">{next.rating}</span>
       </div>
     </DividedPanel>
   );

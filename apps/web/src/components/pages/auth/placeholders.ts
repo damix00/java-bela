@@ -16,5 +16,12 @@ export const demoAccount = {
   placementPlayed: 0,
   placementTotal: 5,
   /** Prefilled digits on the two-factor screen. */
-  code: ["4", "9", "1", "", "", ""],
+  code: "491",
 } as const;
+
+/**
+ * Where the auth call goes once there is one. Until then a submit that clears
+ * validation does nothing at all — deliberately nothing rather than a faked
+ * success, so no screen pretends to a state the backend can't yet put it in.
+ */
+export function onSubmitPlaceholder() {}

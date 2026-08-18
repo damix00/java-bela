@@ -15,7 +15,7 @@ export default function RuleLine({ children, met = false }: RuleLineProps) {
   return (
     <p
       className={cn(
-        "m-0 flex items-center gap-[9px] pt-[3px] font-mono text-[12px]",
+        "m-0 flex items-center gap-[9px] pt-[3px] text-[12px]",
         met ? "text-forest" : "text-stone",
       )}
     >

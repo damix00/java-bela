@@ -2,7 +2,7 @@ import Logo from "@/components/ui/brand/Logo";
 import TextLink from "@/components/ui/typography/TextLink";
 import type { Dictionary } from "@/dictionaries";
 import type { Locale } from "@/lib/i18n";
-import { homePath, legalPath } from "@/lib/routes";
+import { landingPath, legalPath } from "@/lib/routes";
 
 type SiteFooterProps = {
   copy: Dictionary["footer"];
@@ -10,15 +10,16 @@ type SiteFooterProps = {
 };
 
 export default function SiteFooter({ copy, locale }: SiteFooterProps) {
-  const home = homePath(locale);
+  const landing = landingPath(locale);
 
-  // The landing-page anchors carry the home path rather than standing alone:
-  // this footer also sits under the legal pages, where a bare `#faq` would be
-  // a link to nothing.
+  // The anchors carry the landing path rather than standing alone: this footer
+  // also sits under the legal pages, where a bare `#faq` would be a link to
+  // nothing — and the sections it points at live on `/landing`, not on the
+  // lobby that now occupies the locale root.
   const footerLinks = [
-    { href: `${home}#ranked`, label: copy.rules },
-    { href: `${home}#faq`, label: copy.faq },
-    { href: `${home}#join`, label: copy.contact },
+    { href: `${landing}#ranked`, label: copy.rules },
+    { href: `${landing}#faq`, label: copy.faq },
+    { href: `${landing}#join`, label: copy.contact },
     { href: legalPath(locale, "terms"), label: copy.terms },
     { href: legalPath(locale, "privacy"), label: copy.privacy },
   ];

@@ -99,12 +99,18 @@ export const focusRing =
 // pair reads as a single welded control.
 const inputType = "rounded-none font-sans text-[17px] text-ink outline-none";
 
+// A rejected field is redrawn in rust rather than badged: the frame is the
+// loudest thing about these controls, so recolouring it is the cheapest way to
+// point at the one field that needs attention. The frame version has to reach
+// for the flag on the input it wraps, since that is where `aria-invalid` sits.
+const invalidBorder = "aria-invalid:border-rust";
+const invalidBorderWithin = "has-aria-invalid:border-rust";
+
 /** Field that draws its own frame. */
-export const inputBox = `${inputType} w-full border-4 border-ink px-5 py-4 focus:bg-paper`;
+export const inputBox = `${inputType} ${invalidBorder} w-full border-4 border-ink px-5 py-4 focus:bg-paper`;
 
 /** Frame around a field plus whatever sits next to it. */
-export const inputFrame =
-  "flex items-center border-4 border-ink bg-white focus-within:bg-paper";
+export const inputFrame = `${invalidBorderWithin} flex items-center border-4 border-ink bg-white focus-within:bg-paper`;
 
 /** Field inside an `inputFrame` — the frame is already drawn around it. */
 export const inputBare = `${inputType} w-full min-w-0 border-none bg-transparent px-5 py-4`;

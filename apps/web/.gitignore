@@ -32,6 +32,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# The template carries no secrets and is what tells a new checkout which
+# variables the app needs at all.
+!.env.example
 
 # vercel
 .vercel

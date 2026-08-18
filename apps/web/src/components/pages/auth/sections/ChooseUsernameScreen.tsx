@@ -1,24 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMemo } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { Button } from "@/components/controls/Button";
-import Field from "@/components/controls/Field";
+import Field, { invalidProps } from "@/components/controls/Field";
 import AuthSplit from "@/components/pages/auth/blocks/AuthSplit";
 import AvatarPicker, {
   AVATAR_GLYPHS,
 } from "@/components/pages/auth/blocks/AvatarPicker";
 import LadderPreview from "@/components/pages/auth/blocks/LadderPreview";
-import { demoAccount } from "@/components/pages/auth/placeholders";
+import {
+  demoAccount,
+  onSubmitPlaceholder,
+} from "@/components/pages/auth/placeholders";
 import Eyebrow from "@/components/ui/typography/Eyebrow";
 import Heading from "@/components/ui/typography/Heading";
 import Text from "@/components/ui/typography/Text";
 import type { Dictionary } from "@/dictionaries";
 import { focusRing, inputBare, inputFrame } from "@/lib/styles";
+import { usernameSchema, type UsernameValues } from "@/lib/validation";
 
 type ChooseUsernameScreenProps = {
   copy: Dictionary["auth"]["username"];
   common: Dictionary["auth"]["common"];
+  errors: Dictionary["form"]["errors"];
 };
 
 /**
@@ -29,8 +36,25 @@ type ChooseUsernameScreenProps = {
 export default function ChooseUsernameScreen({
   copy,
   common,
+  errors: messages,
 }: ChooseUsernameScreenProps) {
-  const [avatar, setAvatar] = useState(0);
+  const schema = useMemo(() => usernameSchema(messages), [messages]);
+  const {
+    control,
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<UsernameValues>({
+    resolver: zodResolver(schema),
+    // Validating as it is typed, because the preview beside the field is
+    // already reacting to every keystroke — a name that has gone bad should
+    // not keep rendering as a ladder row.
+    mode: "onChange",
+    defaultValues: { username: demoAccount.username, avatar: 0 },
+  });
+
+  const avatar = useWatch({ control, name: "avatar" });
+  const username = useWatch({ control, name: "username" });
 
   return (
     <AuthSplit
@@ -46,7 +70,7 @@ export default function ChooseUsernameScreen({
             rows={[
               {
                 rank: demoAccount.ladderRank,
-                name: demoAccount.username,
+                name: username,
                 rating: copy.unrated,
                 glyph: AVATAR_GLYPHS[avatar],
               },
@@ -70,32 +94,59 @@ export default function ChooseUsernameScreen({
         </Heading>
       </div>
 
-      <Field htmlFor="username" label={copy.label} hint={copy.hint}>
-        <div className={inputFrame}>
-          <input
-            id="username"
-            defaultValue={demoAccount.username}
-            autoComplete="username"
-            className={`${focusRing} ${inputBare}`}
-          />
-          {/* Availability is stated, not iconified: the word is shorter to
-              read than a tick is to decode. */}
-          <Eyebrow tone="forest" className="pr-4 tracking-[.08em]">
-            {copy.available}
-          </Eyebrow>
-        </div>
-      </Field>
+      <form
+        noValidate
+        onSubmit={handleSubmit(onSubmitPlaceholder)}
+        className="contents"
+      >
+        <Field
+          htmlFor="username"
+          label={copy.label}
+          hint={copy.hint}
+          error={errors.username?.message}
+        >
+          <div className={inputFrame}>
+            <input
+              id="username"
+              autoComplete="username"
+              className={`${focusRing} ${inputBare}`}
+              {...invalidProps("username", errors.username)}
+              {...register("username")}
+            />
+            {/* Availability is stated, not iconified: the word is shorter to
+                read than a tick is to decode. It waits for a name the rules
+                accept — nothing can be said about one that won't be asked
+                about. */}
+            {username && !errors.username && (
+              <Eyebrow tone="forest" className="pr-4 tracking-[.08em]">
+                {copy.available}
+              </Eyebrow>
+            )}
+          </div>
+        </Field>
 
-      <AvatarPicker
-        label={copy.avatar}
-        optionLabel={common.avatarOption}
-        value={avatar}
-        onChange={setAvatar}
-      />
+        <Controller
+          name="avatar"
+          control={control}
+          render={({ field }) => (
+            <AvatarPicker
+              label={copy.avatar}
+              optionLabel={common.avatarOption}
+              value={field.value}
+              onChange={field.onChange}
+            />
+          )}
+        />
 
-      <Button tone="forest" size="lg" className="self-start py-[17px] text-[18px]">
-        {copy.submit}
-      </Button>
+        <Button
+          type="submit"
+          tone="forest"
+          size="lg"
+          className="self-start py-[17px] text-[18px]"
+        >
+          {copy.submit}
+        </Button>
+      </form>
     </AuthSplit>
   );
 }

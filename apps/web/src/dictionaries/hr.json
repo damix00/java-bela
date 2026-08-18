@@ -22,10 +22,28 @@
         "caption": "hero shot — rangirani stol, sredina dijeljenja"
     },
     "form": {
-        "emailPlaceholder": "ti@primjer.com"
+        "emailPlaceholder": "ti@primjer.com",
+        "errors": {
+            "emailRequired": "Upiši svoju e-mail adresu.",
+            "emailInvalid": "Ovo ne izgleda kao e-mail adresa.",
+            "passwordRequired": "Upiši lozinku.",
+            "passwordShort": "Lozinka mora imati barem 8 znakova.",
+            "termsRequired": "Prihvati uvjete i pravila privatnosti da nastaviš.",
+            "usernameRequired": "Odaberi korisničko ime.",
+            "usernameShort": "Korisničko ime ima barem 3 znaka.",
+            "usernameLong": "Korisničko ime ima najviše 16 znakova.",
+            "usernameChars": "Samo slova, brojke, točka, crtica i podvlaka.",
+            "codeIncomplete": "Upiši svih šest znamenki.",
+            "signInFailed": "Ta e-mail adresa i lozinka ne odgovaraju nijednom računu.",
+            "signUpFailed": "Nismo uspjeli izraditi tvoj račun. Pokušaj ponovno.",
+            "emailTaken": "Ta e-mail adresa već ima račun.",
+            "usernameTaken": "To korisničko ime je zauzeto.",
+            "networkError": "Nismo uspjeli doći do servera. Provjeri vezu i pokušaj ponovno."
+        }
     },
     "auth": {
         "common": {
+            "username": "Korisničko ime",
             "email": "Email",
             "password": "Lozinka",
             "show": "Prikaži lozinku",
@@ -85,7 +103,7 @@
             "heading": "Postavi novu lozinku",
             "body": "Kad ovo spremiš, odjavljujemo te sa svih ostalih uređaja.",
             "label": "Nova lozinka",
-            "strength": "jaka",
+            "strength": ["prekratka", "slaba", "dobra", "jaka"],
             "submit": "Spremi i prijavi se"
         },
         "twoFactor": {
@@ -175,5 +193,40 @@
         "contact": "Kontakt",
         "terms": "Uvjeti",
         "privacy": "Privatnost"
+    },
+    "lobby": {
+        "title": "Predvorje",
+        "signedOut": {
+            "heading": "Četiri igrača, jedan špil, bez čekanja.",
+            "body": "Prijavi se i zadrži svoj rejting, ili sjedni za stol odmah kao gost.",
+            "signIn": "Prijava",
+            "signUp": "Otvori račun",
+            "guest": "Igraj kao gost",
+            "guestNote": "Gostujuće partije ne ulaze u rejting i ne spremaju se.",
+            "aboutLink": "Što je belote.gg?"
+        },
+        "signedIn": {
+            "greeting": "Dobrodošao natrag,",
+            "quickPlay": "Brza partija",
+            "quickPlayNote": "Sjest ćeš s prva tri igrača koji budu spremni.",
+            "createTable": "Otvori stol",
+            "createTableNote": "Otvori privatni stol i pozovi svoju stalnu trojku.",
+            "joinTable": "Pridruži se kodom",
+            "joinPlaceholder": "Kod pozivnice",
+            "joinSubmit": "Uđi",
+            "soon": "Uskoro",
+            "signOut": "Odjava"
+        },
+        "guestBanner": {
+            "heading": "Igraš kao gost",
+            "body": "Gostujući računi nestaju nakon jednog dana, a gostujuće partije ne ulaze u rejting.",
+            "action": "Otvori račun"
+        }
+    },
+    "game": {
+        "title": "Stol",
+        "heading": "Stol se sprema",
+        "body": "Ovdje će biti partija. Karte još nisu podijeljene — sam stol stiže u sljedećem krugu rada.",
+        "back": "Natrag u predvorje"
     }
 }

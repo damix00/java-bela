@@ -26,7 +26,7 @@ export default function StrengthMeter({
           )}
         />
       ))}
-      <span className="pl-2 font-mono text-[12px] font-semibold text-forest">
+      <span className="pl-2 text-[12px] font-semibold text-forest">
         {label}
       </span>
     </div>

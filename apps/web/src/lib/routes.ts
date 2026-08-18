@@ -38,6 +38,24 @@ export function legalPath(locale: Locale, page: LegalPage) {
   return `/${locale}/${legalPages[page]}`;
 }
 
+/**
+ * The lobby, and the site's front door. Signed out it makes the case for an
+ * account; signed in it is one click from a game — which is the whole reason
+ * the marketing page moved off this URL.
+ */
 export function homePath(locale: Locale) {
   return `/${locale}`;
+}
+
+/**
+ * The marketing page. It used to live at `/[lang]` and is still the indexable
+ * one — the sitemap and the `hreflang` alternates point here, and the lobby is
+ * `noindex`.
+ */
+export function landingPath(locale: Locale) {
+  return `/${locale}/landing`;
+}
+
+export function playPath(locale: Locale, gameId: string) {
+  return `/${locale}/play/${gameId}`;
 }

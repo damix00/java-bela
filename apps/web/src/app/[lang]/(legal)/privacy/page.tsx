@@ -1,15 +1,11 @@
-import type { Metadata } from "next";
-
 import LegalDocument from "@/components/pages/legal/LegalDocument";
 import { getLegalDocument } from "@/content/legal";
 import { localePage } from "@/dictionaries";
+import { localeMetadata } from "@/lib/metadata";
 import { legalPath } from "@/lib/routes";
 import { locales } from "@/lib/i18n";
 
-export async function generateMetadata({
-  params,
-}: PageProps<"/[lang]/privacy">): Promise<Metadata> {
-  const { lang } = await localePage(params);
+export const generateMetadata = localeMetadata(async (_dict, lang) => {
   const doc = await getLegalDocument("privacy", lang);
 
   return {
@@ -25,7 +21,7 @@ export async function generateMetadata({
       },
     },
   };
-}
+});
 
 export default async function Page({ params }: PageProps<"/[lang]/privacy">) {
   const { lang } = await localePage(params);

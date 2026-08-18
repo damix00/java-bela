@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { locales, type Locale } from "@/lib/i18n";
-import { homePath, legalPages, legalPath, type LegalPage } from "@/lib/routes";
+import { landingPath, legalPages, legalPath, type LegalPage } from "@/lib/routes";
 
 const SITE_URL = "https://belote.gg";
 
@@ -30,7 +30,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }));
 
   return [
-    ...localised(homePath),
+    // The marketing page, not the bare locale root — that URL is the lobby now,
+    // which is personal and marked `noindex`.
+    ...localised(landingPath),
     ...(Object.keys(legalPages) as LegalPage[]).flatMap((page) =>
       localised((locale) => legalPath(locale, page)),
     ),

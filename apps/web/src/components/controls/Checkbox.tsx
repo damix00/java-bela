@@ -31,7 +31,9 @@ export default function Checkbox({
       <input type="checkbox" className="peer sr-only" {...props} />
       <span
         aria-hidden
-        className="grid size-[22px] shrink-0 place-items-center border-4 border-ink bg-white [&_svg]:hidden peer-checked:bg-forest peer-checked:[&_svg]:block peer-focus-visible:outline-4 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-rust"
+        // The flag sits on the hidden input, so the box it draws has to reach
+        // back for it the same way it reaches for `:checked`.
+        className="grid size-[22px] shrink-0 place-items-center border-4 border-ink bg-white [&_svg]:hidden peer-checked:bg-forest peer-checked:[&_svg]:block peer-focus-visible:outline-4 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-rust peer-aria-invalid:border-rust"
       >
         <Check className="size-[14px] text-cream" strokeWidth={4} />
       </span>

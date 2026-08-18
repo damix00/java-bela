@@ -1,9 +1,15 @@
+"use client";
+
+import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft } from "lucide-react";
+import { useMemo } from "react";
+import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/controls/Button";
-import Field from "@/components/controls/Field";
+import Field, { invalidProps } from "@/components/controls/Field";
 import Input from "@/components/controls/Input";
 import AuthCard from "@/components/pages/auth/blocks/AuthCard";
+import { onSubmitPlaceholder } from "@/components/pages/auth/placeholders";
 import Icon from "@/components/ui/graphics/Icon";
 import Heading from "@/components/ui/typography/Heading";
 import Text from "@/components/ui/typography/Text";
@@ -11,6 +17,10 @@ import TextLink from "@/components/ui/typography/TextLink";
 import type { Dictionary } from "@/dictionaries";
 import type { Locale } from "@/lib/i18n";
 import { authPath } from "@/lib/routes";
+import {
+  forgotPasswordSchema,
+  type ForgotPasswordValues,
+} from "@/lib/validation";
 
 type ForgotPasswordScreenProps = {
   copy: Dictionary["auth"]["forgot"];
@@ -25,12 +35,22 @@ export default function ForgotPasswordScreen({
   form,
   locale,
 }: ForgotPasswordScreenProps) {
+  const schema = useMemo(() => forgotPasswordSchema(form.errors), [form.errors]);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ForgotPasswordValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { email: "" },
+  });
+
   return (
     <AuthCard className="mx-auto max-w-[560px]">
       <TextLink
         href={authPath(locale, "signIn")}
         weight="semibold"
-        className="flex items-center gap-2 self-start font-mono text-[12px] tracking-[.06em] uppercase"
+        className="flex items-center gap-2 self-start text-[12px] tracking-[.06em] uppercase"
       >
         <Icon glyph={ArrowLeft} size="sm" />
         {common.backToSignIn}
@@ -41,18 +61,30 @@ export default function ForgotPasswordScreen({
       </Heading>
       <Text size="md">{copy.body}</Text>
 
-      <Field htmlFor="email" label={common.email}>
-        <Input
-          id="email"
-          type="email"
-          autoComplete="email"
-          placeholder={form.emailPlaceholder}
-        />
-      </Field>
+      <form
+        noValidate
+        onSubmit={handleSubmit(onSubmitPlaceholder)}
+        className="contents"
+      >
+        <Field
+          htmlFor="email"
+          label={common.email}
+          error={errors.email?.message}
+        >
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            placeholder={form.emailPlaceholder}
+            {...invalidProps("email", errors.email)}
+            {...register("email")}
+          />
+        </Field>
 
-      <Button tone="forest" size="lg" className="self-start">
-        {copy.submit}
-      </Button>
+        <Button type="submit" tone="forest" size="lg" className="self-start">
+          {copy.submit}
+        </Button>
+      </form>
     </AuthCard>
   );
 }

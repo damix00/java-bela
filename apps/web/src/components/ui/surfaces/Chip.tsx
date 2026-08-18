@@ -2,12 +2,12 @@ import type { ComponentProps } from "react";
 
 import { cn } from "@/lib/cn";
 
-/** Small boxed monospace tag — used for captions and annotations. */
+/** Small boxed tag — used for captions and annotations. */
 export default function Chip({ className, ...props }: ComponentProps<"span">) {
   return (
     <span
       className={cn(
-        "border-[3px] border-ink bg-cream px-[14px] py-2 font-mono text-[13px] text-moss",
+        "border-[3px] border-ink bg-cream px-[14px] py-2 text-[13px] text-moss",
         className,
       )}
       {...props}

@@ -22,10 +22,28 @@
         "caption": "hero shot — ranked table, mid-hand"
     },
     "form": {
-        "emailPlaceholder": "you@example.com"
+        "emailPlaceholder": "you@example.com",
+        "errors": {
+            "emailRequired": "Enter your email address.",
+            "emailInvalid": "That doesn’t look like an email address.",
+            "passwordRequired": "Enter your password.",
+            "passwordShort": "Your password needs at least 8 characters.",
+            "termsRequired": "Accept the terms and the privacy policy to continue.",
+            "usernameRequired": "Pick a username.",
+            "usernameShort": "Usernames are at least 3 characters.",
+            "usernameLong": "Usernames are at most 16 characters.",
+            "usernameChars": "Letters, numbers, dot, dash and underscore only.",
+            "codeIncomplete": "Enter all six digits.",
+            "signInFailed": "That email and password don’t match an account.",
+            "signUpFailed": "We couldn’t create your account. Please try again.",
+            "emailTaken": "That email already has an account.",
+            "usernameTaken": "That username is taken.",
+            "networkError": "We couldn’t reach the server. Check your connection and try again."
+        }
     },
     "auth": {
         "common": {
+            "username": "Username",
             "email": "Email",
             "password": "Password",
             "show": "Show password",
@@ -85,7 +103,7 @@
             "heading": "Set a new password",
             "body": "Saving this will sign you out on every other device.",
             "label": "New password",
-            "strength": "strong",
+            "strength": ["too short", "weak", "fair", "strong"],
             "submit": "Save and sign in"
         },
         "twoFactor": {
@@ -175,5 +193,40 @@
         "contact": "Contact",
         "terms": "Terms",
         "privacy": "Privacy"
+    },
+    "lobby": {
+        "title": "Lobby",
+        "signedOut": {
+            "heading": "Four players, one deck, no waiting.",
+            "body": "Sign in to keep your rating, or take a seat right now as a guest.",
+            "signIn": "Sign in",
+            "signUp": "Create account",
+            "guest": "Play as guest",
+            "guestNote": "Guest games are unranked and aren’t saved.",
+            "aboutLink": "What is belote.gg?"
+        },
+        "signedIn": {
+            "greeting": "Welcome back,",
+            "quickPlay": "Quick play",
+            "quickPlayNote": "We’ll seat you with the first three players who are ready.",
+            "createTable": "Create table",
+            "createTableNote": "Open a private table and invite your usual three.",
+            "joinTable": "Join with a code",
+            "joinPlaceholder": "Invite code",
+            "joinSubmit": "Join",
+            "soon": "Coming soon",
+            "signOut": "Sign out"
+        },
+        "guestBanner": {
+            "heading": "You’re playing as a guest",
+            "body": "Guest accounts disappear after a day, and guest games don’t count towards a rating.",
+            "action": "Create an account"
+        }
+    },
+    "game": {
+        "title": "Table",
+        "heading": "The table is being set",
+        "body": "This is where the game will be. Nothing is dealt yet — the table itself lands in the next round of work.",
+        "back": "Back to the lobby"
     }
 }
