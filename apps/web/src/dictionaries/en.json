@@ -223,6 +223,59 @@
             "action": "Create an account"
         }
     },
+    "table": {
+        "nav": {
+            "table": "Table",
+            "ladder": "Ladder",
+            "friends": "Friends",
+            "hands": "Hands"
+        },
+        "rulesLabel": "Table rules",
+        "rules": {
+            "ranked": {
+                "title": "Ranked 2v2",
+                "note": "to 1001 · rating counts"
+            },
+            "casual": {
+                "title": "Casual",
+                "note": "to 501 · nothing counts"
+            },
+            "private": {
+                "title": "Private",
+                "note": "invite only · your rules"
+            }
+        },
+        "gameModeLabel": "Choose a game mode",
+        "selectedLabel": "Selected",
+        "botsLabel": "Bots",
+        "botsNote": "practice · play at your pace",
+        "matchmakingNote": "Matchmade partner + opponents · to 1001 · rating counts",
+        "seasonLabel": "Season 2 · 31 days left",
+        "progressLabel": "Rank progress",
+        "rankProgress": "118 to Bela · {rank} of 8,100",
+        "ladderLabel": "Friends ladder",
+        "codeLabel": "Table code",
+        "codeNote": "Anyone with the code can take a seat.",
+        "partner": "your partner",
+        "dealer": "dealer",
+        "you": "You",
+        "seatsOpen": "{count} seats open",
+        "fillSeats": "Fill empty seats",
+        "inviteSeat": "Invite / fill",
+        "friendsLabel": "Pull someone in",
+        "friendFree": "free",
+        "friendBusy": "in match",
+        "copyInvite": "Copy invite link",
+        "lastFive": "Last five",
+        "lastFiveNote": "Won 1001–842 with {opponent} last night.",
+        "win": "W",
+        "loss": "L",
+        "trend": "{count} this week",
+        "queueLabel": "Queue depth",
+        "queueValue": "~1:10 wait at this hour",
+        "playNow": "Play now",
+        "playRankedNote": "matched within ±100 of your rating"
+    },
     "game": {
         "title": "Table",
         "heading": "The table is being set",

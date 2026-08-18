@@ -14,7 +14,7 @@ export default async function Page({ params }: PageProps<"/[lang]/sign-in">) {
   const { lang, dict } = await localePage(params);
 
   return (
-    <Modal closeLabel={dict.auth.common.back}>
+    <Modal closeLabel={dict.auth.common.back} dismissible={false}>
       <SignInScreen
         copy={dict.auth.signIn}
         common={dict.auth.common}

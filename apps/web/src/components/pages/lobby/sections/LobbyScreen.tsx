@@ -1,122 +1,36 @@
-import { Button, ButtonLink } from "@/components/controls/Button";
+import { Button } from "@/components/controls/Button";
 import GuestBanner from "@/components/pages/lobby/blocks/GuestBanner";
-import GuestButton from "@/components/pages/lobby/blocks/GuestButton";
 import SignOutButton from "@/components/pages/lobby/blocks/SignOutButton";
 import Card from "@/components/ui/surfaces/Card";
 import Chip from "@/components/ui/surfaces/Chip";
-import LabeledRule from "@/components/ui/surfaces/LabeledRule";
 import Heading from "@/components/ui/typography/Heading";
 import Text from "@/components/ui/typography/Text";
-import TextLink from "@/components/ui/typography/TextLink";
 import type { User } from "@/api/types/user";
 import { isGuest } from "@/api/types/user";
 import type { Dictionary } from "@/dictionaries";
 import type { Locale } from "@/lib/i18n";
-import { authPath, landingPath } from "@/lib/routes";
 
 type LobbyScreenProps = {
-    /** Null when nobody is signed in — the session comes from the cookie jar. */
-    user: User | null;
+    /**
+     * Never null. A signed-out visitor doesn't reach this screen at all — they
+     * get the table mockup and the account form over it.
+     */
+    user: User;
     copy: Dictionary["lobby"];
-    errors: Dictionary["form"]["errors"];
     locale: Locale;
 };
 
 /**
- * The front door. Signed out it makes the case for an account and offers a seat
- * anyway; signed in it is the shortest path back to a table.
+ * Home for someone who is signed in: the shortest path back to a table.
  *
  * The table actions are inert in this pass — the lobby WebSocket lands next, so
  * they carry a visible "coming soon" chip rather than pretending to work.
  */
-export default function LobbyScreen({
-    user,
-    copy,
-    errors,
-    locale,
-}: LobbyScreenProps) {
-    return (
-        <main className="mx-auto flex w-full max-w-[900px] flex-1 flex-col justify-center gap-8 px-5 py-10 sm:px-8 sm:py-16">
-            {user ? (
-                <SignedIn user={user} copy={copy} locale={locale} />
-            ) : (
-                <SignedOut
-                    copy={copy.signedOut}
-                    errors={errors}
-                    locale={locale}
-                />
-            )}
-        </main>
-    );
-}
-
-function SignedOut({
-    copy,
-    errors,
-    locale,
-}: {
-    copy: Dictionary["lobby"]["signedOut"];
-    errors: Dictionary["form"]["errors"];
-    locale: Locale;
-}) {
-    return (
-        <Card padding="lg" shadow="rust" className="gap-7">
-            <div className="flex flex-col gap-3">
-                <Heading as="h1" size="cardHero" className="max-w-[20ch]">
-                    {copy.heading}
-                </Heading>
-                <Text size="md" className="max-w-[46ch]">
-                    {copy.body}
-                </Text>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-4">
-                {/* Plain links, so they are shareable URLs and open in a new tab like
-            any other link. The interception is what turns a click into a
-            modal — it is not something these need to know about. */}
-                <ButtonLink
-                    href={authPath(locale, "signIn")}
-                    tone="forest"
-                    size="lg">
-                    {copy.signIn}
-                </ButtonLink>
-                <ButtonLink
-                    href={authPath(locale, "signUp")}
-                    tone="rust"
-                    size="lg">
-                    {copy.signUp}
-                </ButtonLink>
-            </div>
-
-            <LabeledRule>{copy.guestNote}</LabeledRule>
-
-            <div className="flex flex-wrap items-center gap-4">
-                <GuestButton
-                    label={copy.guest}
-                    errors={errors}
-                    locale={locale}
-                />
-                <TextLink href={landingPath(locale)} className="text-[15px]">
-                    {copy.aboutLink}
-                </TextLink>
-            </div>
-        </Card>
-    );
-}
-
-function SignedIn({
-    user,
-    copy,
-    locale,
-}: {
-    user: User;
-    copy: Dictionary["lobby"];
-    locale: Locale;
-}) {
+export default function LobbyScreen({ user, copy, locale }: LobbyScreenProps) {
     const t = copy.signedIn;
 
     return (
-        <>
+        <main className="mx-auto flex w-full max-w-[900px] flex-1 flex-col justify-center gap-8 px-5 py-10 sm:px-8 sm:py-16">
             <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
                 <Heading as="h1" size="cardHero">
                     {t.greeting} {user.username}
@@ -152,7 +66,7 @@ function SignedIn({
                     <Text size="xs">{t.joinPlaceholder}</Text>
                 </div>
             </Card>
-        </>
+        </main>
     );
 }
 

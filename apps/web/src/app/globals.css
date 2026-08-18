@@ -13,6 +13,14 @@
   --color-rust: #d1603d;
   --color-forest: #2f5d3a;
 
+  /* The table's felt, and the blocks laid on it. Forest is a *block* colour —
+     it works as a panel on cream and would glare as a whole screen of it. The
+     table inverts the page, so the field drops to `baize` and anything sitting
+     on it drops again to `baize-deep`; that keeps the one rule the neutrals
+     follow — a block never repeats the colour of the surface under it. */
+  --color-baize: #1d4a2d;
+  --color-baize-deep: #143423;
+
   /* text tints */
   --color-moss: #4a5140;
   --color-stone: #5c6350;
@@ -35,4 +43,46 @@
   --shadow-hard-lg: 8px 8px 0 #16210f;
   --shadow-hard-xl: 12px 12px 0 #d1603d;
   --shadow-hard-rust: 8px 8px 0 #d1603d;
+}
+
+/* The modal's backdrop.
+
+   Motion animates elements, and a backdrop is a pseudo-element — there is no
+   node to hand it. So the panel's fade is driven by Motion in `Modal.tsx` and
+   the backdrop's is written here, at matching durations, with `Modal.tsx`
+   flipping `data-closing` to cue the way out. Keep the two in step: the panel
+   enters over 220ms and leaves over 140ms. */
+@keyframes modal-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-backdrop-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.modal-shell::backdrop {
+  animation: modal-backdrop-in 220ms ease-out both;
+}
+
+.modal-shell[data-closing="true"]::backdrop {
+  animation: modal-backdrop-out 140ms ease-in both;
+}
+
+/* The dim itself stays — it is what makes the dialog read as modal. Only the
+   fade goes. */
+@media (prefers-reduced-motion: reduce) {
+  .modal-shell::backdrop,
+  .modal-shell[data-closing="true"]::backdrop {
+    animation: none;
+  }
 }

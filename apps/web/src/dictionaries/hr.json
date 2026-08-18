@@ -223,6 +223,59 @@
             "action": "Otvori račun"
         }
     },
+    "table": {
+        "nav": {
+            "table": "Stol",
+            "ladder": "Ljestvica",
+            "friends": "Prijatelji",
+            "hands": "Partije"
+        },
+        "rulesLabel": "Pravila stola",
+        "rules": {
+            "ranked": {
+                "title": "Rangirano 2v2",
+                "note": "do 1001 · rejting se broji"
+            },
+            "casual": {
+                "title": "Opušteno",
+                "note": "do 501 · ništa se ne broji"
+            },
+            "private": {
+                "title": "Privatno",
+                "note": "samo uz poziv · tvoja pravila"
+            }
+        },
+        "gameModeLabel": "Odaberi način igre",
+        "selectedLabel": "Odabrano",
+        "botsLabel": "Botovi",
+        "botsNote": "vježba · igraj svojim tempom",
+        "matchmakingNote": "Partner i protivnici po rangu · do 1001 · rejting se broji",
+        "seasonLabel": "Sezona 2 · još 31 dan",
+        "progressLabel": "Napredak ranga",
+        "rankProgress": "118 do Bele · {rank}. od 8.100",
+        "ladderLabel": "Ljestvica prijatelja",
+        "codeLabel": "Kod stola",
+        "codeNote": "Svatko s kodom može sjesti za stol.",
+        "partner": "tvoj partner",
+        "dealer": "djelitelj",
+        "you": "Ti",
+        "seatsOpen": "{count} slobodna mjesta",
+        "fillSeats": "Popuni prazna mjesta",
+        "inviteSeat": "Pozovi / popuni",
+        "friendsLabel": "Dovedi nekoga",
+        "friendFree": "slobodan",
+        "friendBusy": "u partiji",
+        "copyInvite": "Kopiraj poveznicu",
+        "lastFive": "Zadnjih pet",
+        "lastFiveNote": "Sinoćnja pobjeda 1001–842 s igračem {opponent}.",
+        "win": "P",
+        "loss": "I",
+        "trend": "{count} ovaj tjedan",
+        "queueLabel": "Dubina reda",
+        "queueValue": "~1:10 čekanja u ovo doba",
+        "playNow": "Igraj sad",
+        "playRankedNote": "protivnici unutar ±100 tvog rejtinga"
+    },
     "game": {
         "title": "Stol",
         "heading": "Stol se sprema",
