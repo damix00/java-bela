@@ -40,7 +40,7 @@ export default function TextLink({
 
     return (
         <Tag
-            replace={replace}
+            replace={replace ? true : undefined}
             className={cn(
                 "text-[15px] no-underline hover:underline hover:decoration-[3px] hover:underline-offset-[5px]",
                 tones[tone],

@@ -6,15 +6,13 @@ import { landingPath, legalPages, legalPath, type LegalPage } from "@/lib/routes
 const SITE_URL = "https://belote.gg";
 
 /**
- * Lists every page in every locale, each carrying the full set of language
- * alternates. This is what keeps the `/` detection redirect out of the SEO
- * path — a crawler reaches both languages straight from here.
+ * Lists public pages and their genuine language alternates. This keeps the `/`
+ * detection redirect out of the SEO path because crawlers receive direct URLs.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
 
-  // Built from the same route helpers the app links with, so a new language or
-  // a third legal document lands in the sitemap without touching this file.
+  // Product pages have a distinct translation for every locale.
   const localised = (path: (locale: Locale) => string) =>
     locales.map((locale) => ({
       url: `${SITE_URL}${path(locale)}`,
@@ -30,11 +28,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }));
 
   return [
-    // The marketing page, not the bare locale root — that URL is the lobby now,
+    // The marketing page, not the bare locale root. That URL is the lobby now,
     // which is personal and marked `noindex`.
     ...localised(landingPath),
-    ...(Object.keys(legalPages) as LegalPage[]).flatMap((page) =>
-      localised((locale) => legalPath(locale, page)),
-    ),
+    // Legal documents are issued only in English. Croatian-prefixed legal URLs
+    // remain navigable but canonicalize to these English entries.
+    ...(Object.keys(legalPages) as LegalPage[]).map((page) => ({
+      url: `${SITE_URL}${legalPath("en", page)}`,
+      lastModified,
+      alternates: {
+        languages: {
+          en: `${SITE_URL}${legalPath("en", page)}`,
+          "x-default": `${SITE_URL}${legalPath("en", page)}`,
+        },
+      },
+    })),
   ];
 }

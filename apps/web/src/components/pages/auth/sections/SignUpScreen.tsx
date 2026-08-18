@@ -170,12 +170,14 @@ export default function SignUpScreen({
                         {...register("terms")}>
                         {copy.agreeLead}{" "}
                         <TextLink
+                            hardNavigation
                             href={legalPath(locale, "terms")}
                             weight="semibold">
                             {copy.terms}
                         </TextLink>{" "}
                         {copy.agreeMid}{" "}
                         <TextLink
+                            hardNavigation
                             href={legalPath(locale, "privacy")}
                             weight="semibold">
                             {copy.privacy}

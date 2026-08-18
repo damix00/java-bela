@@ -7,14 +7,11 @@
 export type LegalBlock =
   | { kind: "p"; text: string }
   | { kind: "list"; items: readonly string[] }
-  /** Two-column stack — purpose/lawful basis, data/retention period. */
+  /** Two-column stack for purpose/lawful basis or data/retention period. */
   | { kind: "rows"; rows: readonly { label: string; text: string }[] };
 
 export type LegalSection = {
-  /**
-   * Always the English slug, in both locales: the anchor has to survive a
-   * language switch, and `LanguageSwitcher` only swaps the locale prefix.
-   */
+  /** Stable English slug used by both locale-prefixed legal routes. */
   id: string;
   heading: string;
   blocks: readonly LegalBlock[];

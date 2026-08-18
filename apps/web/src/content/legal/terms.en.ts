@@ -2,285 +2,375 @@ import { entity } from "./entity";
 import type { LegalDocument } from "./types";
 
 /**
- * Reference version of the Terms. `terms.hr.ts` mirrors it clause for clause.
+ * Authoritative English Terms of Service.
  *
- * TODO(legal): reviewed by a Croatian lawyer before launch — the payments,
- * liability and licence clauses in particular.
+ * TODO(legal): obtain review by qualified Croatian and EU counsel before
+ * publication, particularly for the licence, indemnity, payments, unilateral
+ * modification, consumer withdrawal, and limitation-of-liability provisions.
  */
 const terms = {
   title: "Terms of Service",
   updatedLabel: "Last updated",
-  updated: "17 August 2026",
-  lede: `These terms are the agreement between you and ${entity.name} for the use of ${entity.site}. They cover what you can expect from us, what we expect from you, and — in the section on game data and licence — the rights you give us over the data your play produces. Please read that section closely.`,
+  updated: "18 August 2026",
+  lede: `These Terms of Service constitute a legally binding agreement between you and ${entity.name} concerning access to and use of ${entity.site}, its game clients, servers, features, content, and related services. By accessing or using the Service, you acknowledge that you have read, understood, and agreed to these Terms. If you do not agree, you must not access or use the Service.`,
   tocLabel: "Contents",
   sections: [
     {
-      id: "who-we-are",
-      heading: "Who we are and what this covers",
+      id: "operator-and-scope",
+      heading: "Operator, scope, and incorporated terms",
       blocks: [
         {
           kind: "p",
-          text: `${entity.site} (the “Service”) is an online Belote card game operated by ${entity.name}, ${entity.address}, OIB ${entity.oib}, registered at ${entity.registration}.`,
+          text: `${entity.site} and the associated services (collectively, the “Service”) are operated by ${entity.name}, ${entity.address}, OIB ${entity.oib}, registered at ${entity.registration} (“Operator”, “we”, “us”, or “our”). “You” means each person who accesses or uses the Service, whether through a registered account, a guest account, or otherwise.`,
         },
         {
           kind: "p",
-          text: "These terms apply the moment you use the Service — whether you create an account, play as a guest, or simply browse the site. If you do not accept them, do not use the Service.",
+          text: "These Terms govern all access to and use of the Service. Our Privacy Policy describes our processing of personal data and is incorporated into these Terms by reference. Additional rules, notices, purchase terms, event rules, or feature-specific conditions displayed through the Service form part of these Terms when applicable.",
         },
         {
           kind: "p",
-          text: "Our Privacy Policy explains what we do with personal data and forms part of these terms.",
+          text: "If you access the Service on behalf of an organization, you represent and warrant that you have authority to bind that organization. In that case, “you” includes the organization.",
         },
       ],
     },
     {
       id: "eligibility",
-      heading: "Who may use the Service",
+      heading: "Eligibility and legal capacity",
       blocks: [
         {
           kind: "p",
-          text: "You must be at least 16 years old to use the Service. If you are under 16, you may not create an account or play, even as a guest.",
+          text: "You must be at least 16 years old and legally capable of entering into these Terms. You may not access or use the Service if applicable law prohibits you from doing so or if we previously suspended or terminated your access, unless we provide prior written authorization.",
         },
         {
           kind: "p",
-          text: "You must give accurate registration details, keep one account per person, and not use the Service where doing so would break the law that applies to you.",
+          text: "You represent and warrant that all information supplied in connection with the Service is complete, current, and accurate. You must promptly update information that becomes inaccurate.",
         },
       ],
     },
     {
       id: "accounts",
-      heading: "Accounts, usernames and guest play",
+      heading: "Accounts, credentials, and usernames",
       blocks: [
         {
           kind: "p",
-          text: "You are responsible for everything that happens under your account, and for keeping your password to yourself. Tell us promptly if you think someone else has access.",
+          text: "You are responsible for maintaining the confidentiality and security of your credentials and for all activity conducted through your account. You must notify us without undue delay if you suspect unauthorized access, credential compromise, or other account misuse.",
         },
         {
           kind: "p",
-          text: "Your username is public. We may rename, reclaim or block a username that impersonates someone, infringes a trademark, is offensive, or is being used to advertise. We may also reclaim usernames on long-dormant accounts.",
+          text: "Accounts are personal, revocable, non-transferable privileges. You may not sell, assign, share, lend, or otherwise permit another person to use your account. Except where we expressly permit otherwise, each person may maintain only one account.",
         },
         {
           kind: "p",
-          text: "You can play as a guest without registering. Guest sessions are temporary and unranked: the guest account and its credentials are deleted automatically, typically within 24 hours, and progress attached to a guest account cannot be recovered or transferred once it is gone.",
+          text: "Usernames, account identifiers, ratings, rankings, statistics, and other account attributes do not constitute your property. We may reject, rename, reclaim, reserve, or disable any username or identifier, including for inactivity, impersonation, infringement, advertising, abuse, security, or operational reasons.",
         },
         {
           kind: "p",
-          text: "You may close your account at any time. What happens to your data afterwards is set out in the Privacy Policy and in the section on game data and licence below.",
+          text: "Guest accounts are temporary and unranked. We may delete a guest account, its credentials, and its account progress at any time, including automatically after approximately 24 hours. Deleted guest progress cannot be recovered or transferred.",
         },
       ],
     },
     {
-      id: "fair-play",
-      heading: "Fair play and acceptable use",
+      id: "limited-access-right",
+      heading: "Limited right to use the Service",
       blocks: [
         {
           kind: "p",
-          text: "Belote is a partnership game, and its integrity depends entirely on people playing it honestly. You agree not to:",
+          text: "Subject to continuous compliance with these Terms, we grant you a limited, personal, non-exclusive, non-transferable, non-sublicensable, and revocable right to access and use the Service for its intended purpose. This right does not transfer any ownership or intellectual-property interest to you.",
+        },
+        {
+          kind: "p",
+          text: "We reserve all rights not expressly granted. We may impose or modify technical, geographic, account, feature, storage, communication, or usage limits where reasonably necessary for security, compliance, operations, product development, or protection of the Service and its users.",
+        },
+      ],
+    },
+    {
+      id: "acceptable-use",
+      heading: "Acceptable use and prohibited conduct",
+      blocks: [
+        {
+          kind: "p",
+          text: "You must use the Service lawfully, fairly, and in accordance with its intended operation. You must not:",
         },
         {
           kind: "list",
           items: [
-            "collude with other players, share knowledge of your cards outside the game, or arrange results in advance;",
-            "use bots, solvers, scripts, or any software or assistance that plays or advises on your behalf, or play on behalf of someone else;",
-            "run more than one account, share an account, or use another person’s account;",
-            "manipulate ratings, seasons, leaderboards or matchmaking, including by deliberately losing, farming a partner, or abandoning games to avoid a loss;",
-            "abuse, harass, threaten, impersonate or spam other players, in chat or by any other means;",
-            "upload or display unlawful, hateful, sexual or infringing content, including as an avatar or username;",
-            "scrape, crawl or bulk-collect data from the Service, or resell access to it;",
-            "reverse engineer, decompile, tamper with, or interfere with the Service, its clients, its protocol, or its security and rate limits;",
-            "attempt to gain unauthorised access to any account, server or system, or disrupt other players’ ability to play.",
+            "collude, disclose private game information, prearrange results, manipulate outcomes, or obtain an unauthorized competitive advantage;",
+            "use bots, solvers, scripts, automation, external assistance, or software that plays, advises, observes, or acts on your behalf without our prior written authorization;",
+            "operate multiple accounts, share accounts, impersonate another person, evade enforcement, farm ratings, deliberately lose, or manipulate matchmaking, seasons, rankings, or leaderboards;",
+            "harass, threaten, abuse, defame, discriminate against, exploit, solicit, spam, or disclose personal information about another person;",
+            "submit, transmit, or display content that is unlawful, deceptive, obscene, hateful, infringing, malicious, or otherwise objectionable;",
+            "scrape, crawl, index, harvest, monitor, extract, download in bulk, sell, or commercially exploit the Service or its data without our prior written authorization;",
+            "copy, modify, translate, reverse engineer, decompile, disassemble, derive source code from, or create derivative works of any protected part of the Service, except where applicable law expressly permits it;",
+            "circumvent or interfere with authentication, security controls, access restrictions, rate limits, technical measures, protocols, servers, networks, or another person’s use of the Service;",
+            "introduce malware, probe vulnerabilities, obtain unauthorized access, or use the Service to develop, train, test, or operate a competing product or dataset;",
+            "use the Service or its output in a manner that violates law, third-party rights, these Terms, or any additional rules displayed through the Service.",
           ],
         },
+      ],
+    },
+    {
+      id: "monitoring-and-enforcement",
+      heading: "Monitoring, investigation, and enforcement",
+      blocks: [
         {
           kind: "p",
-          text: "If we believe you have broken these rules, we may — at our discretion and without prior notice — remove content, void games, adjust or reset your rating, remove you from leaderboards, restrict features, suspend you, or terminate your account permanently. Where the breach is serious or repeated we may also block associated devices and network addresses.",
+          text: "To the extent permitted by law, we may monitor use of the Service, review communications and gameplay records, employ automated detection systems, investigate suspected misconduct, preserve evidence, and cooperate with rights holders, regulators, courts, and law-enforcement authorities. We have no obligation to monitor every activity or communication.",
         },
         {
           kind: "p",
-          text: `If you think a decision was wrong, write to ${entity.supportEmail} and we will look at it again. We do not, however, guarantee a particular outcome, and we may keep our detection methods confidential — explaining them in detail would make them easy to defeat.`,
+          text: "If we reasonably suspect a violation, security risk, fraud, abuse, legal exposure, or threat to the integrity of the Service, we may take any proportionate action we consider necessary. Such action may include removing content, voiding games, withholding rewards, recalculating or resetting ratings, removing leaderboard entries, restricting features, suspending or terminating accounts, and blocking associated credentials, devices, identifiers, or network addresses.",
+        },
+        {
+          kind: "p",
+          text: `We may act without prior notice where notice is impracticable, prohibited, or likely to prejudice security, an investigation, another person, or the Service. You may request review by contacting ${entity.supportEmail}. We retain discretion over the outcome and may withhold confidential detection methods, security information, privileged material, and information concerning other persons.`,
         },
       ],
     },
     {
       id: "ranked-play",
-      heading: "Ranked play, ratings and leaderboards",
+      heading: "Ranked play, ratings, and public records",
       blocks: [
         {
           kind: "p",
-          text: "Ranked play uses a rating that moves with your results. It may involve placement games before a rating is shown, and ratings may be reset or recalibrated at the start of a season.",
+          text: "Ratings, rankings, seasons, matchmaking criteria, statistics, rewards, and leaderboard positions are Service features with no monetary value or guaranteed duration. We may establish, modify, recalculate, reset, withhold, or discontinue them to protect integrity, correct errors, rebalance competition, respond to abuse, or develop the Service.",
         },
         {
           kind: "p",
-          text: "A rating is a feature of the Service, not property, and it has no monetary value. We may change the rating system, the season length, the matchmaking rules, or the way ratings are calculated, and we may adjust, recalculate, reset or remove any rating — including yours — where we consider it necessary for the integrity of the ladder or after a fault in the system.",
-        },
-        {
-          kind: "p",
-          text: "Leaderboards, profiles and replays are public by default. Your username, avatar, rating, ranking position, match history and the record of your play may be visible to anyone on the internet, including people without an account, and may be indexed by search engines. Do not use a username you are not comfortable making public.",
+          text: "Profiles, usernames, avatars, ratings, rankings, match histories, game records, statistics, and replays may be public by default. Anyone may view, reproduce, discuss, or index public information, including through search engines and third-party services. You must not submit information that you are unwilling or unauthorized to make public.",
         },
       ],
     },
     {
-      id: "your-content",
-      heading: "Your content",
+      id: "user-content",
+      heading: "User Content and representations",
       blocks: [
         {
           kind: "p",
-          text: "“User Content” means anything you submit or display through the Service: your username, avatar, profile details, chat messages, table names, and anything you send us in support correspondence or feedback.",
+          text: "“User Content” means any content, information, communication, image, username, avatar, profile material, table name, chat message, feedback, suggestion, report, or other material that you submit, transmit, display, or otherwise make available in connection with the Service.",
         },
         {
           kind: "p",
-          text: "You keep whatever ownership rights you already have in your User Content. You are responsible for it, and you confirm you have the rights needed to submit it. We may remove User Content that breaks these terms or the law.",
+          text: "You retain any ownership rights that you lawfully hold in User Content. You represent and warrant that you own or control all rights necessary to provide User Content and to grant the rights set out in these Terms, and that our permitted use will not violate law or third-party rights.",
         },
         {
           kind: "p",
-          text: "You grant us the licence described in the next section over your User Content, and we may act on suggestions and feedback you send us freely, without owing you anything for them.",
+          text: "You are solely responsible for User Content. We may refuse, edit, restrict, preserve, disclose, or remove User Content where reasonably necessary to operate or protect the Service, enforce these Terms, comply with law, or protect any person or right.",
         },
       ],
     },
     {
-      id: "data-licence",
-      heading: "Game data and licence",
+      id: "service-and-game-data",
+      heading: "Service Data, Game Data, and operator rights",
       blocks: [
         {
           kind: "p",
-          text: "This section is the one we most want you to notice, because it is broader than you may expect.",
+          text: "“Game Data” means all information generated by, derived from, or associated with gameplay. It includes bids, contracts, cards, declarations, scoring, moves, outcomes, timings, disconnections, substitutions, table and seat configurations, ratings, rankings, replays, chat, matchmaking records, anti-abuse signals, and associated account, session, device, and technical identifiers.",
         },
         {
           kind: "p",
-          text: "“Game Data” means all data generated by or in connection with play on the Service, including: bids and contracts, cards dealt and played, declarations and their scoring, trick and hand outcomes, final scores, timings and thinking times, disconnections and substitutions, table and seat configuration, ratings and rating changes, replays, in-game chat, matchmaking records, and the metadata and identifiers that tie all of it to accounts, sessions and devices.",
+          text: "“Service Data” means Game Data and all operational, analytical, statistical, security, performance, ranking, matchmaking, telemetry, metadata, and derived information generated or maintained by or for the Service. As between you and us, we own all rights, title, and interest in Service Data and the databases, compilations, systems, and outputs containing it, to the fullest extent permitted by law. This provision does not eliminate your rights under data-protection law or your pre-existing intellectual-property rights in User Content.",
         },
         {
           kind: "p",
-          text: "You grant us a perpetual, irrevocable, worldwide, non-exclusive, royalty-free, fully paid-up, transferable and sublicensable licence to host, store, reproduce, adapt, modify, translate, analyse, aggregate, combine with other data, create derivative works from, publicly display, distribute, publish, license and otherwise exploit all Game Data and User Content, in whole or in part, in any medium and by any means now known or later developed, for any purpose.",
+          text: "To the extent you hold any right in User Content, Game Data, or Service Data, you grant us a perpetual, irrevocable, worldwide, non-exclusive, royalty-free, fully paid-up, transferable, and sublicensable licence to host, store, cache, reproduce, record, collect, use, adapt, modify, translate, format, combine, analyse, infer from, aggregate, anonymize, create derivative works from, publish, display, perform, distribute, market, commercialize, license, sell, and otherwise exploit it in any media or technology now known or later developed, for any lawful purpose.",
         },
         {
           kind: "p",
-          text: "That purpose expressly includes, without limitation:",
+          text: "The licence permits use without attribution, notice, approval, compensation, royalties, revenue sharing, or accounting to you. To the extent permitted by law, you waive and agree not to assert moral rights or equivalent rights. Rights relating to personal data remain subject to the Privacy Policy and applicable law.",
+        },
+      ],
+    },
+    {
+      id: "ai-and-commercial-use",
+      heading: "Artificial intelligence, research, and commercial exploitation",
+      blocks: [
+        {
+          kind: "p",
+          text: "Without limiting the preceding licence, we may use User Content, Game Data, and Service Data for the following purposes:",
         },
         {
           kind: "list",
           items: [
-            "developing, training, fine-tuning, evaluating, benchmarking and deploying artificial intelligence and machine-learning models and card-playing engines, including models we make available to others or use commercially;",
-            "building, publishing, licensing and selling datasets derived from Game Data, including for research and for training by third parties;",
-            "research, statistics, analytics, product development, anti-cheat and abuse detection;",
-            "showing replays, hands, statistics and leaderboard data publicly, and using them in documentation, marketing and press material;",
-            "licensing or transferring any of the above to partners, contractors, service providers, and to a buyer or successor in a sale, merger or reorganisation of our business.",
+            "developing, training, fine-tuning, testing, evaluating, benchmarking, validating, and deploying artificial-intelligence and machine-learning systems, models, agents, and card-playing engines;",
+            "creating, enriching, combining, publishing, distributing, licensing, or selling datasets, features, statistics, benchmarks, simulations, and derivative materials;",
+            "conducting research, analytics, product development, personalization, moderation, fraud prevention, security, quality assurance, and commercial activities;",
+            "making models, engines, datasets, outputs, replays, statistics, and derived materials available to customers, licensees, research partners, contractors, service providers, and other third parties;",
+            "using public gameplay, rankings, profiles, replays, statistics, and excerpts from User Content in demonstrations, documentation, promotions, marketing, media, and public communications.",
           ],
         },
         {
           kind: "p",
-          text: "We may exercise this licence without notice to you, without attribution, and without any payment, revenue share or other compensation, and we may do so in identifiable, pseudonymised, aggregated or anonymised form. You waive any moral rights or similar rights you may have in Game Data to the extent the law allows you to waive them.",
+          text: "These rights survive suspension, termination, closure, and deletion of an account. We are not required to retrain, rebuild, delete, withdraw, or cease using a model, engine, dataset, aggregate, statistic, benchmark, publication, or other derivative material that lawfully incorporated data before a later account closure or request, except where applicable law expressly requires otherwise.",
+        },
+      ],
+    },
+    {
+      id: "intellectual-property",
+      heading: "Intellectual property and feedback",
+      blocks: [
+        {
+          kind: "p",
+          text: "The Service, including its software, source and object code, interfaces, visual design, text, graphics, game presentation, databases, selection and arrangement of content, trademarks, logos, documentation, and underlying technology, is owned by or licensed to us and is protected by intellectual-property and other laws.",
         },
         {
           kind: "p",
-          text: "This licence survives the closing, suspension or deletion of your account. Once Game Data has been used to train a model, or has been incorporated into an aggregate, a dataset or a published statistic, that model, aggregate, dataset or statistic is not undone by your later deletion of your account — and we are not obliged to retrain, rebuild or withdraw it.",
-        },
-        {
-          kind: "p",
-          text: "Where Game Data is personal data, the Privacy Policy governs how we handle it, and this licence does not override the rights the GDPR gives you — including your right to object to processing carried out on the basis of our legitimate interests. Nothing in this section is intended to take away a right you cannot lawfully give up.",
+          text: "If you provide an idea, suggestion, proposal, or other feedback, you assign to us all rights in that feedback to the extent permitted by law. Where assignment is ineffective, you grant the licence stated in the Service Data section. We may use feedback without restriction, attribution, confidentiality obligation, or compensation.",
         },
       ],
     },
     {
       id: "payments",
-      heading: "Paid features and subscriptions",
+      heading: "Paid features, subscriptions, and virtual entitlements",
       blocks: [
         {
           kind: "p",
-          text: "The Service is currently free. If we introduce paid features or subscriptions, the terms in this section apply to them.",
+          text: "The Service is currently free. If we offer paid features, subscriptions, or virtual entitlements, the price, billing period, material functionality, and applicable taxes will be disclosed before purchase. A third-party payment provider may process payment credentials, and you authorize us and that provider to charge the selected payment method.",
         },
         {
           kind: "p",
-          text: "Prices are shown before you buy and include VAT where VAT applies. Payments are handled by a third-party payment provider; we do not receive or store your full card details. You are responsible for keeping your payment details up to date.",
+          text: "A subscription renews automatically for successive periods unless cancelled before renewal. Cancellation takes effect at the end of the paid period. Fees are non-refundable except where these Terms, the purchase terms, or mandatory law require a refund. We may change future prices upon legally sufficient notice.",
         },
         {
           kind: "p",
-          text: "Subscriptions renew automatically for the same period until cancelled. You can cancel at any time, with effect from the end of the period you have already paid for; cancelling does not refund the current period unless the law requires it. We will give you reasonable notice before a price change takes effect, and you may cancel rather than accept it.",
+          text: "Virtual items, cosmetics, access rights, ratings, rewards, and similar entitlements are limited contractual permissions to use features within the Service. They are not property, currency, stored value, or financial instruments. They have no cash value and may not be sold, transferred, exchanged, or redeemed except where we expressly permit it.",
         },
         {
           kind: "p",
-          text: "As a consumer in the EU you normally have 14 days to withdraw from a distance contract. Where you buy digital content or a digital service that we start supplying immediately, you ask us to begin at once and acknowledge that you lose the right of withdrawal once supply has begun and, for digital content, once it has been delivered in full. Nothing here affects your statutory rights where the digital content or service turns out to be faulty or not as described.",
-        },
-        {
-          kind: "p",
-          text: "Virtual items, cosmetics, ratings and other in-game entitlements are a licence to use them within the Service. They have no cash value, cannot be exchanged for money, and cannot be sold or transferred outside the Service.",
+          text: "Consumers in the European Union may have a statutory 14-day withdrawal right for distance contracts. Where permitted by law, you expressly request immediate performance and acknowledge that the withdrawal right may be lost after full performance of a service or after supply of digital content begins with your prior consent and acknowledgment. Mandatory remedies for non-conforming digital content or services remain unaffected.",
         },
       ],
     },
     {
-      id: "availability",
-      heading: "Availability, changes and warranties",
+      id: "third-party-services",
+      heading: "Third-party services and content",
       blocks: [
         {
           kind: "p",
-          text: "The Service is under active development. We may add, change, suspend or remove features — including ranked play, replays, seasons and AI opponents — and we may take the Service down for maintenance, or discontinue it entirely, at any time.",
-        },
-        {
-          kind: "p",
-          text: "We do not promise any particular level of uptime, that play will be free of disconnections or faults, that an AI substitute will play your seat the way you would, or that data will never be lost. Beyond the guarantees that consumer law gives you and that we cannot exclude, the Service is provided as it is and as available.",
+          text: "The Service may depend on or link to third-party services, networks, software, content, or payment systems. We do not control third parties and are not responsible for their availability, security, accuracy, conduct, terms, or data practices. Your use of third-party services is governed by the terms and policies of those third parties.",
         },
       ],
     },
     {
-      id: "termination",
-      heading: "Suspension and termination",
+      id: "availability-and-changes",
+      heading: "Availability, modifications, and discontinuation",
       blocks: [
         {
           kind: "p",
-          text: "You may stop using the Service and close your account at any time.",
+          text: "We may maintain, update, test, modify, replace, restrict, suspend, or discontinue any part of the Service for security, legal, commercial, technical, operational, or product-development reasons. This includes game modes, rules, artificial-intelligence opponents, ratings, rankings, seasons, replays, virtual entitlements, interfaces, eligibility criteria, and supported devices or regions.",
         },
         {
           kind: "p",
-          text: "We may suspend or terminate your access, with notice where reasonably possible and without it where a delay would cause harm, if you breach these terms, if we are required to by law, or if we discontinue the Service.",
+          text: "We do not guarantee uninterrupted availability, compatibility, latency, matchmaking, opponent behavior, preservation of data, ratings, or progress, or correction of every defect. We may impose maintenance windows, capacity restrictions, or emergency suspensions without liability, subject to mandatory law.",
+        },
+      ],
+    },
+    {
+      id: "suspension-and-termination",
+      heading: "Suspension, termination, and consequences",
+      blocks: [
+        {
+          kind: "p",
+          text: "You may stop using the Service and request account closure at any time. Closure does not entitle you to deletion of all records or derived materials where continued retention or use is permitted by these Terms, the Privacy Policy, or applicable law.",
         },
         {
           kind: "p",
-          text: "On termination your right to use the Service ends. The sections on game data and licence, liability, and governing law continue to apply, and Game Data is retained as described in the Privacy Policy.",
+          text: "We may restrict, suspend, or terminate access if we reasonably believe that you breached these Terms, created risk or legal exposure, threatened the Service or another person, engaged in fraud or abuse, remained inactive, failed to pay an amount due, or if continued access is no longer commercially, technically, or legally practicable. We will provide notice where required by law.",
+        },
+        {
+          kind: "p",
+          text: "Upon termination, your right to use the Service ends immediately. Provisions that by their nature should survive will remain effective, including provisions concerning ownership, licences, Service Data, artificial intelligence, payments owed, disclaimers, indemnification, liability, disputes, and general terms.",
+        },
+      ],
+    },
+    {
+      id: "warranties",
+      heading: "Disclaimers of warranties",
+      blocks: [
+        {
+          kind: "p",
+          text: "To the fullest extent permitted by law, the Service is provided “as is” and “as available”, with all faults and without warranties of any kind. We disclaim all express, implied, and statutory warranties, including warranties of merchantability, satisfactory quality, fitness for a particular purpose, title, non-infringement, accuracy, availability, security, and uninterrupted or error-free operation.",
+        },
+        {
+          kind: "p",
+          text: "We do not warrant that the Service, any opponent, output, recommendation, ranking, statistic, replay, or communication will be accurate, fair, complete, current, secure, or suitable for your purpose. Nothing in these Terms excludes a warranty or consumer guarantee that cannot lawfully be excluded.",
+        },
+      ],
+    },
+    {
+      id: "indemnification",
+      heading: "Indemnification",
+      blocks: [
+        {
+          kind: "p",
+          text: "To the fullest extent permitted by law, you will indemnify and hold harmless the Operator, its affiliates, and their respective officers, personnel, contractors, licensors, and service providers from claims, liabilities, losses, damages, judgments, penalties, costs, and reasonable legal fees arising from your unlawful conduct, material breach of these Terms, infringement of third-party rights, User Content, fraud, or misuse of the Service. This provision does not apply to the extent a claim results from our own breach, negligence, or unlawful conduct, and it does not limit mandatory consumer rights.",
         },
       ],
     },
     {
       id: "liability",
-      heading: "Liability",
+      heading: "Limitation of liability",
       blocks: [
         {
           kind: "p",
-          text: "We are liable to you for damage we cause by intent or gross negligence, for death or personal injury caused by our negligence, and for anything else that Croatian or EU consumer law does not let us exclude. Nothing in these terms limits that liability.",
+          text: "Nothing in these Terms limits liability for intentional misconduct, gross negligence, death or personal injury caused by negligence, fraud, or any other liability that applicable law prohibits us from limiting or excluding.",
         },
         {
           kind: "p",
-          text: "Otherwise, and to the extent the law allows: we are not liable for indirect or consequential loss, lost profit, lost data, lost ratings or lost opportunity; we are not liable for what other players do; and our total liability arising from the Service is limited to the greater of the amount you paid us in the twelve months before the event and EUR 100. Because the Service is free unless you buy something, this will usually mean EUR 100.",
+          text: "Subject to the preceding sentence and to the fullest extent permitted by law, we are not liable for indirect, incidental, special, consequential, exemplary, or punitive damages, or for loss of profits, revenue, business, opportunity, goodwill, data, ratings, rankings, progress, or virtual entitlements. We are not liable for another user’s conduct, third-party services, unauthorized account access not caused by our breach, or events beyond our reasonable control.",
+        },
+        {
+          kind: "p",
+          text: "Subject to mandatory law, our aggregate liability arising out of or relating to the Service and these Terms will not exceed the greater of EUR 100 or the amount you paid directly to us for the Service during the 12 months preceding the event giving rise to liability. The limitations apply regardless of the legal theory and even if a remedy fails of its essential purpose.",
         },
       ],
     },
     {
-      id: "changes",
-      heading: "Changes to these terms",
+      id: "changes-to-terms",
+      heading: "Changes to these Terms",
       blocks: [
         {
           kind: "p",
-          text: "We may change these terms — for example when we add features, or when the law changes. The date at the top shows when we last did.",
+          text: "We may amend these Terms to reflect changes in law, regulation, security requirements, technology, functionality, commercial arrangements, pricing, business operations, or the Service. The “Last updated” date identifies the current version.",
         },
         {
           kind: "p",
-          text: "If a change materially affects your rights, we will give you reasonable notice before it takes effect, by email or in the Service. Continuing to use the Service after a change takes effect means you accept the new terms; if you do not accept them, close your account.",
+          text: "Where an amendment materially affects your rights or obligations, we will provide reasonable advance notice unless immediate effect is necessary for legal, regulatory, fraud-prevention, or security reasons. Continued use after the effective date constitutes acceptance where permitted by law. If you reject an amendment, your exclusive remedy is to stop using the Service and close your account, subject to mandatory rights.",
         },
       ],
     },
     {
-      id: "law",
-      heading: "Governing law and disputes",
+      id: "law-and-disputes",
+      heading: "Governing law and dispute resolution",
       blocks: [
         {
           kind: "p",
-          text: "These terms are governed by the law of the Republic of Croatia. If you are a consumer resident in the EU, you also keep the protection of the mandatory consumer law of the country you live in, and you may bring proceedings in the courts there; we may only bring proceedings against you in those courts.",
+          text: "These Terms and all non-contractual obligations arising from them are governed by the laws of the Republic of Croatia, without regard to conflict-of-law rules. If you are a consumer, this choice does not deprive you of mandatory protections under the law of your country of habitual residence.",
         },
         {
           kind: "p",
-          text: `Please write to ${entity.supportEmail} first — most disputes are a misunderstanding, and we would rather fix it than argue about it. If we cannot resolve a complaint, you may be able to use an alternative dispute resolution body or the European Commission’s online dispute resolution platform, and you may complain to the Croatian consumer protection authorities.`,
+          text: `Before commencing proceedings, you may submit a written complaint to ${entity.supportEmail} describing the dispute and requested resolution. This does not restrict your right to contact a competent consumer-protection authority, use an available alternative dispute-resolution entity, or bring proceedings where mandatory law permits.`,
         },
         {
           kind: "p",
-          text: "If any provision of these terms turns out to be unenforceable, the rest stays in force and the unenforceable part applies to the greatest extent the law allows.",
+          text: "Subject to mandatory consumer jurisdiction, the courts with territorial jurisdiction over our registered office have exclusive jurisdiction. A consumer resident in the European Union may bring proceedings in the courts of the consumer’s domicile, and we may bring proceedings against that consumer only in those courts where applicable law so requires.",
+        },
+      ],
+    },
+    {
+      id: "general",
+      heading: "General provisions",
+      blocks: [
+        {
+          kind: "p",
+          text: "These Terms and incorporated policies constitute the entire agreement concerning the Service and supersede prior understandings on that subject. If a provision is invalid or unenforceable, it will be enforced to the maximum lawful extent and the remaining provisions will remain effective.",
+        },
+        {
+          kind: "p",
+          text: "Our failure to enforce a provision is not a waiver. You may not assign or transfer these Terms or any account right without our prior written consent. We may assign or transfer these Terms, in whole or in part, to an affiliate, successor, purchaser, or other entity in connection with financing, restructuring, merger, acquisition, sale of assets, or operation of the Service, subject to applicable law.",
+        },
+        {
+          kind: "p",
+          text: "We are not liable for delay or failure caused by events beyond our reasonable control. Except where expressly stated, these Terms create no agency, partnership, employment, fiduciary, or third-party beneficiary relationship.",
         },
       ],
     },
@@ -290,20 +380,21 @@ const terms = {
       blocks: [
         {
           kind: "p",
-          text: "These terms are published in Croatian and in English. The Croatian version prevails if the two versions differ.",
+          text: "These Terms are issued exclusively in English. Any translation made available for convenience is non-authoritative, and the English text governs to the fullest extent permitted by applicable law.",
         },
       ],
     },
     {
       id: "contact",
-      heading: "Contact",
+      heading: "Operator and contact information",
       blocks: [
         {
           kind: "rows",
           rows: [
             { label: "Operator", text: `${entity.name}, ${entity.address}` },
             { label: "OIB", text: entity.oib },
-            { label: "Support", text: entity.supportEmail },
+            { label: "Registration", text: entity.registration },
+            { label: "Support and legal notices", text: entity.supportEmail },
             { label: "Privacy and data requests", text: entity.privacyEmail },
           ],
         },

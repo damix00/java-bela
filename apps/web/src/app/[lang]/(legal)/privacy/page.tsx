@@ -3,20 +3,17 @@ import { getLegalDocument } from "@/content/legal";
 import { localePage } from "@/dictionaries";
 import { localeMetadata } from "@/lib/metadata";
 import { legalPath } from "@/lib/routes";
-import { locales } from "@/lib/i18n";
 
-export const generateMetadata = localeMetadata(async (_dict, lang) => {
-  const doc = await getLegalDocument("privacy", lang);
+export const generateMetadata = localeMetadata(async () => {
+  const doc = await getLegalDocument("privacy");
 
   return {
     title: doc.title,
     description: doc.lede,
     alternates: {
-      canonical: legalPath(lang, "privacy"),
+      canonical: legalPath("en", "privacy"),
       languages: {
-        ...Object.fromEntries(
-          locales.map((locale) => [locale, legalPath(locale, "privacy")]),
-        ),
+        en: legalPath("en", "privacy"),
         "x-default": legalPath("en", "privacy"),
       },
     },
@@ -24,7 +21,7 @@ export const generateMetadata = localeMetadata(async (_dict, lang) => {
 });
 
 export default async function Page({ params }: PageProps<"/[lang]/privacy">) {
-  const { lang } = await localePage(params);
+  await localePage(params);
 
-  return <LegalDocument doc={await getLegalDocument("privacy", lang)} />;
+  return <LegalDocument doc={await getLegalDocument("privacy")} />;
 }

@@ -3,20 +3,17 @@ import { getLegalDocument } from "@/content/legal";
 import { localePage } from "@/dictionaries";
 import { localeMetadata } from "@/lib/metadata";
 import { legalPath } from "@/lib/routes";
-import { locales } from "@/lib/i18n";
 
-export const generateMetadata = localeMetadata(async (_dict, lang) => {
-  const doc = await getLegalDocument("terms", lang);
+export const generateMetadata = localeMetadata(async () => {
+  const doc = await getLegalDocument("terms");
 
   return {
     title: doc.title,
     description: doc.lede,
     alternates: {
-      canonical: legalPath(lang, "terms"),
+      canonical: legalPath("en", "terms"),
       languages: {
-        ...Object.fromEntries(
-          locales.map((locale) => [locale, legalPath(locale, "terms")]),
-        ),
+        en: legalPath("en", "terms"),
         "x-default": legalPath("en", "terms"),
       },
     },
@@ -24,7 +21,7 @@ export const generateMetadata = localeMetadata(async (_dict, lang) => {
 });
 
 export default async function Page({ params }: PageProps<"/[lang]/terms">) {
-  const { lang } = await localePage(params);
+  await localePage(params);
 
-  return <LegalDocument doc={await getLegalDocument("terms", lang)} />;
+  return <LegalDocument doc={await getLegalDocument("terms")} />;
 }
