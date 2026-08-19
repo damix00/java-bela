@@ -1,8 +1,8 @@
 import { cn } from "@/lib/cn";
 
 type FormErrorProps = {
-  children: string;
-  className?: string;
+    children: string;
+    className?: string;
 };
 
 /**
@@ -16,15 +16,15 @@ type FormErrorProps = {
  * just pressed.
  */
 export default function FormError({ children, className }: FormErrorProps) {
-  return (
-    <p
-      role="alert"
-      className={cn(
-        "m-0 border-4 border-ink bg-rust px-4 py-3 text-[13px] font-semibold text-cream",
-        className,
-      )}
-    >
-      {children}
-    </p>
-  );
+    return (
+        <p
+            role="alert"
+            className={cn(
+                "m-0 border-4 border-ink bg-rust px-4 py-3 text-[13px] font-semibold text-cream",
+                className,
+            )}
+        >
+            {children}
+        </p>
+    );
 }

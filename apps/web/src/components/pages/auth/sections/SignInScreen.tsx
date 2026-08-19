@@ -70,7 +70,11 @@ export default function SignInScreen({
         defaultValues: { email: "", password: "" },
     });
 
-    const { submit, pending, error } = useAuthSubmit(locale, messages, returnTo);
+    const { submit, pending, error } = useAuthSubmit(
+        locale,
+        messages,
+        returnTo,
+    );
 
     return (
         <AuthSplit
@@ -81,12 +85,14 @@ export default function SignInScreen({
                         <Heading
                             size="cardHero"
                             tone="cream"
-                            className="max-w-[16ch]">
+                            className="max-w-[16ch]"
+                        >
                             {copy.promo}
                         </Heading>
                     </div>
                 </>
-            }>
+            }
+        >
             <div className="flex flex-col gap-2">
                 <Heading as="h1" size="cardHero">
                     {copy.heading}
@@ -97,7 +103,8 @@ export default function SignInScreen({
                         replace
                         href={withReturn(authPath(locale, "signUp"), returnTo)}
                         hardNavigation={standalone}
-                        className="text-[17px] font-bold">
+                        className="text-[17px] font-bold"
+                    >
                         {copy.createOne}
                     </TextLink>
                     .
@@ -116,13 +123,15 @@ export default function SignInScreen({
                         messages.signInFailed,
                     ),
                 )}
-                className="contents">
+                className="contents"
+            >
                 {error && <FormError>{error}</FormError>}
 
                 <Field
                     htmlFor="email"
                     label={common.email}
-                    error={errors.email?.message}>
+                    error={errors.email?.message}
+                >
                     <Input
                         id="email"
                         type="email"
@@ -140,10 +149,12 @@ export default function SignInScreen({
                         <TextLink
                             href={authPath(locale, "forgotPassword")}
                             weight="semibold"
-                            className="text-[14px]">
+                            className="text-[14px]"
+                        >
                             {copy.forgot}
                         </TextLink>
-                    }>
+                    }
+                >
                     <PasswordInput
                         id="password"
                         showLabel={common.show}
@@ -162,7 +173,8 @@ export default function SignInScreen({
                     tone="forest"
                     size="lg"
                     disabled={pending}
-                    className="py-[17px] text-[18px] disabled:cursor-wait disabled:opacity-70">
+                    className="py-[17px] text-[18px] disabled:cursor-wait disabled:opacity-70"
+                >
                     {copy.submit}
                 </Button>
             </form>
@@ -179,7 +191,8 @@ export default function SignInScreen({
                             onClick={() =>
                                 submit(loginAnonymous, messages.signInFailed)
                             }
-                            className="text-[16px] disabled:cursor-wait disabled:opacity-70">
+                            className="text-[16px] disabled:cursor-wait disabled:opacity-70"
+                        >
                             {copy.guest}
                         </Button>
                         <Text size="xs" className="max-w-[30ch]">

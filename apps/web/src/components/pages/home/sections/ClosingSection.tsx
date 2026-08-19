@@ -6,8 +6,8 @@ import type { Dictionary } from "@/dictionaries";
 import type { Locale } from "@/lib/i18n";
 
 type ClosingSectionProps = {
-  copy: Dictionary["closing"];
-  locale: Locale;
+    copy: Dictionary["closing"];
+    locale: Locale;
 };
 
 /**
@@ -15,20 +15,20 @@ type ClosingSectionProps = {
  * repeated here — anyone who already has an account has the header for that.
  */
 export default function ClosingSection({ copy, locale }: ClosingSectionProps) {
-  return (
-    <Section
-      id="join"
-      tone="forest"
-      className="flex flex-col items-start gap-[26px] md:py-[88px]"
-    >
-      <Heading size="statement" tone="cream">
-        {copy.heading}
-      </Heading>
-      <Text size="lg" tone="mint" weight="medium">
-        {copy.sub}
-      </Text>
-      {/* Rust here — forest would vanish into the band. */}
-      <JoinCta label={copy.cta} locale={locale} tone="rust" />
-    </Section>
-  );
+    return (
+        <Section
+            id="join"
+            tone="forest"
+            className="flex flex-col items-start gap-[26px] md:py-[88px]"
+        >
+            <Heading size="statement" tone="cream">
+                {copy.heading}
+            </Heading>
+            <Text size="lg" tone="mint" weight="medium">
+                {copy.sub}
+            </Text>
+            {/* Rust here — forest would vanish into the band. */}
+            <JoinCta label={copy.cta} locale={locale} tone="rust" />
+        </Section>
+    );
 }

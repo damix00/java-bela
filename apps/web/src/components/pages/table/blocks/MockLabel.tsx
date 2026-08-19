@@ -11,16 +11,16 @@ import { cn } from "@/lib/cn";
  * `Eyebrow` is the same idea on the page's own surfaces.
  */
 export default function MockLabel({
-  className,
-  ...props
+    className,
+    ...props
 }: ComponentProps<"span">) {
-  return (
-    <span
-      className={cn(
-        "font-sans text-[11px] font-bold tracking-[.14em] uppercase",
-        className,
-      )}
-      {...props}
-    />
-  );
+    return (
+        <span
+            className={cn(
+                "font-sans text-[11px] font-bold tracking-[.14em] uppercase",
+                className,
+            )}
+            {...props}
+        />
+    );
 }

@@ -9,14 +9,14 @@ import { cn } from "@/lib/cn";
  * second column.
  */
 export default function AuthCard({
-  className,
-  ...props
+    className,
+    ...props
 }: ComponentProps<typeof Card>) {
-  return (
-    <Card
-      padding="none"
-      className={cn("gap-5 p-8 sm:p-10 lg:p-11", className)}
-      {...props}
-    />
-  );
+    return (
+        <Card
+            padding="none"
+            className={cn("gap-5 p-8 sm:p-10 lg:p-11", className)}
+            {...props}
+        />
+    );
 }

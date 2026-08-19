@@ -19,25 +19,25 @@ export const USER_COOKIE = "user";
  * writer.
  */
 export type CookieWriter = {
-  set(name: string, value: string, options?: CookieOptions): unknown;
-  delete(name: string): unknown;
+    set(name: string, value: string, options?: CookieOptions): unknown;
+    delete(name: string): unknown;
 };
 
 export type CookieOptions = {
-  httpOnly?: boolean;
-  secure?: boolean;
-  sameSite?: "lax" | "strict" | "none";
-  maxAge?: number;
-  path?: string;
+    httpOnly?: boolean;
+    secure?: boolean;
+    sameSite?: "lax" | "strict" | "none";
+    maxAge?: number;
+    path?: string;
 };
 
 /** The subset of the backend's auth response that the cookie writer needs. */
 type SessionPayload = {
-  accessToken: string;
-  refreshToken: string | null;
-  expiresIn: number;
-  refreshExpiresIn: number;
-  user: unknown;
+    accessToken: string;
+    refreshToken: string | null;
+    expiresIn: number;
+    refreshExpiresIn: number;
+    user: unknown;
 };
 
 /**
@@ -47,12 +47,12 @@ type SessionPayload = {
  * refresh route.
  */
 function baseOptions(): CookieOptions {
-  return {
-    httpOnly: true,
-    secure: process.env.SECURE_COOKIES === "true",
-    sameSite: "lax",
-    path: "/",
-  };
+    return {
+        httpOnly: true,
+        secure: process.env.SECURE_COOKIES === "true",
+        sameSite: "lax",
+        path: "/",
+    };
 }
 
 /**
@@ -63,35 +63,35 @@ function baseOptions(): CookieOptions {
  * still the live one and must not be clobbered.
  */
 export function setSessionCookies(store: CookieWriter, auth: SessionPayload) {
-  const options = baseOptions();
+    const options = baseOptions();
 
-  store.set(ACCESS_TOKEN_COOKIE, auth.accessToken, {
-    ...options,
-    maxAge: auth.expiresIn,
-  });
+    store.set(ACCESS_TOKEN_COOKIE, auth.accessToken, {
+        ...options,
+        maxAge: auth.expiresIn,
+    });
 
-  if (!auth.refreshToken) {
-    // Grace-window rotation: the jar already holds the live refresh token and a
-    // user cookie with the right lifetime. Rewriting either would only shorten
-    // them.
-    return;
-  }
+    if (!auth.refreshToken) {
+        // Grace-window rotation: the jar already holds the live refresh token and a
+        // user cookie with the right lifetime. Rewriting either would only shorten
+        // them.
+        return;
+    }
 
-  store.set(REFRESH_TOKEN_COOKIE, auth.refreshToken, {
-    ...options,
-    maxAge: auth.refreshExpiresIn,
-  });
+    store.set(REFRESH_TOKEN_COOKIE, auth.refreshToken, {
+        ...options,
+        maxAge: auth.refreshExpiresIn,
+    });
 
-  store.set(USER_COOKIE, JSON.stringify(auth.user), {
-    ...options,
-    maxAge: auth.refreshExpiresIn,
-  });
+    store.set(USER_COOKIE, JSON.stringify(auth.user), {
+        ...options,
+        maxAge: auth.refreshExpiresIn,
+    });
 }
 
 export function clearSessionCookies(store: CookieWriter) {
-  store.delete(ACCESS_TOKEN_COOKIE);
-  store.delete(REFRESH_TOKEN_COOKIE);
-  store.delete(USER_COOKIE);
+    store.delete(ACCESS_TOKEN_COOKIE);
+    store.delete(REFRESH_TOKEN_COOKIE);
+    store.delete(USER_COOKIE);
 }
 
 /**
@@ -103,17 +103,17 @@ export function clearSessionCookies(store: CookieWriter) {
  * the proxy's bundle should not assume a Node global.
  */
 export function accessTokenExpiryMs(token: string): number {
-  try {
-    const payload = token.split(".")[1];
-    if (!payload) {
-      return 0;
+    try {
+        const payload = token.split(".")[1];
+        if (!payload) {
+            return 0;
+        }
+
+        const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+        const exp = (JSON.parse(json) as { exp?: number }).exp;
+
+        return typeof exp === "number" ? exp * 1000 : 0;
+    } catch {
+        return 0;
     }
-
-    const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
-    const exp = (JSON.parse(json) as { exp?: number }).exp;
-
-    return typeof exp === "number" ? exp * 1000 : 0;
-  } catch {
-    return 0;
-  }
 }

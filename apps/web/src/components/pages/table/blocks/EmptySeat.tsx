@@ -14,32 +14,32 @@ import { cn } from "@/lib/cn";
  * than wrapping into four lines of stacked letters.
  */
 export default function EmptySeat({
-  label,
-  className,
+    label,
+    className,
 }: {
-  label: string;
-  className?: string;
+    label: string;
+    className?: string;
 }) {
-  return (
-    <div
-      className={cn(
-        "flex flex-col items-center justify-center gap-3 p-2",
-        "border-4 border-dashed border-mint/35 md:gap-4 md:p-4",
-        className,
-      )}
-    >
-      <span
-        aria-hidden
-        // On a phone the seat is only the dashed square, so the plus is set
-        // loose in it — boxing a tile inside a box that small reads as two
-        // frames arguing rather than one empty chair.
-        className="grid shrink-0 place-items-center border-mint/45 text-[22px] leading-none text-mint/70 md:size-9 md:border-[3px] md:text-[20px]"
-      >
-        +
-      </span>
-      <MockLabel className="sr-only text-center text-mint/70 md:not-sr-only">
-        {label}
-      </MockLabel>
-    </div>
-  );
+    return (
+        <div
+            className={cn(
+                "flex flex-col items-center justify-center gap-3 p-2",
+                "border-4 border-dashed border-mint/35 md:gap-4 md:p-4",
+                className,
+            )}
+        >
+            <span
+                aria-hidden
+                // On a phone the seat is only the dashed square, so the plus is set
+                // loose in it — boxing a tile inside a box that small reads as two
+                // frames arguing rather than one empty chair.
+                className="grid shrink-0 place-items-center border-mint/45 text-[22px] leading-none text-mint/70 md:size-9 md:border-[3px] md:text-[20px]"
+            >
+                +
+            </span>
+            <MockLabel className="sr-only text-center text-mint/70 md:not-sr-only">
+                {label}
+            </MockLabel>
+        </div>
+    );
 }

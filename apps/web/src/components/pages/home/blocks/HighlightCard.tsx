@@ -19,7 +19,8 @@ export default function HighlightCard({ title, children }: HighlightCardProps) {
     return (
         <Card
             tone="sage"
-            className="min-h-[172px] justify-center gap-2.5 md:col-span-2">
+            className="min-h-[172px] justify-center gap-2.5 md:col-span-2"
+        >
             <Heading as="h3" size="card">
                 {title}
             </Heading>

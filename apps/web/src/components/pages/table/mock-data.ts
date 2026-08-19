@@ -39,7 +39,6 @@ export const mockTable = {
         suit: "♥",
         tone: "rust",
     } satisfies MockPlayer & { rating: string },
-
 } as const;
 
 /** The three cards fanned face-up in the middle of the empty table. */

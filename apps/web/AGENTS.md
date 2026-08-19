@@ -12,3 +12,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 - Use the correct typography for the language of the text.
 - Do not use monospaced fonts anywhere unless it is for code snippets or inline code.
+
+## Code Style
+
+- Use 4 spaces for indentation.

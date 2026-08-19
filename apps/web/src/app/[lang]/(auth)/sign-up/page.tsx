@@ -5,25 +5,25 @@ import { readReturnTo } from "@/lib/routes";
 import { guardCredentialScreen } from "@/lib/session-guards";
 
 export const generateMetadata = localeMetadata(
-  (dict) => dict.auth.signUp.title,
+    (dict) => dict.auth.signUp.title,
 );
 
 export default async function Page({
-  params,
-  searchParams,
+    params,
+    searchParams,
 }: PageProps<"/[lang]/sign-up">) {
-  const { lang, dict } = await localePage(params);
-  const returnTo = readReturnTo(await searchParams, lang);
-  await guardCredentialScreen(lang, returnTo);
+    const { lang, dict } = await localePage(params);
+    const returnTo = readReturnTo(await searchParams, lang);
+    await guardCredentialScreen(lang, returnTo);
 
-  return (
-    <SignUpScreen
-      copy={dict.auth.signUp}
-      common={dict.auth.common}
-      form={dict.form}
-      locale={lang}
-      standalone
-      returnTo={returnTo}
-    />
-  );
+    return (
+        <SignUpScreen
+            copy={dict.auth.signUp}
+            common={dict.auth.common}
+            form={dict.form}
+            locale={lang}
+            standalone
+            returnTo={returnTo}
+        />
+    );
 }

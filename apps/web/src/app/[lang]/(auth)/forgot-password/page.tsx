@@ -4,21 +4,21 @@ import { guardCredentialScreen } from "@/lib/session-guards";
 import { localeMetadata } from "@/lib/metadata";
 
 export const generateMetadata = localeMetadata(
-  (dict) => dict.auth.forgot.title,
+    (dict) => dict.auth.forgot.title,
 );
 
 export default async function Page({
-  params,
+    params,
 }: PageProps<"/[lang]/forgot-password">) {
-  const { lang, dict } = await localePage(params);
-  await guardCredentialScreen(lang);
+    const { lang, dict } = await localePage(params);
+    await guardCredentialScreen(lang);
 
-  return (
-    <ForgotPasswordScreen
-      copy={dict.auth.forgot}
-      common={dict.auth.common}
-      form={dict.form}
-      locale={lang}
-    />
-  );
+    return (
+        <ForgotPasswordScreen
+            copy={dict.auth.forgot}
+            common={dict.auth.common}
+            form={dict.form}
+            locale={lang}
+        />
+    );
 }

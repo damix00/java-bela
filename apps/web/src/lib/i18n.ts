@@ -12,13 +12,13 @@ export const defaultLocale: Locale = "en";
 export const LOCALE_COOKIE = "NEXT_LOCALE";
 
 export function isLocale(value: string): value is Locale {
-  return (locales as readonly string[]).includes(value);
+    return (locales as readonly string[]).includes(value);
 }
 
 /** Human labels for the switcher — each language named in itself. */
 export const localeNames: Record<Locale, string> = {
-  en: "English",
-  hr: "Hrvatski",
+    en: "English",
+    hr: "Hrvatski",
 };
 
 /**
@@ -29,30 +29,30 @@ export const localeNames: Record<Locale, string> = {
  * dictionary per language and no regional variants.
  */
 export function matchLocale(acceptLanguage: string | null): Locale | null {
-  if (!acceptLanguage) return null;
+    if (!acceptLanguage) return null;
 
-  const ranked = acceptLanguage
-    .split(",")
-    .map((part) => {
-      const [tag, ...params] = part.trim().split(";");
-      const q = params
-        .map((param) => param.trim())
-        .find((param) => param.startsWith("q="));
-      // A tag with no q-value is the most preferred one (q defaults to 1).
-      const quality = q ? Number.parseFloat(q.slice(2)) : 1;
-      return {
-        language: tag.trim().toLowerCase().split("-")[0],
-        quality: Number.isNaN(quality) ? 0 : quality,
-      };
-    })
-    .filter((entry) => entry.quality > 0)
-    // Stable sort keeps header order among equal q-values, which is the
-    // order the browser meant.
-    .sort((a, b) => b.quality - a.quality);
+    const ranked = acceptLanguage
+        .split(",")
+        .map((part) => {
+            const [tag, ...params] = part.trim().split(";");
+            const q = params
+                .map((param) => param.trim())
+                .find((param) => param.startsWith("q="));
+            // A tag with no q-value is the most preferred one (q defaults to 1).
+            const quality = q ? Number.parseFloat(q.slice(2)) : 1;
+            return {
+                language: tag.trim().toLowerCase().split("-")[0],
+                quality: Number.isNaN(quality) ? 0 : quality,
+            };
+        })
+        .filter((entry) => entry.quality > 0)
+        // Stable sort keeps header order among equal q-values, which is the
+        // order the browser meant.
+        .sort((a, b) => b.quality - a.quality);
 
-  for (const entry of ranked) {
-    if (isLocale(entry.language)) return entry.language;
-  }
+    for (const entry of ranked) {
+        if (isLocale(entry.language)) return entry.language;
+    }
 
-  return null;
+    return null;
 }

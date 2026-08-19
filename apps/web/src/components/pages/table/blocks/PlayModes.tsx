@@ -163,7 +163,8 @@ export default function PlayModes({
     return (
         <section
             aria-label={copy.gameModeLabel}
-            className="flex w-full flex-col gap-3 border-4 border-ink bg-baize-deep p-3 shadow-hard-lg sm:mx-auto sm:w-fit sm:p-4">
+            className="flex w-full flex-col gap-3 border-4 border-ink bg-baize-deep p-3 shadow-hard-lg sm:mx-auto sm:w-fit sm:p-4"
+        >
             <div className="grid gap-3 sm:grid-cols-[220px_minmax(300px,1fr)] sm:items-stretch sm:gap-4">
                 <div ref={selector} className="relative">
                     <button
@@ -178,7 +179,8 @@ export default function PlayModes({
                             "flex min-h-16 w-full cursor-pointer items-center justify-between gap-3 border-[3px] border-ink bg-baize px-4 py-3 text-left shadow-hard-sm sm:h-full",
                             pressSm,
                             focusRing,
-                        )}>
+                        )}
+                    >
                         <span className="min-w-0">
                             <MockLabel className="block truncate text-[9px] tracking-[.12em] text-mint/75">
                                 {copy.gameModeLabel}
@@ -207,7 +209,8 @@ export default function PlayModes({
                             aria-label={copy.gameModeLabel}
                             aria-activedescendant={`${listboxId}-${selected.id}`}
                             onKeyDown={handleListboxKeyDown}
-                            className="absolute bottom-full left-0 z-40 mb-3 w-full border-4 border-ink bg-cream shadow-hard outline-none sm:w-[360px]">
+                            className="absolute bottom-full left-0 z-40 mb-3 w-full border-4 border-ink bg-cream shadow-hard outline-none sm:w-[360px]"
+                        >
                             {modes.map((mode, index) => {
                                 const isSelected = index === selectedIndex;
                                 return (
@@ -222,7 +225,8 @@ export default function PlayModes({
                                             isSelected
                                                 ? "bg-rust text-cream"
                                                 : "bg-cream text-ink hover:bg-paper",
-                                        )}>
+                                        )}
+                                    >
                                         <span className="min-w-0 flex-1">
                                             <span className="block font-display text-[16px] font-extrabold tracking-[-.02em]">
                                                 {mode.title}
@@ -233,7 +237,8 @@ export default function PlayModes({
                                                     isSelected
                                                         ? "text-cream/85"
                                                         : "text-moss",
-                                                )}>
+                                                )}
+                                            >
                                                 {mode.note}
                                             </span>
                                         </span>
@@ -258,7 +263,8 @@ export default function PlayModes({
                         href={signInHref}
                         tone="rust"
                         size="lg"
-                        className={playClass}>
+                        className={playClass}
+                    >
                         {copy.playNow}
                     </ButtonLink>
                 ) : (
@@ -269,7 +275,8 @@ export default function PlayModes({
                         onClick={() => {
                             console.log("Clicked play on " + selected.title);
                         }}
-                        className={cn(playClass, "disabled:cursor-wait")}>
+                        className={cn(playClass, "disabled:cursor-wait")}
+                    >
                         {copy.playNow}
                     </Button>
                 )}
@@ -277,7 +284,8 @@ export default function PlayModes({
 
             <p
                 aria-live="polite"
-                className="m-0 text-center text-[13px] font-semibold text-mint/75 sm:text-[14px]">
+                className="m-0 text-center text-[13px] font-semibold text-mint/75 sm:text-[14px]"
+            >
                 {selected.promise ?? selected.note}
             </p>
 

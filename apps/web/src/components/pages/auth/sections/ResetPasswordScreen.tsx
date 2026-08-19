@@ -14,78 +14,83 @@ import Heading from "@/components/ui/typography/Heading";
 import Text from "@/components/ui/typography/Text";
 import type { Dictionary } from "@/dictionaries";
 import {
-  passwordStrength,
-  resetPasswordSchema,
-  type ResetPasswordValues,
+    passwordStrength,
+    resetPasswordSchema,
+    type ResetPasswordValues,
 } from "@/lib/validation";
 
 type ResetPasswordScreenProps = {
-  copy: Dictionary["auth"]["reset"];
-  common: Dictionary["auth"]["common"];
-  errors: Dictionary["form"]["errors"];
+    copy: Dictionary["auth"]["reset"];
+    common: Dictionary["auth"]["common"];
+    errors: Dictionary["form"]["errors"];
 };
 
 export default function ResetPasswordScreen({
-  copy,
-  common,
-  errors: messages,
+    copy,
+    common,
+    errors: messages,
 }: ResetPasswordScreenProps) {
-  const schema = useMemo(() => resetPasswordSchema(messages), [messages]);
-  const {
-    control,
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<ResetPasswordValues>({
-    resolver: zodResolver(schema),
-    defaultValues: { password: "" },
-  });
+    const schema = useMemo(() => resetPasswordSchema(messages), [messages]);
+    const {
+        control,
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<ResetPasswordValues>({
+        resolver: zodResolver(schema),
+        defaultValues: { password: "" },
+    });
 
-  const password = useWatch({ control, name: "password" });
-  const strength = passwordStrength(password);
+    const password = useWatch({ control, name: "password" });
+    const strength = passwordStrength(password);
 
-  return (
-    <AuthCard className="mx-auto max-w-[560px]">
-      <Heading as="h1" size="cardHero">
-        {copy.heading}
-      </Heading>
-      <Text size="md">{copy.body}</Text>
+    return (
+        <AuthCard className="mx-auto max-w-[560px]">
+            <Heading as="h1" size="cardHero">
+                {copy.heading}
+            </Heading>
+            <Text size="md">{copy.body}</Text>
 
-      <form
-        noValidate
-        onSubmit={handleSubmit(onSubmitPlaceholder)}
-        className="contents"
-      >
-        <Field
-          htmlFor="new-password"
-          label={copy.label}
-          error={errors.password?.message}
-          // The meter is the field's own reading, so it lives with the field
-          // rather than as another line in the card. It only appears once
-          // there is something to read: an empty field is not a weak one.
-          hint={
-            password ? (
-              <StrengthMeter
-                filled={strength}
-                label={copy.strength[strength - 1]}
-              />
-            ) : undefined
-          }
-        >
-          <PasswordInput
-            id="new-password"
-            autoComplete="new-password"
-            showLabel={common.show}
-            hideLabel={common.hide}
-            {...invalidProps("new-password", errors.password)}
-            {...register("password")}
-          />
-        </Field>
+            <form
+                noValidate
+                onSubmit={handleSubmit(onSubmitPlaceholder)}
+                className="contents"
+            >
+                <Field
+                    htmlFor="new-password"
+                    label={copy.label}
+                    error={errors.password?.message}
+                    // The meter is the field's own reading, so it lives with the field
+                    // rather than as another line in the card. It only appears once
+                    // there is something to read: an empty field is not a weak one.
+                    hint={
+                        password ? (
+                            <StrengthMeter
+                                filled={strength}
+                                label={copy.strength[strength - 1]}
+                            />
+                        ) : undefined
+                    }
+                >
+                    <PasswordInput
+                        id="new-password"
+                        autoComplete="new-password"
+                        showLabel={common.show}
+                        hideLabel={common.hide}
+                        {...invalidProps("new-password", errors.password)}
+                        {...register("password")}
+                    />
+                </Field>
 
-        <Button type="submit" tone="forest" size="lg" className="self-start">
-          {copy.submit}
-        </Button>
-      </form>
-    </AuthCard>
-  );
+                <Button
+                    type="submit"
+                    tone="forest"
+                    size="lg"
+                    className="self-start"
+                >
+                    {copy.submit}
+                </Button>
+            </form>
+        </AuthCard>
+    );
 }

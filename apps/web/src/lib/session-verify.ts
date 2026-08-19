@@ -23,32 +23,35 @@ import type { BackendAuthResponse } from "@/api/types/user";
 const VERIFY_TIMEOUT_MS = 1000;
 
 export type SessionCheck =
-  /** The backend confirmed it, and handed back a rotated session to write. */
-  | { state: "valid"; session: BackendAuthResponse }
-  /** The backend rejected the token outright. This is a real sign-out. */
-  | { state: "rejected" }
-  /** Nobody could say. The caller must fail open — see `proxy.ts`. */
-  | { state: "unavailable" };
+    /** The backend confirmed it, and handed back a rotated session to write. */
+    | { state: "valid"; session: BackendAuthResponse }
+    /** The backend rejected the token outright. This is a real sign-out. */
+    | { state: "rejected" }
+    /** Nobody could say. The caller must fail open — see `proxy.ts`. */
+    | { state: "unavailable" };
 
 export async function verifySession(
-  refreshToken: string,
+    refreshToken: string,
 ): Promise<SessionCheck> {
-  const result = await internalApiFetch<BackendAuthResponse>("/auth/refresh", {
-    method: "POST",
-    body: JSON.stringify({ refreshToken }),
-    signal: AbortSignal.timeout(VERIFY_TIMEOUT_MS),
-  });
+    const result = await internalApiFetch<BackendAuthResponse>(
+        "/auth/refresh",
+        {
+            method: "POST",
+            body: JSON.stringify({ refreshToken }),
+            signal: AbortSignal.timeout(VERIFY_TIMEOUT_MS),
+        },
+    );
 
-  if (result.ok && result.data) {
-    return { state: "valid", session: result.data };
-  }
+    if (result.ok && result.data) {
+        return { state: "valid", session: result.data };
+    }
 
-  if (result.status === 401) {
-    return { state: "rejected" };
-  }
+    if (result.status === 401) {
+        return { state: "rejected" };
+    }
 
-  // Status 0 is a timeout or an unreachable backend; a 5xx or a rate limit is
-  // the backend refusing to answer. None of them are evidence that the session
-  // is gone.
-  return { state: "unavailable" };
+    // Status 0 is a timeout or an unreachable backend; a 5xx or a rate limit is
+    // the backend refusing to answer. None of them are evidence that the session
+    // is gone.
+    return { state: "unavailable" };
 }

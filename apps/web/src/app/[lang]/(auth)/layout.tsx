@@ -13,26 +13,29 @@ import { homePath } from "@/lib/routes";
  * through.
  */
 export default async function AuthLayout({
-  children,
-  params,
+    children,
+    params,
 }: LayoutProps<"/[lang]">) {
-  const { lang, dict } = await localePage(params);
+    const { lang, dict } = await localePage(params);
 
-  return (
-    <main className="flex min-h-dvh flex-col gap-10 px-5 py-8 sm:px-8 sm:py-12">
-      <div className="mx-auto flex w-full max-w-[1080px] items-center gap-4">
-        <Link href={homePath(lang)} className={`${focusRing} no-underline`}>
-          <Logo withMark />
-        </Link>
-        <LanguageSwitcher
-          current={lang}
-          label={dict.nav.languageLabel}
-          className="ml-auto"
-        />
-      </div>
-      <div className="mx-auto flex w-full max-w-[1080px] flex-1 flex-col justify-center">
-        {children}
-      </div>
-    </main>
-  );
+    return (
+        <main className="flex min-h-dvh flex-col gap-10 px-5 py-8 sm:px-8 sm:py-12">
+            <div className="mx-auto flex w-full max-w-[1080px] items-center gap-4">
+                <Link
+                    href={homePath(lang)}
+                    className={`${focusRing} no-underline`}
+                >
+                    <Logo withMark />
+                </Link>
+                <LanguageSwitcher
+                    current={lang}
+                    label={dict.nav.languageLabel}
+                    className="ml-auto"
+                />
+            </div>
+            <div className="mx-auto flex w-full max-w-[1080px] flex-1 flex-col justify-center">
+                {children}
+            </div>
+        </main>
+    );
 }

@@ -4,8 +4,8 @@ import type { Dictionary } from "@/dictionaries";
 import { cn } from "@/lib/cn";
 
 type RankMeterProps = {
-  copy: Dictionary["table"];
-  className?: string;
+    copy: Dictionary["table"];
+    className?: string;
 };
 
 /**
@@ -25,40 +25,40 @@ type RankMeterProps = {
  * a 76px bar.
  */
 export default function RankMeter({ copy, className }: RankMeterProps) {
-  const filled = [true, true, true, false, false];
+    const filled = [true, true, true, false, false];
 
-  return (
-    <div className={cn("shrink-0 flex-col items-end gap-[3px]", className)}>
-      <div className="flex items-baseline gap-2">
-        <strong className="font-display text-[20px] leading-none font-extrabold tracking-[-.04em] text-cream">
-          {mockTable.rating}
-        </strong>
-        <MockLabel className="text-[10px] tracking-[.12em] text-ash">
-          {mockTable.band}
-        </MockLabel>
-      </div>
+    return (
+        <div className={cn("shrink-0 flex-col items-end gap-[3px]", className)}>
+            <div className="flex items-baseline gap-2">
+                <strong className="font-display text-[20px] leading-none font-extrabold tracking-[-.04em] text-cream">
+                    {mockTable.rating}
+                </strong>
+                <MockLabel className="text-[10px] tracking-[.12em] text-ash">
+                    {mockTable.band}
+                </MockLabel>
+            </div>
 
-      <div
-        role="img"
-        aria-label={`${copy.progressLabel}: ${copy.rankProgress.replace("{rank}", mockTable.rank)}`}
-        className="flex w-[132px] gap-[3px]"
-      >
-        {filled.map((isFilled, index) => (
-          <span
-            key={index}
-            className={cn(
-              "h-[7px] flex-1 border-[1.5px] border-ink",
-              isFilled ? "bg-rust" : "bg-moss",
-            )}
-          />
-        ))}
-      </div>
+            <div
+                role="img"
+                aria-label={`${copy.progressLabel}: ${copy.rankProgress.replace("{rank}", mockTable.rank)}`}
+                className="flex w-[132px] gap-[3px]"
+            >
+                {filled.map((isFilled, index) => (
+                    <span
+                        key={index}
+                        className={cn(
+                            "h-[7px] flex-1 border-[1.5px] border-ink",
+                            isFilled ? "bg-rust" : "bg-moss",
+                        )}
+                    />
+                ))}
+            </div>
 
-      {/* The season countdown is the reason to care about the bar above it, so
+            {/* The season countdown is the reason to care about the bar above it, so
           it goes when there is no room to say why. */}
-      <MockLabel className="hidden whitespace-nowrap text-[9px] tracking-[.1em] text-ash/70 xl:block">
-        {copy.seasonLabel}
-      </MockLabel>
-    </div>
-  );
+            <MockLabel className="hidden whitespace-nowrap text-[9px] tracking-[.1em] text-ash/70 xl:block">
+                {copy.seasonLabel}
+            </MockLabel>
+        </div>
+    );
 }

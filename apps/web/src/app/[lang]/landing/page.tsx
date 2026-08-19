@@ -20,33 +20,33 @@ import { landingPath } from "@/lib/routes";
  * redirect on `/`.
  */
 export const generateMetadata = localeMetadata((_dict, lang) => ({
-  alternates: {
-    canonical: landingPath(lang),
-    languages: {
-      ...Object.fromEntries(
-        locales.map((locale) => [locale, landingPath(locale)]),
-      ),
-      "x-default": landingPath("en"),
+    alternates: {
+        canonical: landingPath(lang),
+        languages: {
+            ...Object.fromEntries(
+                locales.map((locale) => [locale, landingPath(locale)]),
+            ),
+            "x-default": landingPath("en"),
+        },
     },
-  },
 }));
 
 export default async function Page({ params }: PageProps<"/[lang]/landing">) {
-  // Loaded once here and handed down as props, so the sections stay plain
-  // presentational components with no locale plumbing of their own.
-  const { lang, dict } = await localePage(params);
+    // Loaded once here and handed down as props, so the sections stay plain
+    // presentational components with no locale plumbing of their own.
+    const { lang, dict } = await localePage(params);
 
-  return (
-    <>
-      <SiteHeader copy={dict.nav} cta={dict.cta} locale={lang} />
-      <main>
-        <Hero copy={dict.hero} cta={dict.cta} locale={lang} />
-        <RankedSection copy={dict.ranked} />
-        <LeaderboardSection copy={dict.leaderboard} locale={lang} />
-        <FaqSection copy={dict.faq} />
-        <ClosingSection copy={dict.closing} locale={lang} />
-      </main>
-      <SiteFooter copy={dict.footer} locale={lang} />
-    </>
-  );
+    return (
+        <>
+            <SiteHeader copy={dict.nav} cta={dict.cta} locale={lang} />
+            <main>
+                <Hero copy={dict.hero} cta={dict.cta} locale={lang} />
+                <RankedSection copy={dict.ranked} />
+                <LeaderboardSection copy={dict.leaderboard} locale={lang} />
+                <FaqSection copy={dict.faq} />
+                <ClosingSection copy={dict.closing} locale={lang} />
+            </main>
+            <SiteFooter copy={dict.footer} locale={lang} />
+        </>
+    );
 }

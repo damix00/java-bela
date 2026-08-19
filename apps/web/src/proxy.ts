@@ -1,19 +1,19 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import {
-  LOCALE_COOKIE,
-  defaultLocale,
-  isLocale,
-  matchLocale,
-  type Locale,
+    LOCALE_COOKIE,
+    defaultLocale,
+    isLocale,
+    matchLocale,
+    type Locale,
 } from "@/lib/i18n";
 import { homePath, safeReturnPath, signInPathWithReturn } from "@/lib/routes";
 import {
-  ACCESS_TOKEN_COOKIE,
-  REFRESH_TOKEN_COOKIE,
-  accessTokenExpiryMs,
-  clearSessionCookies,
-  setSessionCookies,
+    ACCESS_TOKEN_COOKIE,
+    REFRESH_TOKEN_COOKIE,
+    accessTokenExpiryMs,
+    clearSessionCookies,
+    setSessionCookies,
 } from "@/lib/session-cookies";
 import { verifySession } from "@/lib/session-verify";
 
@@ -33,21 +33,21 @@ import { verifySession } from "@/lib/session-verify";
  * one, and remembers where they were going.
  */
 export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+    const { pathname } = request.nextUrl;
 
-  const [, firstSegment = "", section = ""] = pathname.split("/");
+    const [, firstSegment = "", section = ""] = pathname.split("/");
 
-  if (!isLocale(firstSegment)) {
-    const url = request.nextUrl.clone();
-    url.pathname = `/${resolveLocale(request)}${pathname}`;
-    return NextResponse.redirect(url, 307);
-  }
+    if (!isLocale(firstSegment)) {
+        const url = request.nextUrl.clone();
+        url.pathname = `/${resolveLocale(request)}${pathname}`;
+        return NextResponse.redirect(url, 307);
+    }
 
-  if (!isGated(section)) {
-    return;
-  }
+    if (!isGated(section)) {
+        return;
+    }
 
-  return guard(request, firstSegment);
+    return guard(request, firstSegment);
 }
 
 /**
@@ -61,7 +61,7 @@ export async function proxy(request: NextRequest) {
 const gatedSections = new Set(["play", "welcome", "username"]);
 
 function isGated(section: string) {
-  return gatedSections.has(section);
+    return gatedSections.has(section);
 }
 
 /**
@@ -81,32 +81,32 @@ function isGated(section: string) {
  * call still has to satisfy the backend.
  */
 async function guard(request: NextRequest, locale: Locale) {
-  const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
-  if (!refreshToken) {
-    return signOut(request, locale);
-  }
+    const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
+    if (!refreshToken) {
+        return signOut(request, locale);
+    }
 
-  const accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
-  if (accessToken && accessTokenExpiryMs(accessToken) > Date.now()) {
-    return;
-  }
+    const accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
+    if (accessToken && accessTokenExpiryMs(accessToken) > Date.now()) {
+        return;
+    }
 
-  const check = await verifySession(refreshToken);
+    const check = await verifySession(refreshToken);
 
-  if (check.state === "rejected") {
-    return signOut(request, locale, { clearCookies: true });
-  }
+    if (check.state === "rejected") {
+        return signOut(request, locale, { clearCookies: true });
+    }
 
-  if (check.state === "unavailable") {
-    return;
-  }
+    if (check.state === "unavailable") {
+        return;
+    }
 
-  // The rotation that proved the session is also a fresh one, so the cookies go
-  // out with this response rather than being thrown away and re-fetched by the
-  // page. Without this the very next request would verify all over again.
-  const response = NextResponse.next();
-  setSessionCookies(response.cookies, check.session);
-  return response;
+    // The rotation that proved the session is also a fresh one, so the cookies go
+    // out with this response rather than being thrown away and re-fetched by the
+    // page. Without this the very next request would verify all over again.
+    const response = NextResponse.next();
+    setSessionCookies(response.cookies, check.session);
+    return response;
 }
 
 /**
@@ -118,24 +118,24 @@ async function guard(request: NextRequest, locale: Locale) {
  * returning to one is a loop — so those visitors get the plain sign-in screen.
  */
 function signOut(
-  request: NextRequest,
-  locale: Locale,
-  { clearCookies = false } = {},
+    request: NextRequest,
+    locale: Locale,
+    { clearCookies = false } = {},
 ) {
-  const { pathname, search } = request.nextUrl;
-  const returnTo = safeReturnPath(`${pathname}${search}`, locale);
+    const { pathname, search } = request.nextUrl;
+    const returnTo = safeReturnPath(`${pathname}${search}`, locale);
 
-  const destination = returnTo
-    ? signInPathWithReturn(locale, returnTo)
-    : homePath(locale);
+    const destination = returnTo
+        ? signInPathWithReturn(locale, returnTo)
+        : homePath(locale);
 
-  const response = NextResponse.redirect(new URL(destination, request.url));
+    const response = NextResponse.redirect(new URL(destination, request.url));
 
-  if (clearCookies) {
-    clearSessionCookies(response.cookies);
-  }
+    if (clearCookies) {
+        clearSessionCookies(response.cookies);
+    }
 
-  return response;
+    return response;
 }
 
 /**
@@ -143,14 +143,14 @@ function signOut(
  * language from the switcher meant it, whatever their headers say.
  */
 function resolveLocale(request: NextRequest) {
-  const chosen = request.cookies.get(LOCALE_COOKIE)?.value;
-  if (chosen && isLocale(chosen)) return chosen;
+    const chosen = request.cookies.get(LOCALE_COOKIE)?.value;
+    if (chosen && isLocale(chosen)) return chosen;
 
-  return matchLocale(request.headers.get("accept-language")) ?? defaultLocale;
+    return matchLocale(request.headers.get("accept-language")) ?? defaultLocale;
 }
 
 export const config = {
-  // Everything except Next internals, API routes and files with an extension —
-  // without this, CSS, JS and images would be redirected too.
-  matcher: ["/((?!_next|api|.*\\..*).*)"],
+    // Everything except Next internals, API routes and files with an extension —
+    // without this, CSS, JS and images would be redirected too.
+    matcher: ["/((?!_next|api|.*\\..*).*)"],
 };

@@ -40,7 +40,8 @@ export default function LanguageSwitcher({
             className={cn(
                 "flex border-[3px] border-ink bg-cream font-display text-[13px]",
                 className,
-            )}>
+            )}
+        >
             {locales.map((locale) => {
                 const isCurrent = locale === current;
 
@@ -61,7 +62,8 @@ export default function LanguageSwitcher({
                             isCurrent
                                 ? "bg-ink font-bold text-cream"
                                 : "text-moss hover:bg-sage",
-                        )}>
+                        )}
+                    >
                         {locale}
                     </Link>
                 );

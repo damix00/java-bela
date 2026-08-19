@@ -15,8 +15,8 @@ export type Dictionary = typeof import("./en.json");
 // bundle for a given render. These are loaded from server components only, so
 // no dictionary ever reaches the client.
 const dictionaries: Record<Locale, () => Promise<Dictionary>> = {
-  en: () => import("./en.json").then((module) => module.default),
-  hr: () => import("./hr.json").then((module) => module.default),
+    en: () => import("./en.json").then((module) => module.default),
+    hr: () => import("./hr.json").then((module) => module.default),
 };
 
 /**
@@ -24,7 +24,7 @@ const dictionaries: Record<Locale, () => Promise<Dictionary>> = {
  * `generateMetadata` and its component pays for it once.
  */
 export const getDictionary = cache(
-  (locale: Locale): Promise<Dictionary> => dictionaries[locale](),
+    (locale: Locale): Promise<Dictionary> => dictionaries[locale](),
 );
 
 /**
@@ -36,9 +36,9 @@ export const getDictionary = cache(
  * `string` to `Locale` for everything downstream.
  */
 export async function localePage(params: Promise<{ lang: string }>) {
-  const { lang } = await params;
+    const { lang } = await params;
 
-  if (!isLocale(lang)) notFound();
+    if (!isLocale(lang)) notFound();
 
-  return { lang, dict: await getDictionary(lang) };
+    return { lang, dict: await getDictionary(lang) };
 }

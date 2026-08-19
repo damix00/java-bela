@@ -9,16 +9,16 @@ import { cn } from "@/lib/cn";
 import { focusRing } from "@/lib/styles";
 
 type ModalProps = {
-  children: ReactNode;
-  /** Accessible name for the close control. Unused when `dismissible` is false. */
-  closeLabel: string;
-  /**
-   * Whether the player can wave the dialog away. False makes it a gate: no
-   * close button, `Esc` does nothing, and a backdrop click does nothing. The
-   * way out is through the dialog's own controls.
-   */
-  dismissible?: boolean;
-  className?: string;
+    children: ReactNode;
+    /** Accessible name for the close control. Unused when `dismissible` is false. */
+    closeLabel: string;
+    /**
+     * Whether the player can wave the dialog away. False makes it a gate: no
+     * close button, `Esc` does nothing, and a backdrop click does nothing. The
+     * way out is through the dialog's own controls.
+     */
+    dismissible?: boolean;
+    className?: string;
 };
 
 /**
@@ -46,132 +46,138 @@ type ModalProps = {
  * and only then unwinds history.
  */
 export default function Modal({
-  children,
-  closeLabel,
-  dismissible = true,
-  className,
+    children,
+    closeLabel,
+    dismissible = true,
+    className,
 }: ModalProps) {
-  const router = useRouter();
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const [scope, animate] = useAnimate<HTMLDivElement>();
-  const reduceMotion = useReducedMotion();
-  // A modal can be dismissed twice in the time the exit takes to play — `Esc`
-  // on the way to a backdrop click. Two `router.back()` calls unwind two
-  // entries, which would throw the player a screen further back than they
-  // asked to go.
-  const closing = useRef(false);
+    const router = useRouter();
+    const dialogRef = useRef<HTMLDialogElement>(null);
+    const [scope, animate] = useAnimate<HTMLDivElement>();
+    const reduceMotion = useReducedMotion();
+    // A modal can be dismissed twice in the time the exit takes to play — `Esc`
+    // on the way to a backdrop click. Two `router.back()` calls unwind two
+    // entries, which would throw the player a screen further back than they
+    // asked to go.
+    const closing = useRef(false);
 
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    // Opened imperatively, not via the `open` attribute: only `showModal()`
-    // promotes the dialog to the top layer and makes the rest of the page inert.
-    if (dialog && !dialog.open) dialog.showModal();
-  }, []);
+    useEffect(() => {
+        const dialog = dialogRef.current;
+        // Opened imperatively, not via the `open` attribute: only `showModal()`
+        // promotes the dialog to the top layer and makes the rest of the page inert.
+        if (dialog && !dialog.open) dialog.showModal();
+    }, []);
 
-  // A gate has to hold `Esc` shut, and the `cancel` event alone doesn't do it.
-  // Chrome routes the key through a close watcher whose `cancel` is only
-  // cancellable when the page has been interacted with, so a dialog opened for
-  // the player — as this one is, a beat after the table lands — can be escaped
-  // once for free. Swallowing the key before the watcher sees it closes that
-  // hole, and re-showing on `close` covers anything that still gets through.
-  useEffect(() => {
-    if (dismissible) return;
-    const dialog = dialogRef.current;
-    if (!dialog) return;
+    // A gate has to hold `Esc` shut, and the `cancel` event alone doesn't do it.
+    // Chrome routes the key through a close watcher whose `cancel` is only
+    // cancellable when the page has been interacted with, so a dialog opened for
+    // the player — as this one is, a beat after the table lands — can be escaped
+    // once for free. Swallowing the key before the watcher sees it closes that
+    // hole, and re-showing on `close` covers anything that still gets through.
+    useEffect(() => {
+        if (dismissible) return;
+        const dialog = dialogRef.current;
+        if (!dialog) return;
 
-    const swallowEscape = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      event.stopPropagation();
-    };
-    const reopen = () => {
-      if (!dialog.open) dialog.showModal();
-    };
+        const swallowEscape = (event: KeyboardEvent) => {
+            if (event.key !== "Escape") return;
+            event.preventDefault();
+            event.stopPropagation();
+        };
+        const reopen = () => {
+            if (!dialog.open) dialog.showModal();
+        };
 
-    dialog.addEventListener("keydown", swallowEscape, { capture: true });
-    document.addEventListener("keydown", swallowEscape, { capture: true });
-    dialog.addEventListener("close", reopen);
+        dialog.addEventListener("keydown", swallowEscape, { capture: true });
+        document.addEventListener("keydown", swallowEscape, { capture: true });
+        dialog.addEventListener("close", reopen);
 
-    return () => {
-      dialog.removeEventListener("keydown", swallowEscape, { capture: true });
-      document.removeEventListener("keydown", swallowEscape, { capture: true });
-      dialog.removeEventListener("close", reopen);
-    };
-  }, [dismissible]);
+        return () => {
+            dialog.removeEventListener("keydown", swallowEscape, {
+                capture: true,
+            });
+            document.removeEventListener("keydown", swallowEscape, {
+                capture: true,
+            });
+            dialog.removeEventListener("close", reopen);
+        };
+    }, [dismissible]);
 
-  const close = useCallback(async () => {
-    if (closing.current) return;
-    closing.current = true;
+    const close = useCallback(async () => {
+        if (closing.current) return;
+        closing.current = true;
 
-    if (!reduceMotion) {
-      // The only channel to the backdrop: it is a pseudo-element, so CSS in
-      // `globals.css` runs its half of the exit off this attribute.
-      dialogRef.current?.setAttribute("data-closing", "true");
-      await animate(
-        scope.current,
-        { opacity: 0, scale: 0.97, y: 8 },
-        { duration: 0.14, ease: "easeIn" },
-      );
-    }
+        if (!reduceMotion) {
+            // The only channel to the backdrop: it is a pseudo-element, so CSS in
+            // `globals.css` runs its half of the exit off this attribute.
+            dialogRef.current?.setAttribute("data-closing", "true");
+            await animate(
+                scope.current,
+                { opacity: 0, scale: 0.97, y: 8 },
+                { duration: 0.14, ease: "easeIn" },
+            );
+        }
 
-    router.back();
-  }, [animate, reduceMotion, router, scope]);
+        router.back();
+    }, [animate, reduceMotion, router, scope]);
 
-  return (
-    <dialog
-      ref={dialogRef}
-      // `Esc` fires `cancel` and would otherwise close the dialog while leaving
-      // the URL on the modal route, stranding the two out of step.
-      onCancel={(event) => {
-        // Always prevented: `Esc` would otherwise close the dialog and leave
-        // the URL on the modal route, stranding the two out of step. On a gate
-        // that is the whole handling — the key does nothing at all.
-        event.preventDefault();
-        if (dismissible) void close();
-      }}
-      // The backdrop is part of the dialog's own box, so a click landing on the
-      // element itself — rather than bubbling up from the content — is a
-      // backdrop click.
-      onClick={(event) => {
-        if (!dismissible) return;
-        if (event.target === dialogRef.current) void close();
-      }}
-      className={cn(
-        "modal-shell",
-        "m-auto max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-[1080px]",
-        "overflow-y-auto overscroll-contain bg-transparent p-0",
-        "backdrop:bg-ink/70",
-        className,
-      )}
-    >
-      {/* `relative` so the close button anchors to the content, not the
+    return (
+        <dialog
+            ref={dialogRef}
+            // `Esc` fires `cancel` and would otherwise close the dialog while leaving
+            // the URL on the modal route, stranding the two out of step.
+            onCancel={(event) => {
+                // Always prevented: `Esc` would otherwise close the dialog and leave
+                // the URL on the modal route, stranding the two out of step. On a gate
+                // that is the whole handling — the key does nothing at all.
+                event.preventDefault();
+                if (dismissible) void close();
+            }}
+            // The backdrop is part of the dialog's own box, so a click landing on the
+            // element itself — rather than bubbling up from the content — is a
+            // backdrop click.
+            onClick={(event) => {
+                if (!dismissible) return;
+                if (event.target === dialogRef.current) void close();
+            }}
+            className={cn(
+                "modal-shell",
+                "m-auto max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-[1080px]",
+                "overflow-y-auto overscroll-contain bg-transparent p-0",
+                "backdrop:bg-ink/70",
+                className,
+            )}
+        >
+            {/* `relative` so the close button anchors to the content, not the
           scroll container — otherwise it drifts away on a tall form.
 
           The panel rises a little as it fades in rather than only fading: the
           blocks on this page are physical, and one that materialises in place
           reads as a texture change instead of a thing arriving. */}
-      <motion.div
-        ref={scope}
-        initial={reduceMotion ? false : { opacity: 0, scale: 0.96, y: 14 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-        className="relative"
-      >
-        {dismissible && (
-          <button
-            type="button"
-            onClick={() => void close()}
-            aria-label={closeLabel}
-            className={cn(
-              focusRing,
-              "absolute top-3 right-3 z-10 cursor-pointer border-[3px] border-ink bg-cream p-1.5 text-ink",
-            )}
-          >
-            <X size={18} strokeWidth={3} aria-hidden />
-          </button>
-        )}
-        {children}
-      </motion.div>
-    </dialog>
-  );
+            <motion.div
+                ref={scope}
+                initial={
+                    reduceMotion ? false : { opacity: 0, scale: 0.96, y: 14 }
+                }
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className="relative"
+            >
+                {dismissible && (
+                    <button
+                        type="button"
+                        onClick={() => void close()}
+                        aria-label={closeLabel}
+                        className={cn(
+                            focusRing,
+                            "absolute top-3 right-3 z-10 cursor-pointer border-[3px] border-ink bg-cream p-1.5 text-ink",
+                        )}
+                    >
+                        <X size={18} strokeWidth={3} aria-hidden />
+                    </button>
+                )}
+                {children}
+            </motion.div>
+        </dialog>
+    );
 }

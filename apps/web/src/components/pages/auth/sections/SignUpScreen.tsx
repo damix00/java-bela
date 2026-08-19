@@ -65,7 +65,11 @@ export default function SignUpScreen({
         defaultValues: { username: "", email: "", password: "", terms: false },
     });
 
-    const { submit, pending, error } = useAuthSubmit(locale, form.errors, returnTo);
+    const { submit, pending, error } = useAuthSubmit(
+        locale,
+        form.errors,
+        returnTo,
+    );
 
     // The rule under the field fills in as it is met, so the password is watched
     // rather than only read at submit. `useWatch` rather than `watch`: it
@@ -88,7 +92,8 @@ export default function SignUpScreen({
                     </Heading>
                     <PerkList items={copy.perks} />
                 </>
-            }>
+            }
+        >
             <div className="flex flex-col gap-2">
                 <Heading as="h1" size="cardHero">
                     {copy.heading}
@@ -99,7 +104,8 @@ export default function SignUpScreen({
                         replace
                         href={withReturn(authPath(locale, "signIn"), returnTo)}
                         hardNavigation={standalone}
-                        className="text-[17px] font-bold">
+                        className="text-[17px] font-bold"
+                    >
                         {copy.signIn}
                     </TextLink>
                     .
@@ -119,7 +125,8 @@ export default function SignUpScreen({
                         form.errors.signUpFailed,
                     ),
                 )}
-                className="contents">
+                className="contents"
+            >
                 {error && <FormError>{error}</FormError>}
 
                 {/* The account needs a name up front: the API's register call writes a
@@ -127,7 +134,8 @@ export default function SignUpScreen({
                 <Field
                     htmlFor="username"
                     label={common.username}
-                    error={errors.username?.message}>
+                    error={errors.username?.message}
+                >
                     <Input
                         id="username"
                         autoComplete="username"
@@ -139,7 +147,8 @@ export default function SignUpScreen({
                 <Field
                     htmlFor="email"
                     label={common.email}
-                    error={errors.email?.message}>
+                    error={errors.email?.message}
+                >
                     <Input
                         id="email"
                         type="email"
@@ -154,7 +163,8 @@ export default function SignUpScreen({
                     htmlFor="password"
                     label={common.password}
                     error={errors.password?.message}
-                    hint={<RuleLine met={ruleMet}>{copy.rule}</RuleLine>}>
+                    hint={<RuleLine met={ruleMet}>{copy.rule}</RuleLine>}
+                >
                     <PasswordInput
                         id="password"
                         autoComplete="new-password"
@@ -170,19 +180,22 @@ export default function SignUpScreen({
                 <div className="flex flex-col gap-[7px]">
                     <Checkbox
                         {...invalidProps("terms", errors.terms)}
-                        {...register("terms")}>
+                        {...register("terms")}
+                    >
                         {copy.agreeLead}{" "}
                         <TextLink
                             hardNavigation
                             href={legalPath(locale, "terms")}
-                            weight="semibold">
+                            weight="semibold"
+                        >
                             {copy.terms}
                         </TextLink>{" "}
                         {copy.agreeMid}{" "}
                         <TextLink
                             hardNavigation
                             href={legalPath(locale, "privacy")}
-                            weight="semibold">
+                            weight="semibold"
+                        >
                             {copy.privacy}
                         </TextLink>
                         .
@@ -199,7 +212,8 @@ export default function SignUpScreen({
                     tone="rust"
                     size="lg"
                     disabled={pending}
-                    className="py-[17px] text-[18px] disabled:cursor-wait disabled:opacity-70">
+                    className="py-[17px] text-[18px] disabled:cursor-wait disabled:opacity-70"
+                >
                     {copy.submit}
                 </Button>
             </form>

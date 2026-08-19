@@ -46,7 +46,7 @@
 // pins that outer edge to the same screen position in both states, so the band
 // closes and the hit area only ever gains ground.
 const hitAreaBase =
-  "relative after:absolute after:top-0 after:left-0 after:content-['']";
+    "relative after:absolute after:top-0 after:left-0 after:content-['']";
 /** 3px border + 2px travel, + 2px more to stay put while hovered. */
 const hitAreaSm = `${hitAreaBase} after:-right-[5px] after:-bottom-[5px] hover:after:-right-[7px] hover:after:-bottom-[7px]`;
 /** 4px border + 3px travel, + 3px more to stay put while hovered. */
@@ -66,7 +66,7 @@ export const hitAreaJoined = hitAreaMd;
 // block snapping instantly while only its shadow steps — the two halves of the
 // effect come apart.
 const pressBase =
-  "transition-[translate,box-shadow] duration-[80ms] ease-[steps(2)] motion-reduce:transition-none motion-reduce:hover:translate-x-0 motion-reduce:hover:translate-y-0 motion-reduce:active:translate-x-0 motion-reduce:active:translate-y-0";
+    "transition-[translate,box-shadow] duration-[80ms] ease-[steps(2)] motion-reduce:transition-none motion-reduce:hover:translate-x-0 motion-reduce:hover:translate-y-0 motion-reduce:active:translate-x-0 motion-reduce:active:translate-y-0";
 
 /** Press physics for a 5px-shadow block. */
 export const pressSm = `${hitAreaSm} ${pressBase} hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-[7px_7px_0_var(--color-ink)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[3px_3px_0_var(--color-ink)]`;
@@ -85,11 +85,11 @@ export const pressLg = `${hitAreaLg} ${pressBase} hover:-translate-x-[4px] hover
  * is also a hover, so it would otherwise never win.
  */
 export const pressOnButton =
-  "transition-[translate,box-shadow] duration-[80ms] ease-[steps(2)] has-[button:hover]:-translate-x-[3px] has-[button:hover]:-translate-y-[3px] has-[button:hover]:shadow-[9px_9px_0_var(--color-ink)] has-[button:active]:translate-x-[3px]! has-[button:active]:translate-y-[3px]! has-[button:active]:shadow-[3px_3px_0_var(--color-ink)]! motion-reduce:transition-none motion-reduce:has-[button:hover]:translate-x-0 motion-reduce:has-[button:hover]:translate-y-0 motion-reduce:has-[button:active]:translate-x-0! motion-reduce:has-[button:active]:translate-y-0!";
+    "transition-[translate,box-shadow] duration-[80ms] ease-[steps(2)] has-[button:hover]:-translate-x-[3px] has-[button:hover]:-translate-y-[3px] has-[button:hover]:shadow-[9px_9px_0_var(--color-ink)] has-[button:active]:translate-x-[3px]! has-[button:active]:translate-y-[3px]! has-[button:active]:shadow-[3px_3px_0_var(--color-ink)]! motion-reduce:transition-none motion-reduce:has-[button:hover]:translate-x-0 motion-reduce:has-[button:hover]:translate-y-0 motion-reduce:has-[button:active]:translate-x-0! motion-reduce:has-[button:active]:translate-y-0!";
 
 /** Thick offset outline, matching the 4px ink borders. */
 export const focusRing =
-  "focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-rust";
+    "focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-rust";
 
 // Fields. The ink frame is the same 4px rule the cards and buttons are drawn
 // with, so a control reads as another block on the page rather than a widget
@@ -121,7 +121,7 @@ export const inputBare = `${inputType} w-full min-w-0 border-none bg-transparent
  * other, not a pair of one-off greys that read as a surface of their own.
  */
 export const hatch =
-  "bg-[repeating-linear-gradient(45deg,var(--color-canvas)_0_10px,var(--color-sage)_10px_20px)]";
+    "bg-[repeating-linear-gradient(45deg,var(--color-canvas)_0_10px,var(--color-sage)_10px_20px)]";
 
 /**
  * The signed-in surfaces' horizontal frame, shared by the top bar, the lobby

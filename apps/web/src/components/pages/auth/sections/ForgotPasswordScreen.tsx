@@ -18,73 +18,81 @@ import type { Dictionary } from "@/dictionaries";
 import type { Locale } from "@/lib/i18n";
 import { authPath } from "@/lib/routes";
 import {
-  forgotPasswordSchema,
-  type ForgotPasswordValues,
+    forgotPasswordSchema,
+    type ForgotPasswordValues,
 } from "@/lib/validation";
 
 type ForgotPasswordScreenProps = {
-  copy: Dictionary["auth"]["forgot"];
-  common: Dictionary["auth"]["common"];
-  form: Dictionary["form"];
-  locale: Locale;
+    copy: Dictionary["auth"]["forgot"];
+    common: Dictionary["auth"]["common"];
+    form: Dictionary["form"];
+    locale: Locale;
 };
 
 export default function ForgotPasswordScreen({
-  copy,
-  common,
-  form,
-  locale,
+    copy,
+    common,
+    form,
+    locale,
 }: ForgotPasswordScreenProps) {
-  const schema = useMemo(() => forgotPasswordSchema(form.errors), [form.errors]);
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<ForgotPasswordValues>({
-    resolver: zodResolver(schema),
-    defaultValues: { email: "" },
-  });
+    const schema = useMemo(
+        () => forgotPasswordSchema(form.errors),
+        [form.errors],
+    );
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<ForgotPasswordValues>({
+        resolver: zodResolver(schema),
+        defaultValues: { email: "" },
+    });
 
-  return (
-    <AuthCard className="mx-auto max-w-[560px]">
-      <TextLink
-        href={authPath(locale, "signIn")}
-        weight="semibold"
-        className="flex items-center gap-2 self-start text-[12px] tracking-[.06em] uppercase"
-      >
-        <Icon glyph={ArrowLeft} size="sm" />
-        {common.backToSignIn}
-      </TextLink>
+    return (
+        <AuthCard className="mx-auto max-w-[560px]">
+            <TextLink
+                href={authPath(locale, "signIn")}
+                weight="semibold"
+                className="flex items-center gap-2 self-start text-[12px] tracking-[.06em] uppercase"
+            >
+                <Icon glyph={ArrowLeft} size="sm" />
+                {common.backToSignIn}
+            </TextLink>
 
-      <Heading as="h1" size="cardHero">
-        {copy.heading}
-      </Heading>
-      <Text size="md">{copy.body}</Text>
+            <Heading as="h1" size="cardHero">
+                {copy.heading}
+            </Heading>
+            <Text size="md">{copy.body}</Text>
 
-      <form
-        noValidate
-        onSubmit={handleSubmit(onSubmitPlaceholder)}
-        className="contents"
-      >
-        <Field
-          htmlFor="email"
-          label={common.email}
-          error={errors.email?.message}
-        >
-          <Input
-            id="email"
-            type="email"
-            autoComplete="email"
-            placeholder={form.emailPlaceholder}
-            {...invalidProps("email", errors.email)}
-            {...register("email")}
-          />
-        </Field>
+            <form
+                noValidate
+                onSubmit={handleSubmit(onSubmitPlaceholder)}
+                className="contents"
+            >
+                <Field
+                    htmlFor="email"
+                    label={common.email}
+                    error={errors.email?.message}
+                >
+                    <Input
+                        id="email"
+                        type="email"
+                        autoComplete="email"
+                        placeholder={form.emailPlaceholder}
+                        {...invalidProps("email", errors.email)}
+                        {...register("email")}
+                    />
+                </Field>
 
-        <Button type="submit" tone="forest" size="lg" className="self-start">
-          {copy.submit}
-        </Button>
-      </form>
-    </AuthCard>
-  );
+                <Button
+                    type="submit"
+                    tone="forest"
+                    size="lg"
+                    className="self-start"
+                >
+                    {copy.submit}
+                </Button>
+            </form>
+        </AuthCard>
+    );
 }

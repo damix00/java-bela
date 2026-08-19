@@ -26,7 +26,8 @@ export default function SiteHeader({ copy, cta, locale }: SiteHeaderProps) {
                     key={link.href}
                     href={link.href}
                     weight="semibold"
-                    className="hidden md:inline">
+                    className="hidden md:inline"
+                >
                     {link.label}
                 </TextLink>
             ))}
@@ -37,7 +38,8 @@ export default function SiteHeader({ copy, cta, locale }: SiteHeaderProps) {
             <ButtonLink
                 href={authPath(locale, "signUp")}
                 size="sm"
-                className="hidden sm:inline-block">
+                className="hidden sm:inline-block"
+            >
                 {cta.getStarted}
             </ButtonLink>
         </header>

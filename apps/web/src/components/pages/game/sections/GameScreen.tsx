@@ -10,9 +10,9 @@ import { appGutters } from "@/lib/styles";
 import { cn } from "@/lib/cn";
 
 type GameScreenProps = {
-  copy: Dictionary["game"];
-  gameId: string;
-  locale: Locale;
+    copy: Dictionary["game"];
+    gameId: string;
+    locale: Locale;
 };
 
 /**
@@ -24,30 +24,30 @@ type GameScreenProps = {
  * real and can be tested.
  */
 export default function GameScreen({ copy, gameId, locale }: GameScreenProps) {
-  return (
-    <main
-      className={cn(
-        "flex flex-1 flex-col justify-center py-10 md:py-16",
-        appGutters,
-      )}
-    >
-      <Card padding="lg" className="gap-5">
-        <Chip className="self-start">{gameId}</Chip>
-        <Heading as="h1" size="cardHero">
-          {copy.heading}
-        </Heading>
-        <Text size="md" className="max-w-[48ch]">
-          {copy.body}
-        </Text>
-        <ButtonLink
-          href={homePath(locale)}
-          tone="forest"
-          size="md"
-          className="self-start"
+    return (
+        <main
+            className={cn(
+                "flex flex-1 flex-col justify-center py-10 md:py-16",
+                appGutters,
+            )}
         >
-          {copy.back}
-        </ButtonLink>
-      </Card>
-    </main>
-  );
+            <Card padding="lg" className="gap-5">
+                <Chip className="self-start">{gameId}</Chip>
+                <Heading as="h1" size="cardHero">
+                    {copy.heading}
+                </Heading>
+                <Text size="md" className="max-w-[48ch]">
+                    {copy.body}
+                </Text>
+                <ButtonLink
+                    href={homePath(locale)}
+                    tone="forest"
+                    size="md"
+                    className="self-start"
+                >
+                    {copy.back}
+                </ButtonLink>
+            </Card>
+        </main>
+    );
 }

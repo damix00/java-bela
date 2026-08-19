@@ -22,18 +22,18 @@ import { homePath } from "@/lib/routes";
  * already produced a session, and are reached *because* you are signed in.
  */
 export async function guardCredentialScreen(
-  locale: Locale,
-  returnTo?: string | null,
+    locale: Locale,
+    returnTo?: string | null,
 ): Promise<User | null> {
-  const user = await getCurrentUser();
+    const user = await getCurrentUser();
 
-  if (user && !isGuest(user)) {
-    // `returnTo` is where the proxy was sending them before it found no session.
-    // Someone who turns out to have one after all belongs at that destination,
-    // not at the lobby — otherwise a stale tab that redirects here loses the
-    // table it was trying to rejoin.
-    redirect(returnTo ?? homePath(locale));
-  }
+    if (user && !isGuest(user)) {
+        // `returnTo` is where the proxy was sending them before it found no session.
+        // Someone who turns out to have one after all belongs at that destination,
+        // not at the lobby — otherwise a stale tab that redirects here loses the
+        // table it was trying to rejoin.
+        redirect(returnTo ?? homePath(locale));
+    }
 
-  return user;
+    return user;
 }

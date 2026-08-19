@@ -5,23 +5,23 @@ import { localeMetadata } from "@/lib/metadata";
 import { legalPath } from "@/lib/routes";
 
 export const generateMetadata = localeMetadata(async () => {
-  const doc = await getLegalDocument("privacy");
+    const doc = await getLegalDocument("privacy");
 
-  return {
-    title: doc.title,
-    description: doc.lede,
-    alternates: {
-      canonical: legalPath("en", "privacy"),
-      languages: {
-        en: legalPath("en", "privacy"),
-        "x-default": legalPath("en", "privacy"),
-      },
-    },
-  };
+    return {
+        title: doc.title,
+        description: doc.lede,
+        alternates: {
+            canonical: legalPath("en", "privacy"),
+            languages: {
+                en: legalPath("en", "privacy"),
+                "x-default": legalPath("en", "privacy"),
+            },
+        },
+    };
 });
 
 export default async function Page({ params }: PageProps<"/[lang]/privacy">) {
-  await localePage(params);
+    await localePage(params);
 
-  return <LegalDocument doc={await getLegalDocument("privacy")} />;
+    return <LegalDocument doc={await getLegalDocument("privacy")} />;
 }

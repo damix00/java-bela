@@ -13,23 +13,23 @@ import { guardCredentialScreen } from "@/lib/session-guards";
  * is shared rather than duplicated.
  */
 export default async function Page({
-  params,
-  searchParams,
+    params,
+    searchParams,
 }: PageProps<"/[lang]/sign-in">) {
-  const { lang, dict } = await localePage(params);
-  const returnTo = readReturnTo(await searchParams, lang);
-  const user = await guardCredentialScreen(lang, returnTo);
+    const { lang, dict } = await localePage(params);
+    const returnTo = readReturnTo(await searchParams, lang);
+    const user = await guardCredentialScreen(lang, returnTo);
 
-  return (
-    <Modal closeLabel={dict.auth.common.back} dismissible={false}>
-      <SignInScreen
-        copy={dict.auth.signIn}
-        common={dict.auth.common}
-        errors={dict.form.errors}
-        locale={lang}
-        showGuest={user === null}
-        returnTo={returnTo}
-      />
-    </Modal>
-  );
+    return (
+        <Modal closeLabel={dict.auth.common.back} dismissible={false}>
+            <SignInScreen
+                copy={dict.auth.signIn}
+                common={dict.auth.common}
+                errors={dict.form.errors}
+                locale={lang}
+                showGuest={user === null}
+                returnTo={returnTo}
+            />
+        </Modal>
+    );
 }

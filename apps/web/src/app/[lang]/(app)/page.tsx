@@ -10,8 +10,8 @@ import { authPath } from "@/lib/routes";
 // used to live on this URL is now at `/[lang]/landing`, which is what the
 // sitemap and the language alternates point at.
 export const generateMetadata = localeMetadata((dict) => ({
-  title: dict.lobby.title,
-  robots: { index: false, follow: true },
+    title: dict.lobby.title,
+    robots: { index: false, follow: true },
 }));
 
 /**
@@ -30,14 +30,18 @@ export const generateMetadata = localeMetadata((dict) => ({
  * route still exists — it is what a *click* from inside the app opens.
  */
 export default async function Page({ params }: PageProps<"/[lang]">) {
-  const { lang, dict } = await localePage(params);
-  const user = await getCurrentUser();
+    const { lang, dict } = await localePage(params);
+    const user = await getCurrentUser();
 
-  if (!user) {
-    redirect(authPath(lang, "signIn"));
-  }
+    if (!user) {
+        redirect(authPath(lang, "signIn"));
+    }
 
-  return (
-    <TableMockup copy={dict.table} errors={dict.form.errors} locale={lang} />
-  );
+    return (
+        <TableMockup
+            copy={dict.table}
+            errors={dict.form.errors}
+            locale={lang}
+        />
+    );
 }

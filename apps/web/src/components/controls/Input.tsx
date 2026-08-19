@@ -4,12 +4,12 @@ import { cn } from "@/lib/cn";
 import { focusRing, inputBox } from "@/lib/styles";
 
 const tones = {
-  white: "bg-white",
-  cream: "bg-cream",
+    white: "bg-white",
+    cream: "bg-cream",
 } as const;
 
 export type InputProps = ComponentProps<"input"> & {
-  tone?: keyof typeof tones;
+    tone?: keyof typeof tones;
 };
 
 /**
@@ -18,16 +18,16 @@ export type InputProps = ComponentProps<"input"> & {
  * stacked caps label of the auth screens) can share one field.
  */
 export default function Input({
-  tone = "white",
-  type = "text",
-  className,
-  ...props
+    tone = "white",
+    type = "text",
+    className,
+    ...props
 }: InputProps) {
-  return (
-    <input
-      type={type}
-      className={cn(focusRing, inputBox, tones[tone], className)}
-      {...props}
-    />
-  );
+    return (
+        <input
+            type={type}
+            className={cn(focusRing, inputBox, tones[tone], className)}
+            {...props}
+        />
+    );
 }

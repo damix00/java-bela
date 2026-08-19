@@ -4,5 +4,5 @@
  * and 404 the whole page.
  */
 export default function Default() {
-  return null;
+    return null;
 }

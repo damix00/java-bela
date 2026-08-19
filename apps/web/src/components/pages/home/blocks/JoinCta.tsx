@@ -41,7 +41,8 @@ export default function JoinCta({
                     {signIn.prompt}{" "}
                     <TextLink
                         href={authPath(locale, "signIn")}
-                        weight="semibold">
+                        weight="semibold"
+                    >
                         {signIn.label}
                     </TextLink>
                 </Text>

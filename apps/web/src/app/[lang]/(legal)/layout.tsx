@@ -24,7 +24,8 @@ export default async function LegalLayout({
             <header className="sticky top-0 z-20 flex items-center gap-[30px] border-b-4 border-ink bg-sage px-8 py-4 md:px-28 md:py-5 lg:px-48 xl:px-72">
                 <Link
                     href={homePath(lang)}
-                    className={`${focusRing} mr-auto no-underline`}>
+                    className={`${focusRing} mr-auto no-underline`}
+                >
                     <Logo withMark />
                 </Link>
             </header>

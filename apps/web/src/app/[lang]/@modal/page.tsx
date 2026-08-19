@@ -5,5 +5,5 @@
  * modal would land in the lobby with the form still floating over it.
  */
 export default function Page() {
-  return null;
+    return null;
 }

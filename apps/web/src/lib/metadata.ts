@@ -21,19 +21,19 @@ import type { Locale } from "@/lib/i18n";
  * every `[lang]` route satisfies all of them.
  */
 export function localeMetadata(
-  build: (
-    dict: Dictionary,
-    lang: Locale,
-  ) => Metadata | string | Promise<Metadata | string>,
+    build: (
+        dict: Dictionary,
+        lang: Locale,
+    ) => Metadata | string | Promise<Metadata | string>,
 ) {
-  return async function generateMetadata({
-    params,
-  }: {
-    params: Promise<{ lang: string }>;
-  }): Promise<Metadata> {
-    const { lang, dict } = await localePage(params);
-    const metadata = await build(dict, lang);
+    return async function generateMetadata({
+        params,
+    }: {
+        params: Promise<{ lang: string }>;
+    }): Promise<Metadata> {
+        const { lang, dict } = await localePage(params);
+        const metadata = await build(dict, lang);
 
-    return typeof metadata === "string" ? { title: metadata } : metadata;
-  };
+        return typeof metadata === "string" ? { title: metadata } : metadata;
+    };
 }

@@ -8,12 +8,12 @@ import { Button } from "@/components/controls/Button";
 import Field, { invalidProps } from "@/components/controls/Field";
 import AuthSplit from "@/components/pages/auth/blocks/AuthSplit";
 import AvatarPicker, {
-  AVATAR_GLYPHS,
+    AVATAR_GLYPHS,
 } from "@/components/pages/auth/blocks/AvatarPicker";
 import LadderPreview from "@/components/pages/auth/blocks/LadderPreview";
 import {
-  demoAccount,
-  onSubmitPlaceholder,
+    demoAccount,
+    onSubmitPlaceholder,
 } from "@/components/pages/auth/placeholders";
 import Eyebrow from "@/components/ui/typography/Eyebrow";
 import Heading from "@/components/ui/typography/Heading";
@@ -23,9 +23,9 @@ import { focusRing, inputBare, inputFrame } from "@/lib/styles";
 import { usernameSchema, type UsernameValues } from "@/lib/validation";
 
 type ChooseUsernameScreenProps = {
-  copy: Dictionary["auth"]["username"];
-  common: Dictionary["auth"]["common"];
-  errors: Dictionary["form"]["errors"];
+    copy: Dictionary["auth"]["username"];
+    common: Dictionary["auth"]["common"];
+    errors: Dictionary["form"]["errors"];
 };
 
 /**
@@ -34,119 +34,122 @@ type ChooseUsernameScreenProps = {
  * card — the point of the screen is seeing the name where it will land.
  */
 export default function ChooseUsernameScreen({
-  copy,
-  common,
-  errors: messages,
+    copy,
+    common,
+    errors: messages,
 }: ChooseUsernameScreenProps) {
-  const schema = useMemo(() => usernameSchema(messages), [messages]);
-  const {
-    control,
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<UsernameValues>({
-    resolver: zodResolver(schema),
-    // Validating as it is typed, because the preview beside the field is
-    // already reacting to every keystroke — a name that has gone bad should
-    // not keep rendering as a ladder row.
-    mode: "onChange",
-    defaultValues: { username: demoAccount.username, avatar: 0 },
-  });
+    const schema = useMemo(() => usernameSchema(messages), [messages]);
+    const {
+        control,
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<UsernameValues>({
+        resolver: zodResolver(schema),
+        // Validating as it is typed, because the preview beside the field is
+        // already reacting to every keystroke — a name that has gone bad should
+        // not keep rendering as a ladder row.
+        mode: "onChange",
+        defaultValues: { username: demoAccount.username, avatar: 0 },
+    });
 
-  const avatar = useWatch({ control, name: "avatar" });
-  const username = useWatch({ control, name: "username" });
+    const avatar = useWatch({ control, name: "avatar" });
+    const username = useWatch({ control, name: "username" });
 
-  return (
-    <AuthSplit
-      asideSide="right"
-      asideTone="sage"
-      asideAlign="center"
-      stackOrder="asideLast"
-      columns="lg:grid-cols-[56%_44%]"
-      aside={
-        <>
-          <Eyebrow>{copy.previewLabel}</Eyebrow>
-          <LadderPreview
-            rows={[
-              {
-                rank: demoAccount.ladderRank,
-                name: username,
-                rating: copy.unrated,
-                glyph: AVATAR_GLYPHS[avatar],
-              },
-              {
-                rank: demoAccount.neighbourRank,
-                name: demoAccount.neighbourName,
-                rating: demoAccount.neighbourRating,
-              },
-            ]}
-          />
-          <Text size="xs" className="max-w-[30ch]">
-            {copy.note}
-          </Text>
-        </>
-      }
-    >
-      <div className="flex flex-col gap-2">
-        <Eyebrow>{copy.step}</Eyebrow>
-        <Heading as="h1" size="cardHero">
-          {copy.heading}
-        </Heading>
-      </div>
-
-      <form
-        noValidate
-        onSubmit={handleSubmit(onSubmitPlaceholder)}
-        className="contents"
-      >
-        <Field
-          htmlFor="username"
-          label={copy.label}
-          hint={copy.hint}
-          error={errors.username?.message}
+    return (
+        <AuthSplit
+            asideSide="right"
+            asideTone="sage"
+            asideAlign="center"
+            stackOrder="asideLast"
+            columns="lg:grid-cols-[56%_44%]"
+            aside={
+                <>
+                    <Eyebrow>{copy.previewLabel}</Eyebrow>
+                    <LadderPreview
+                        rows={[
+                            {
+                                rank: demoAccount.ladderRank,
+                                name: username,
+                                rating: copy.unrated,
+                                glyph: AVATAR_GLYPHS[avatar],
+                            },
+                            {
+                                rank: demoAccount.neighbourRank,
+                                name: demoAccount.neighbourName,
+                                rating: demoAccount.neighbourRating,
+                            },
+                        ]}
+                    />
+                    <Text size="xs" className="max-w-[30ch]">
+                        {copy.note}
+                    </Text>
+                </>
+            }
         >
-          <div className={inputFrame}>
-            <input
-              id="username"
-              autoComplete="username"
-              className={`${focusRing} ${inputBare}`}
-              {...invalidProps("username", errors.username)}
-              {...register("username")}
-            />
-            {/* Availability is stated, not iconified: the word is shorter to
+            <div className="flex flex-col gap-2">
+                <Eyebrow>{copy.step}</Eyebrow>
+                <Heading as="h1" size="cardHero">
+                    {copy.heading}
+                </Heading>
+            </div>
+
+            <form
+                noValidate
+                onSubmit={handleSubmit(onSubmitPlaceholder)}
+                className="contents"
+            >
+                <Field
+                    htmlFor="username"
+                    label={copy.label}
+                    hint={copy.hint}
+                    error={errors.username?.message}
+                >
+                    <div className={inputFrame}>
+                        <input
+                            id="username"
+                            autoComplete="username"
+                            className={`${focusRing} ${inputBare}`}
+                            {...invalidProps("username", errors.username)}
+                            {...register("username")}
+                        />
+                        {/* Availability is stated, not iconified: the word is shorter to
                 read than a tick is to decode. It waits for a name the rules
                 accept — nothing can be said about one that won't be asked
                 about. */}
-            {username && !errors.username && (
-              <Eyebrow tone="forest" className="pr-4 tracking-[.08em]">
-                {copy.available}
-              </Eyebrow>
-            )}
-          </div>
-        </Field>
+                        {username && !errors.username && (
+                            <Eyebrow
+                                tone="forest"
+                                className="pr-4 tracking-[.08em]"
+                            >
+                                {copy.available}
+                            </Eyebrow>
+                        )}
+                    </div>
+                </Field>
 
-        <Controller
-          name="avatar"
-          control={control}
-          render={({ field }) => (
-            <AvatarPicker
-              label={copy.avatar}
-              optionLabel={common.avatarOption}
-              value={field.value}
-              onChange={field.onChange}
-            />
-          )}
-        />
+                <Controller
+                    name="avatar"
+                    control={control}
+                    render={({ field }) => (
+                        <AvatarPicker
+                            label={copy.avatar}
+                            optionLabel={common.avatarOption}
+                            value={field.value}
+                            onChange={field.onChange}
+                        />
+                    )}
+                />
 
-        <Button
-          type="submit"
-          tone="forest"
-          size="lg"
-          className="self-start py-[17px] text-[18px]"
-        >
-          {copy.submit}
-        </Button>
-      </form>
-    </AuthSplit>
-  );
+                <Button
+                    type="submit"
+                    tone="forest"
+                    size="lg"
+                    className="self-start py-[17px] text-[18px]"
+                >
+                    {copy.submit}
+                </Button>
+            </form>
+        </AuthSplit>
+    );
 }

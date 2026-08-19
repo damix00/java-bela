@@ -4,13 +4,13 @@ import { cn } from "@/lib/cn";
 
 /** Small boxed tag — used for captions and annotations. */
 export default function Chip({ className, ...props }: ComponentProps<"span">) {
-  return (
-    <span
-      className={cn(
-        "border-[3px] border-ink bg-cream px-[14px] py-2 text-[13px] text-moss",
-        className,
-      )}
-      {...props}
-    />
-  );
+    return (
+        <span
+            className={cn(
+                "border-[3px] border-ink bg-cream px-[14px] py-2 text-[13px] text-moss",
+                className,
+            )}
+            {...props}
+        />
+    );
 }

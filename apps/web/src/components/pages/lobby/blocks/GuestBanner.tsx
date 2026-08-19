@@ -7,8 +7,8 @@ import type { Locale } from "@/lib/i18n";
 import { authPath } from "@/lib/routes";
 
 type GuestBannerProps = {
-  copy: Dictionary["lobby"]["guestBanner"];
-  locale: Locale;
+    copy: Dictionary["lobby"]["guestBanner"];
+    locale: Locale;
 };
 
 /**
@@ -18,22 +18,22 @@ type GuestBannerProps = {
  * prompt standing between that and a kept player.
  */
 export default function GuestBanner({ copy, locale }: GuestBannerProps) {
-  return (
-    <Card tone="sage" padding="md" shadow="rust" className="gap-3">
-      <Heading as="h2" size="label">
-        {copy.heading}
-      </Heading>
-      <Text size="xs" className="max-w-[52ch]">
-        {copy.body}
-      </Text>
-      <ButtonLink
-        href={authPath(locale, "signUp")}
-        tone="rust"
-        size="sm"
-        className="self-start"
-      >
-        {copy.action}
-      </ButtonLink>
-    </Card>
-  );
+    return (
+        <Card tone="sage" padding="md" shadow="rust" className="gap-3">
+            <Heading as="h2" size="label">
+                {copy.heading}
+            </Heading>
+            <Text size="xs" className="max-w-[52ch]">
+                {copy.body}
+            </Text>
+            <ButtonLink
+                href={authPath(locale, "signUp")}
+                tone="rust"
+                size="sm"
+                className="self-start"
+            >
+                {copy.action}
+            </ButtonLink>
+        </Card>
+    );
 }

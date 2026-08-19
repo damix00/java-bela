@@ -16,7 +16,8 @@ export default function Hero({ copy, cta, locale }: HeroProps) {
     return (
         <Section
             tone="sage"
-            className="grid items-center gap-14 py-14 md:pt-[84px] md:pb-[76px] lg:grid-cols-[1.05fr_.95fr]">
+            className="grid items-center gap-14 py-14 md:pt-[84px] md:pb-[76px] lg:grid-cols-[1.05fr_.95fr]"
+        >
             <div className="flex flex-col items-start gap-[30px]">
                 {/* Two keys, not one sentence split at render time: the accent phrase
             is a translation unit of its own, and where it falls in the

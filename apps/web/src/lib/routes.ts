@@ -6,20 +6,20 @@ import type { Locale } from "@/lib/i18n";
  * and every one of those hrefs carries the current language.
  */
 export const authScreens = {
-  signIn: "sign-in",
-  signUp: "sign-up",
-  forgotPassword: "forgot-password",
-  checkEmail: "check-email",
-  resetPassword: "reset-password",
-  twoFactor: "two-factor",
-  username: "username",
-  welcome: "welcome",
+    signIn: "sign-in",
+    signUp: "sign-up",
+    forgotPassword: "forgot-password",
+    checkEmail: "check-email",
+    resetPassword: "reset-password",
+    twoFactor: "two-factor",
+    username: "username",
+    welcome: "welcome",
 } as const;
 
 export type AuthScreen = keyof typeof authScreens;
 
 export function authPath(locale: Locale, screen: AuthScreen) {
-  return `/${locale}/${authScreens[screen]}`;
+    return `/${locale}/${authScreens[screen]}`;
 }
 
 /**
@@ -28,14 +28,14 @@ export function authPath(locale: Locale, screen: AuthScreen) {
  * checkbox stable no matter which locale someone arrives in.
  */
 export const legalPages = {
-  terms: "terms",
-  privacy: "privacy",
+    terms: "terms",
+    privacy: "privacy",
 } as const;
 
 export type LegalPage = keyof typeof legalPages;
 
 export function legalPath(locale: Locale, page: LegalPage) {
-  return `/${locale}/${legalPages[page]}`;
+    return `/${locale}/${legalPages[page]}`;
 }
 
 /**
@@ -44,7 +44,7 @@ export function legalPath(locale: Locale, page: LegalPage) {
  * the marketing page moved off this URL.
  */
 export function homePath(locale: Locale) {
-  return `/${locale}`;
+    return `/${locale}`;
 }
 
 /**
@@ -53,11 +53,11 @@ export function homePath(locale: Locale) {
  * `noindex`.
  */
 export function landingPath(locale: Locale) {
-  return `/${locale}/landing`;
+    return `/${locale}/landing`;
 }
 
 export function playPath(locale: Locale, gameId: string) {
-  return `/${locale}/play/${gameId}`;
+    return `/${locale}/play/${gameId}`;
 }
 
 /**
@@ -73,14 +73,14 @@ export const RETURN_TO_PARAM = "next";
  * mid-flow does not drop the table the player was headed for.
  */
 export function withReturn(path: string, returnTo: string | null | undefined) {
-  if (!returnTo) return path;
+    if (!returnTo) return path;
 
-  return `${path}?${RETURN_TO_PARAM}=${encodeURIComponent(returnTo)}`;
+    return `${path}?${RETURN_TO_PARAM}=${encodeURIComponent(returnTo)}`;
 }
 
 /** Sign-in, with the gated destination folded in. */
 export function signInPathWithReturn(locale: Locale, returnTo: string) {
-  return withReturn(authPath(locale, "signIn"), returnTo);
+    return withReturn(authPath(locale, "signIn"), returnTo);
 }
 
 /**
@@ -96,22 +96,24 @@ export function signInPathWithReturn(locale: Locale, returnTo: string) {
  * "just go to the lobby".
  */
 export function safeReturnPath(
-  raw: string | null | undefined,
-  locale: Locale,
+    raw: string | null | undefined,
+    locale: Locale,
 ): string | null {
-  if (!raw) return null;
+    if (!raw) return null;
 
-  // A protocol-relative `//evil.example` and a backslash-separated
-  // `/\evil.example` are both off-origin, whatever they look like.
-  if (!raw.startsWith("/") || raw[1] === "/" || raw[1] === "\\") return null;
+    // A protocol-relative `//evil.example` and a backslash-separated
+    // `/\evil.example` are both off-origin, whatever they look like.
+    if (!raw.startsWith("/") || raw[1] === "/" || raw[1] === "\\") return null;
 
-  const [, first = "", second = ""] = raw.split(/[?#]/)[0].split("/");
-  if (first !== locale) return null;
+    const [, first = "", second = ""] = raw.split(/[?#]/)[0].split("/");
+    if (first !== locale) return null;
 
-  const isAuthScreen = (Object.values(authScreens) as string[]).includes(second);
-  if (isAuthScreen) return null;
+    const isAuthScreen = (Object.values(authScreens) as string[]).includes(
+        second,
+    );
+    if (isAuthScreen) return null;
 
-  return raw;
+    return raw;
 }
 
 /**
@@ -121,10 +123,10 @@ export function safeReturnPath(
  * redirect, so no screen should ever see the raw value.
  */
 export function readReturnTo(
-  search: Record<string, string | string[] | undefined>,
-  locale: Locale,
+    search: Record<string, string | string[] | undefined>,
+    locale: Locale,
 ): string | null {
-  const value = search[RETURN_TO_PARAM];
+    const value = search[RETURN_TO_PARAM];
 
-  return safeReturnPath(Array.isArray(value) ? value[0] : value, locale);
+    return safeReturnPath(Array.isArray(value) ? value[0] : value, locale);
 }

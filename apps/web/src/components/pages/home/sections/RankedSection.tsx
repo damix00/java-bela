@@ -32,7 +32,8 @@ export default function RankedSection({ copy }: RankedSectionProps) {
                 <Card
                     tone="rust"
                     padding="lg"
-                    className="justify-between gap-8 md:col-span-2 lg:row-span-2">
+                    className="justify-between gap-8 md:col-span-2 lg:row-span-2"
+                >
                     <IconBadge
                         glyph={TrendingUp}
                         size="lg"
@@ -43,14 +44,16 @@ export default function RankedSection({ copy }: RankedSectionProps) {
                             as="h3"
                             size="cardHero"
                             tone="cream"
-                            className="max-w-[13ch]">
+                            className="max-w-[13ch]"
+                        >
                             {copy.ladder.title}
                         </Heading>
                         <Text
                             size="lg"
                             tone="mint"
                             weight="medium"
-                            className="mt-4 max-w-[26ch]">
+                            className="mt-4 max-w-[26ch]"
+                        >
                             {copy.ladder.body}
                         </Text>
                     </div>
