@@ -30,10 +30,9 @@ export default function SeatCard({
             className={cn(
                 "flex-row items-center gap-3 px-3 py-3 shadow-hard sm:gap-4 sm:px-4 sm:py-[14px]",
                 className,
-            )}
-        >
+            )}>
             <SuitBadge suit={suit} tone={tone} />
-            <span className="mr-auto flex flex-col gap-[3px]">
+            <span className="mr-auto flex flex-col">
                 <span className="font-display text-[17px] font-extrabold tracking-[-.02em] text-ink">
                     {name}
                 </span>
