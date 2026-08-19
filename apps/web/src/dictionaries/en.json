@@ -224,6 +224,8 @@
         }
     },
     "table": {
+        "navigationLabel": "Game navigation",
+        "mobileNavigationLabel": "Mobile game navigation",
         "nav": {
             "table": "Table",
             "ladder": "Ladder",

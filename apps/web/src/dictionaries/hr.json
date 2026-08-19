@@ -224,6 +224,8 @@
         }
     },
     "table": {
+        "navigationLabel": "Navigacija igre",
+        "mobileNavigationLabel": "Mobilna navigacija igre",
         "nav": {
             "table": "Stol",
             "ladder": "Ljestvica",

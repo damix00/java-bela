@@ -18,8 +18,17 @@ type FormErrors = Dictionary["form"]["errors"];
  *
  * Sign-in, sign-up and the guest button all do exactly this and differ only in
  * which action they call, so it lives here rather than three times over.
+ *
+ * `returnTo` is the destination the proxy stashed in `?next=` when it turned
+ * this player away from a gated URL, already validated server-side. When there
+ * is one, that is where they land instead of the lobby — the point of asking
+ * them to sign in was to get them where they were going.
  */
-export function useAuthSubmit(locale: Locale, messages: FormErrors) {
+export function useAuthSubmit(
+    locale: Locale,
+    messages: FormErrors,
+    returnTo?: string | null,
+) {
     const router = useRouter();
     const [pending, startTransition] = useTransition();
     const [error, setError] = useState<string | null>(null);
@@ -44,11 +53,11 @@ export function useAuthSubmit(locale: Locale, messages: FormErrors) {
                 // behind the lobby, or Back walks straight into a form the player has
                 // already cleared. `refresh` re-runs the server components so the lobby
                 // renders in its signed-in state.
-                router.replace(homePath(locale));
+                router.replace(returnTo ?? homePath(locale));
                 router.refresh();
             });
         },
-        [locale, messages, router],
+        [locale, messages, returnTo, router],
     );
 
     return { submit, pending, error, setError };

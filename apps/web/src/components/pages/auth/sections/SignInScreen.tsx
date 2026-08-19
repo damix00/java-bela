@@ -19,7 +19,7 @@ import Text from "@/components/ui/typography/Text";
 import TextLink from "@/components/ui/typography/TextLink";
 import type { Dictionary } from "@/dictionaries";
 import type { Locale } from "@/lib/i18n";
-import { authPath } from "@/lib/routes";
+import { authPath, withReturn } from "@/lib/routes";
 import { signInSchema, type SignInValues } from "@/lib/validation";
 
 type SignInScreenProps = {
@@ -32,11 +32,24 @@ type SignInScreenProps = {
      * Only the cross-link to sign-up cares: see `TextLink`'s `hardNavigation`.
      */
     standalone?: boolean;
+    /**
+     * Whether to offer guest play. False for a visitor who is already signed in
+     * as a guest — the button would hand them a second throwaway account, which
+     * is the one thing they came here to stop having.
+     */
+    showGuest?: boolean;
+    /**
+     * Where to land once there is a session, when the player was sent here from
+     * a gated URL. Validated server-side by `safeReturnPath` — never trusted
+     * raw from the query string.
+     */
+    returnTo?: string | null;
 };
 
 /**
  * Returning player. Guest play sits below the fold of the form and never above
- * it — the account is the offer, the guest table is the fallback.
+ * it — the account is the offer, the guest table is the fallback. For someone
+ * who took that fallback already it is not offered at all.
  */
 export default function SignInScreen({
     copy,
@@ -44,6 +57,8 @@ export default function SignInScreen({
     errors: messages,
     locale,
     standalone = false,
+    showGuest = true,
+    returnTo = null,
 }: SignInScreenProps) {
     const schema = useMemo(() => signInSchema(messages), [messages]);
     const {
@@ -55,7 +70,7 @@ export default function SignInScreen({
         defaultValues: { email: "", password: "" },
     });
 
-    const { submit, pending, error } = useAuthSubmit(locale, messages);
+    const { submit, pending, error } = useAuthSubmit(locale, messages, returnTo);
 
     return (
         <AuthSplit
@@ -80,7 +95,7 @@ export default function SignInScreen({
                     {copy.noAccount}{" "}
                     <TextLink
                         replace
-                        href={authPath(locale, "signUp")}
+                        href={withReturn(authPath(locale, "signUp"), returnTo)}
                         hardNavigation={standalone}
                         className="text-[17px] font-bold">
                         {copy.createOne}
@@ -152,23 +167,27 @@ export default function SignInScreen({
                 </Button>
             </form>
 
-            <LabeledRule className="pt-1">{copy.or}</LabeledRule>
+            {showGuest && (
+                <>
+                    <LabeledRule className="pt-1">{copy.or}</LabeledRule>
 
-            <div className="flex flex-wrap items-center gap-4">
-                <Button
-                    tone="cream"
-                    size="sm"
-                    disabled={pending}
-                    onClick={() =>
-                        submit(loginAnonymous, messages.signInFailed)
-                    }
-                    className="text-[16px] disabled:cursor-wait disabled:opacity-70">
-                    {copy.guest}
-                </Button>
-                <Text size="xs" className="max-w-[30ch]">
-                    {copy.guestNote}
-                </Text>
-            </div>
+                    <div className="flex flex-wrap items-center gap-4">
+                        <Button
+                            tone="cream"
+                            size="sm"
+                            disabled={pending}
+                            onClick={() =>
+                                submit(loginAnonymous, messages.signInFailed)
+                            }
+                            className="text-[16px] disabled:cursor-wait disabled:opacity-70">
+                            {copy.guest}
+                        </Button>
+                        <Text size="xs" className="max-w-[30ch]">
+                            {copy.guestNote}
+                        </Text>
+                    </div>
+                </>
+            )}
         </AuthSplit>
     );
 }

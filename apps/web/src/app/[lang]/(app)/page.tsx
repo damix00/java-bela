@@ -1,5 +1,6 @@
+import { redirect } from "next/navigation";
+
 import { getCurrentUser } from "@/actions/auth";
-import AuthGate from "@/components/pages/table/blocks/AuthGate";
 import TableMockup from "@/components/pages/table/sections/TableMockup";
 import { localePage } from "@/dictionaries";
 import { localeMetadata } from "@/lib/metadata";
@@ -9,8 +10,8 @@ import { authPath } from "@/lib/routes";
 // used to live on this URL is now at `/[lang]/landing`, which is what the
 // sitemap and the language alternates point at.
 export const generateMetadata = localeMetadata((dict) => ({
-    title: dict.lobby.title,
-    robots: { index: false, follow: true },
+  title: dict.lobby.title,
+  robots: { index: false, follow: true },
 }));
 
 /**
@@ -21,22 +22,22 @@ export const generateMetadata = localeMetadata((dict) => ({
  * `generateStaticParams` still applies: it constrains *which* locales exist,
  * not how their pages render.
  *
- * The table mockup is the front door for every visitor. Signed-out visitors
- * get the account form over it a second later; signing in keeps the player on
- * the same screen instead of replacing it with a separate lobby placeholder.
+ * The table mockup is the front door for anyone with a session, guests
+ * included. Signed-out visitors get the sign-in screen as a page of its own
+ * rather than a dialog that opens itself over a lobby they cannot use: a form
+ * that arrives uninvited over live content reads as an interruption, and this
+ * one would be covering the only thing on the screen. The modal twin of that
+ * route still exists — it is what a *click* from inside the app opens.
  */
 export default async function Page({ params }: PageProps<"/[lang]">) {
-    const { lang, dict } = await localePage(params);
-    const user = await getCurrentUser();
+  const { lang, dict } = await localePage(params);
+  const user = await getCurrentUser();
 
-    return (
-        <>
-            <TableMockup
-                copy={dict.table}
-                errors={dict.form.errors}
-                locale={lang}
-            />
-            {!user && <AuthGate href={authPath(lang, "signIn")} />}
-        </>
-    );
+  if (!user) {
+    redirect(authPath(lang, "signIn"));
+  }
+
+  return (
+    <TableMockup copy={dict.table} errors={dict.form.errors} locale={lang} />
+  );
 }

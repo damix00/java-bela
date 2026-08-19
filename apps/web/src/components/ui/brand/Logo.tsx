@@ -14,22 +14,41 @@ const markTones = {
 type LogoProps = {
   /** The tilted spade badge only appears where there's room for it. */
   withMark?: boolean;
+  /**
+   * Step the whole lockup down on phones.
+   *
+   * For the bars that have to share a phone screen with the thing the page is
+   * actually for — the game chrome, where the top bar is 60px and every pixel
+   * of it is taken from the table. The marketing header has a screen to itself
+   * and keeps the full size at every width.
+   */
+  dense?: boolean;
   tone?: keyof typeof tones;
   className?: string;
 };
 
 export default function Logo({
   withMark = false,
+  dense = false,
   tone = "ink",
   className,
 }: LogoProps) {
   return (
-    <span className={cn("flex items-center gap-[11px]", className)}>
+    <span
+      className={cn(
+        "flex items-center",
+        dense ? "gap-2 sm:gap-[11px]" : "gap-[11px]",
+        className,
+      )}
+    >
       {withMark && (
         <span
           aria-hidden
           className={cn(
-            "grid size-9 -rotate-6 place-items-center text-[19px]",
+            "grid -rotate-6 place-items-center",
+            dense
+              ? "size-7 text-[15px] sm:size-9 sm:text-[19px]"
+              : "size-9 text-[19px]",
             markTones[tone],
           )}
         >
@@ -38,7 +57,8 @@ export default function Logo({
       )}
       <span
         className={cn(
-          "font-display text-[21px] font-extrabold tracking-[-.02em]",
+          "font-display font-extrabold tracking-[-.02em]",
+          dense ? "text-[17px] sm:text-[21px]" : "text-[21px]",
           tones[tone],
         )}
       >

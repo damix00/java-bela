@@ -1,5 +1,6 @@
 import CheckEmailScreen from "@/components/pages/auth/sections/CheckEmailScreen";
 import { localePage } from "@/dictionaries";
+import { guardCredentialScreen } from "@/lib/session-guards";
 import { localeMetadata } from "@/lib/metadata";
 
 export const generateMetadata = localeMetadata(
@@ -9,7 +10,8 @@ export const generateMetadata = localeMetadata(
 export default async function Page({
   params,
 }: PageProps<"/[lang]/check-email">) {
-  const { dict } = await localePage(params);
+  const { lang, dict } = await localePage(params);
+  await guardCredentialScreen(lang);
 
   return <CheckEmailScreen copy={dict.auth.checkEmail} />;
 }

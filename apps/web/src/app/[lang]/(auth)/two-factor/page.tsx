@@ -1,5 +1,6 @@
 import TwoFactorScreen from "@/components/pages/auth/sections/TwoFactorScreen";
 import { localePage } from "@/dictionaries";
+import { guardCredentialScreen } from "@/lib/session-guards";
 import { localeMetadata } from "@/lib/metadata";
 
 export const generateMetadata = localeMetadata(
@@ -10,6 +11,7 @@ export default async function Page({
   params,
 }: PageProps<"/[lang]/two-factor">) {
   const { lang, dict } = await localePage(params);
+  await guardCredentialScreen(lang);
 
   return (
     <TwoFactorScreen

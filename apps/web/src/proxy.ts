@@ -1,10 +1,24 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { LOCALE_COOKIE, defaultLocale, isLocale, matchLocale } from "@/lib/i18n";
-import { REFRESH_TOKEN_COOKIE } from "@/lib/session-cookies";
+import {
+  LOCALE_COOKIE,
+  defaultLocale,
+  isLocale,
+  matchLocale,
+  type Locale,
+} from "@/lib/i18n";
+import { homePath, safeReturnPath, signInPathWithReturn } from "@/lib/routes";
+import {
+  ACCESS_TOKEN_COOKIE,
+  REFRESH_TOKEN_COOKIE,
+  accessTokenExpiryMs,
+  clearSessionCookies,
+  setSessionCookies,
+} from "@/lib/session-cookies";
+import { verifySession } from "@/lib/session-verify";
 
 /**
- * Two jobs, both cookie-local.
+ * Two jobs.
  *
  * First, sends locale-less requests to a locale-prefixed URL. Every rendered
  * page lives under `/[lang]`, so this is what makes a bare `/` work.
@@ -15,16 +29,10 @@ import { REFRESH_TOKEN_COOKIE } from "@/lib/session-cookies";
  * sitemap and cross-declared with `hreflang`, so no crawler has to pass
  * through this detection at all.
  *
- * Second, keeps signed-out visitors out of `/play`.
- *
- * **No network I/O here, ever.** The proxy runs on every matched request,
- * prefetches included, and may be deployed to a CDN edge. Verifying the session
- * against the backend from here would mean a round trip per navigation, and a
- * single transient 5xx would sign everyone out. Presence of the refresh cookie
- * is an optimistic check; the pages themselves are where the session is
- * actually read.
+ * Second, keeps anyone without a live session out of the sections that need
+ * one, and remembers where they were going.
  */
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const [, firstSegment = "", section = ""] = pathname.split("/");
@@ -35,11 +43,99 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(url, 307);
   }
 
-  // A table needs an account — or at least a guest one. Back to the lobby,
-  // which is where both ways of getting one live.
-  if (section === "play" && !request.cookies.get(REFRESH_TOKEN_COOKIE)?.value) {
-    return NextResponse.redirect(new URL(`/${firstSegment}`, request.url));
+  if (!isGated(section)) {
+    return;
   }
+
+  return guard(request, firstSegment);
+}
+
+/**
+ * Sections that cannot render without a session.
+ *
+ * A table needs an account — or at least a guest one. `welcome` and `username`
+ * are the tail of a flow that has *already* produced a session and are reached
+ * because you are signed in, so arriving at either without one is equally a
+ * dead end.
+ */
+const gatedSections = new Set(["play", "welcome", "username"]);
+
+function isGated(section: string) {
+  return gatedSections.has(section);
+}
+
+/**
+ * The auth check, in cost order.
+ *
+ * Presence of the refresh cookie is free, an unexpired access token is a local
+ * base64 decode, and only when both of those come up short does anything touch
+ * the network. That ordering is the whole design: the proxy runs on every
+ * matched request, prefetches included, so the backend is asked at most once per
+ * access-token lifetime rather than once per navigation.
+ *
+ * **A backend that cannot answer fails open.** Only an outright 401 ends a
+ * session here. Treating a timeout or a 502 as a sign-out would mean one bad
+ * minute on the API logging out every player mid-game, which is a far worse
+ * failure than briefly admitting someone whose token was revoked seconds ago —
+ * the page behind this still reads the session itself, and every authenticated
+ * call still has to satisfy the backend.
+ */
+async function guard(request: NextRequest, locale: Locale) {
+  const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
+  if (!refreshToken) {
+    return signOut(request, locale);
+  }
+
+  const accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
+  if (accessToken && accessTokenExpiryMs(accessToken) > Date.now()) {
+    return;
+  }
+
+  const check = await verifySession(refreshToken);
+
+  if (check.state === "rejected") {
+    return signOut(request, locale, { clearCookies: true });
+  }
+
+  if (check.state === "unavailable") {
+    return;
+  }
+
+  // The rotation that proved the session is also a fresh one, so the cookies go
+  // out with this response rather than being thrown away and re-fetched by the
+  // page. Without this the very next request would verify all over again.
+  const response = NextResponse.next();
+  setSessionCookies(response.cookies, check.session);
+  return response;
+}
+
+/**
+ * Turns someone away, carrying their destination along.
+ *
+ * `safeReturnPath` is what decides whether the destination is worth carrying:
+ * for `/play/:id` it is, and they land back at the table once they have an
+ * account. For `welcome` and `username` it is not — those are auth screens, and
+ * returning to one is a loop — so those visitors get the plain sign-in screen.
+ */
+function signOut(
+  request: NextRequest,
+  locale: Locale,
+  { clearCookies = false } = {},
+) {
+  const { pathname, search } = request.nextUrl;
+  const returnTo = safeReturnPath(`${pathname}${search}`, locale);
+
+  const destination = returnTo
+    ? signInPathWithReturn(locale, returnTo)
+    : homePath(locale);
+
+  const response = NextResponse.redirect(new URL(destination, request.url));
+
+  if (clearCookies) {
+    clearSessionCookies(response.cookies);
+  }
+
+  return response;
 }
 
 /**

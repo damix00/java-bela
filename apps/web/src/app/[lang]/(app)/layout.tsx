@@ -1,5 +1,7 @@
 import { getInitialSession } from "@/actions/auth";
+import GameNavigation from "@/components/layout/GameNavigation";
 import { AuthProvider } from "@/context/auth-context";
+import { localePage } from "@/dictionaries";
 
 /**
  * Wraps the signed-in surfaces — the lobby and the tables — and nothing else.
@@ -14,10 +16,14 @@ import { AuthProvider } from "@/context/auth-context";
  */
 export default async function AppLayout({
   children,
+  params,
 }: LayoutProps<"/[lang]">) {
   // Cookies only, no backend round trip. This seeds the client token store; the
   // session itself lives in the httpOnly cookies the server actions wrote.
-  const { user, token, expiresAt } = await getInitialSession();
+  const [{ lang, dict }, { user, token, expiresAt }] = await Promise.all([
+    localePage(params),
+    getInitialSession(),
+  ]);
 
   return (
     <AuthProvider
@@ -25,7 +31,12 @@ export default async function AppLayout({
       initialToken={token}
       initialExpiresAt={expiresAt}
     >
-      {children}
+      <div className="felt flex min-h-screen flex-col">
+        <GameNavigation copy={dict.table} locale={lang} user={user} />
+        <div className="flex flex-1 flex-col pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:pb-0">
+          {children}
+        </div>
+      </div>
     </AuthProvider>
   );
 }

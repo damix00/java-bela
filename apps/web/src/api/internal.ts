@@ -39,13 +39,16 @@ export async function internalApiFetch<T>(
   let response: Response;
   try {
     response = await fetch(url, {
+      // The default budget, spread over so a caller can pass a tighter
+      // `signal` of its own — the proxy does, since it sits in front of a
+      // navigation and cannot make the player wait five seconds.
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       ...options,
       headers: {
         ...headers,
         ...options.headers,
       },
       cache: "no-store",
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
   } catch (error) {
     // Status 0 keeps callers from mistaking a backend outage for a rejected

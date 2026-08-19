@@ -122,3 +122,18 @@ export const inputBare = `${inputType} w-full min-w-0 border-none bg-transparent
  */
 export const hatch =
   "bg-[repeating-linear-gradient(45deg,var(--color-canvas)_0_10px,var(--color-sage)_10px_20px)]";
+
+/**
+ * The signed-in surfaces' horizontal frame, shared by the top bar, the lobby
+ * and the tables.
+ *
+ * These are `Section`'s gutters, to the pixel and with no cap on top of them,
+ * which is the whole point: the marketing page's bands stop at 288px from each
+ * edge and stay there for ever, so anything that wants to line up with them has
+ * to stop in the same place. A `max-width` centred inside the same padding
+ * looks identical up to about 1480px and then quietly drifts inward — which is
+ * exactly the width a 14" laptop opens at.
+ *
+ * Blocks that shouldn't grow past a point cap themselves, at their own width.
+ */
+export const appGutters = "px-8 md:px-28 lg:px-48 xl:px-72";

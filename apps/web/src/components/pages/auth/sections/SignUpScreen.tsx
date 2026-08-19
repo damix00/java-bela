@@ -21,7 +21,7 @@ import Text from "@/components/ui/typography/Text";
 import TextLink from "@/components/ui/typography/TextLink";
 import type { Dictionary } from "@/dictionaries";
 import type { Locale } from "@/lib/i18n";
-import { authPath, legalPath } from "@/lib/routes";
+import { authPath, legalPath, withReturn } from "@/lib/routes";
 import {
     PASSWORD_MIN,
     signUpSchema,
@@ -38,6 +38,8 @@ type SignUpScreenProps = {
      * Only the cross-link to sign-in cares: see `TextLink`'s `hardNavigation`.
      */
     standalone?: boolean;
+    /** See `SignInScreen` — the destination the proxy stashed in `?next=`. */
+    returnTo?: string | null;
 };
 
 /**
@@ -50,6 +52,7 @@ export default function SignUpScreen({
     form,
     locale,
     standalone = false,
+    returnTo = null,
 }: SignUpScreenProps) {
     const schema = useMemo(() => signUpSchema(form.errors), [form.errors]);
     const {
@@ -62,7 +65,7 @@ export default function SignUpScreen({
         defaultValues: { username: "", email: "", password: "", terms: false },
     });
 
-    const { submit, pending, error } = useAuthSubmit(locale, form.errors);
+    const { submit, pending, error } = useAuthSubmit(locale, form.errors, returnTo);
 
     // The rule under the field fills in as it is met, so the password is watched
     // rather than only read at submit. `useWatch` rather than `watch`: it
@@ -94,7 +97,7 @@ export default function SignUpScreen({
                     {copy.already}{" "}
                     <TextLink
                         replace
-                        href={authPath(locale, "signIn")}
+                        href={withReturn(authPath(locale, "signIn"), returnTo)}
                         hardNavigation={standalone}
                         className="text-[17px] font-bold">
                         {copy.signIn}

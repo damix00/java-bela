@@ -10,15 +10,16 @@
  * `user/auth/dto/response/UserResponse.java` by hand.
  */
 export type User = {
-  id: string;
-  username: string;
-  /** Null for anonymous accounts, which are created without one. */
-  email: string | null;
-  avatarUrl: string | null;
-  role: string;
-  /** ISO-8601 — `Instant` on the wire, never revived into a Date. */
-  createdAt: string;
-  lastLoginAt: string | null;
+    id: string;
+    username: string;
+    /** Null for anonymous accounts, which are created without one. */
+    email: string | null;
+    avatarUrl: string | null;
+    role: string;
+    /** ISO-8601 — `Instant` on the wire, never revived into a Date. */
+    createdAt: string;
+    lastLoginAt: string | null;
+    authProvider: "LOCAL" | "ANONYMOUS";
 };
 
 /**
@@ -26,23 +27,23 @@ export type User = {
  * absent — it lives only in an httpOnly cookie and never crosses into client JS.
  */
 export type AuthResponse = {
-  accessToken: string;
-  /** Access token lifetime in seconds. */
-  expiresIn: number;
-  user: User;
+    accessToken: string;
+    /** Access token lifetime in seconds. */
+    expiresIn: number;
+    user: User;
 };
 
 /** The backend's response shape, seen only by server-side code. */
 export type BackendAuthResponse = {
-  accessToken: string;
-  /** Null when a rotation landed in the grace window and the current token stays valid. */
-  refreshToken: string | null;
-  expiresIn: number;
-  refreshExpiresIn: number;
-  user: User;
+    accessToken: string;
+    /** Null when a rotation landed in the grace window and the current token stays valid. */
+    refreshToken: string | null;
+    expiresIn: number;
+    refreshExpiresIn: number;
+    user: User;
 };
 
 /** An account the backend created on the fly, with no credentials behind it. */
 export function isGuest(user: User): boolean {
-  return user.email === null;
+    return user.email === null;
 }

@@ -6,6 +6,8 @@ import Text from "@/components/ui/typography/Text";
 import type { Dictionary } from "@/dictionaries";
 import type { Locale } from "@/lib/i18n";
 import { homePath } from "@/lib/routes";
+import { appGutters } from "@/lib/styles";
+import { cn } from "@/lib/cn";
 
 type GameScreenProps = {
   copy: Dictionary["game"];
@@ -23,7 +25,12 @@ type GameScreenProps = {
  */
 export default function GameScreen({ copy, gameId, locale }: GameScreenProps) {
   return (
-    <main className="mx-auto flex w-full max-w-[720px] flex-1 flex-col justify-center gap-8 px-5 py-10 sm:px-8 sm:py-16">
+    <main
+      className={cn(
+        "flex flex-1 flex-col justify-center py-10 md:py-16",
+        appGutters,
+      )}
+    >
       <Card padding="lg" className="gap-5">
         <Chip className="self-start">{gameId}</Chip>
         <Heading as="h1" size="cardHero">
