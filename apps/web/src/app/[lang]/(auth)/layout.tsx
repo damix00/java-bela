@@ -4,13 +4,18 @@ import LanguageSwitcher from "@/components/controls/LanguageSwitcher";
 import Logo from "@/components/ui/brand/Logo";
 import { localePage } from "@/dictionaries";
 import { focusRing } from "@/lib/styles";
-import { homePath } from "@/lib/routes";
+import { landingPath } from "@/lib/routes";
 
 /**
  * Chrome for every auth screen: a way back to the site and a way to switch
  * language, and nothing else. The site header doesn't come along — a nav bar
  * full of exits belongs on a landing page, not on a form someone is halfway
  * through.
+ *
+ * "Back to the site" is the marketing page, not the lobby. Anyone reading this
+ * chrome is on a credential screen, which mostly means they have no session —
+ * and the lobby would only turn them straight back around to the form they
+ * just left.
  */
 export default async function AuthLayout({
     children,
@@ -22,7 +27,7 @@ export default async function AuthLayout({
         <main className="flex min-h-dvh flex-col gap-10 px-5 py-8 sm:px-8 sm:py-12">
             <div className="mx-auto flex w-full max-w-[1080px] items-center gap-4">
                 <Link
-                    href={homePath(lang)}
+                    href={landingPath(lang)}
                     className={`${focusRing} no-underline`}
                 >
                     <Logo withMark />

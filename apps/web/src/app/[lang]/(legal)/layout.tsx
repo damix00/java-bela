@@ -4,7 +4,7 @@ import LanguageSwitcher from "@/components/controls/LanguageSwitcher";
 import SiteFooter from "@/components/layout/SiteFooter";
 import Logo from "@/components/ui/brand/Logo";
 import { localePage } from "@/dictionaries";
-import { homePath } from "@/lib/routes";
+import { landingPath } from "@/lib/routes";
 import { focusRing } from "@/lib/styles";
 
 /**
@@ -12,6 +12,10 @@ import { focusRing } from "@/lib/styles";
  * in-page anchors for the landing page, and `#ranked` from here would be a
  * link to nothing. Keep the logo, language control, and footer because most
  * people will have clicked in from.
+ *
+ * The logo points at the marketing page rather than the lobby for the same
+ * reason it does on the auth screens: these documents are read by signed-out
+ * visitors, and the lobby has nothing to show them.
  */
 export default async function LegalLayout({
     children,
@@ -23,7 +27,7 @@ export default async function LegalLayout({
         <>
             <header className="sticky top-0 z-20 flex items-center gap-[30px] border-b-4 border-ink bg-sage px-8 py-4 md:px-28 md:py-5 lg:px-48 xl:px-72">
                 <Link
-                    href={homePath(lang)}
+                    href={landingPath(lang)}
                     className={`${focusRing} mr-auto no-underline`}
                 >
                     <Logo withMark />

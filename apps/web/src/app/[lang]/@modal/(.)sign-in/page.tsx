@@ -11,6 +11,12 @@ import { guardCredentialScreen } from "@/lib/session-guards";
  * A hard load or a refresh of this URL skips the interception entirely and
  * renders `(auth)/sign-in/page.tsx` instead, which is why the screen component
  * is shared rather than duplicated.
+ *
+ * Not a gate. `dismissible={false}` made sense when the signed-out lobby
+ * opened this form over itself — there was nothing behind it to go back to.
+ * Now that the proxy turns a session-less visitor away before the lobby
+ * renders, the only person who reaches this modal is one who chose it: a guest
+ * trading up to a real account, who is entitled to change their mind.
  */
 export default async function Page({
     params,
@@ -21,7 +27,7 @@ export default async function Page({
     const user = await guardCredentialScreen(lang, returnTo);
 
     return (
-        <Modal closeLabel={dict.auth.common.back} dismissible={false}>
+        <Modal closeLabel={dict.auth.common.back}>
             <SignInScreen
                 copy={dict.auth.signIn}
                 common={dict.auth.common}

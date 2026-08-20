@@ -7,7 +7,12 @@ import {
     matchLocale,
     type Locale,
 } from "@/lib/i18n";
-import { homePath, safeReturnPath, signInPathWithReturn } from "@/lib/routes";
+import {
+    authPath,
+    homePath,
+    safeReturnPath,
+    signInPathWithReturn,
+} from "@/lib/routes";
 import {
     ACCESS_TOKEN_COOKIE,
     REFRESH_TOKEN_COOKIE,
@@ -57,8 +62,17 @@ export async function proxy(request: NextRequest) {
  * are the tail of a flow that has *already* produced a session and are reached
  * because you are signed in, so arriving at either without one is equally a
  * dead end.
+ *
+ * The lobby — the empty section, `/[lang]` itself — is gated here rather than
+ * by its own `redirect()`, and it has to be. A redirect issued *during* a
+ * client-side navigation is performed by the router as another client-side
+ * navigation, which means `@modal/(.)sign-in` intercepts it: the sign-in form
+ * comes back as a modal laid over the lobby that redirected, the lobby is
+ * still session-less, and it redirects again. That ping-pong runs until the
+ * browser refuses the `history.replaceState()` behind it. Turning the visitor
+ * away out here, before the lobby renders at all, is what breaks the cycle.
  */
-const gatedSections = new Set(["play", "welcome", "username"]);
+const gatedSections = new Set(["", "play", "welcome", "username"]);
 
 function isGated(section: string) {
     return gatedSections.has(section);
@@ -115,7 +129,8 @@ async function guard(request: NextRequest, locale: Locale) {
  * `safeReturnPath` is what decides whether the destination is worth carrying:
  * for `/play/:id` it is, and they land back at the table once they have an
  * account. For `welcome` and `username` it is not — those are auth screens, and
- * returning to one is a loop — so those visitors get the plain sign-in screen.
+ * returning to one is a loop — so those visitors get the plain sign-in screen,
+ * as does anyone who was only ever headed for the lobby.
  */
 function signOut(
     request: NextRequest,
@@ -123,11 +138,14 @@ function signOut(
     { clearCookies = false } = {},
 ) {
     const { pathname, search } = request.nextUrl;
-    const returnTo = safeReturnPath(`${pathname}${search}`, locale);
+    const candidate = safeReturnPath(`${pathname}${search}`, locale);
+    // The lobby is already where sign-in lands when nothing else is asked for,
+    // so carrying it as `?next=` would only make the URL longer.
+    const returnTo = candidate === homePath(locale) ? null : candidate;
 
     const destination = returnTo
         ? signInPathWithReturn(locale, returnTo)
-        : homePath(locale);
+        : authPath(locale, "signIn");
 
     const response = NextResponse.redirect(new URL(destination, request.url));
 
