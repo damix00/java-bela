@@ -61,10 +61,7 @@
             "createOne": "Create one",
             "forgot": "Forgot?",
             "remember": "Keep me signed in on this device",
-            "submit": "Sign in",
-            "or": "or",
-            "guest": "Play as guest",
-            "guestNote": "Guest games are unranked and aren't saved."
+            "submit": "Sign in"
         },
         "signUp": {
             "title": "Create account",
@@ -77,6 +74,9 @@
             "agreeMid": "and",
             "privacy": "privacy policy",
             "submit": "Create account",
+            "or": "or",
+            "guest": "Play as guest",
+            "guestNote": "Guest games are unranked and aren't saved.",
             "perksHeading": "What you get with an account",
             "perks": [
                 "A rating that moves both ways, season after season.",

@@ -137,3 +137,28 @@ export const hatch =
  * Blocks that shouldn't grow past a point cap themselves, at their own width.
  */
 export const appGutters = "px-8 md:px-28 lg:px-48 xl:px-72";
+
+/**
+ * The table's surface, under everything the lobby lays on it.
+ *
+ * The lobby is one screen and deliberately holds only two things — the seats
+ * and the button that fills them — so most of the viewport is bare baize. Bare
+ * flat colour reads as a page that failed to load; felt reads as a table. The
+ * weave that does that is a pair of hairline gradients at right angles, and it
+ * is the whole texture — no vignette. A lit centre biases the eye toward the
+ * middle of the *viewport*, which is not where the seats are at every width,
+ * and on a wide screen it reads as a spotlight rather than as cloth.
+ *
+ * The weave is far below the 4.5:1 floor's notice — it moves `baize` by
+ * fractions of a percent — so text tuned against `--color-baize` stays tuned.
+ *
+ * The `data-felt` marker it carries is what the root layout's `has-` variant
+ * looks for: the body is cream for the marketing pages and the documents, and a
+ * felt surface that stops at its own box leaves that cream showing wherever the
+ * layout reserves space it doesn't paint — under the phone's bottom bar, and in
+ * the overscroll bounce past either end of the scroll. Matching the body to
+ * whatever surface the page put down closes both without either layout having
+ * to know about the other.
+ */
+export const felt =
+    "bg-baize bg-[repeating-linear-gradient(45deg,rgb(255_255_255_/_0.014)_0_2px,transparent_2px_4px),repeating-linear-gradient(-45deg,rgb(0_0_0_/_0.02)_0_2px,transparent_2px_4px)]";

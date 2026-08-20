@@ -2,6 +2,8 @@ import { getInitialSession } from "@/actions/auth";
 import GameNavigation from "@/components/layout/GameNavigation";
 import { AuthProvider } from "@/context/auth-context";
 import { localePage } from "@/dictionaries";
+import { cn } from "@/lib/cn";
+import { felt } from "@/lib/styles";
 
 /**
  * Wraps the signed-in surfaces — the lobby and the tables — and nothing else.
@@ -31,7 +33,7 @@ export default async function AppLayout({
             initialToken={token}
             initialExpiresAt={expiresAt}
         >
-            <div className="felt flex min-h-screen flex-col">
+            <div data-felt="" className={cn(felt, "flex min-h-screen flex-col")}>
                 <GameNavigation copy={dict.table} locale={lang} user={user} />
                 <div className="flex flex-1 flex-col pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:pb-0">
                     {children}

@@ -61,10 +61,7 @@
             "createOne": "Otvori ga",
             "forgot": "Zaboravio?",
             "remember": "Ostani prijavljen na ovom uređaju",
-            "submit": "Prijavi se",
-            "or": "ili",
-            "guest": "Igraj kao gost",
-            "guestNote": "Gostujuće partije se ne rangiraju i ne spremaju se."
+            "submit": "Prijavi se"
         },
         "signUp": {
             "title": "Otvori račun",
@@ -77,6 +74,9 @@
             "agreeMid": "i",
             "privacy": "pravilima privatnosti",
             "submit": "Otvori račun",
+            "or": "ili",
+            "guest": "Igraj kao gost",
+            "guestNote": "Gostujuće partije se ne rangiraju i ne spremaju se.",
             "perksHeading": "Što dobivaš s računom",
             "perks": [
                 "Rejting koji ide u oba smjera, sezonu za sezonom.",

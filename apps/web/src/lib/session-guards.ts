@@ -14,7 +14,7 @@ import { homePath } from "@/lib/routes";
  * to sign in or to register, and sending them away would strand them in the
  * throwaway account they started with.
  *
- * The returned user is what the sign-in screen reads to decide whether to offer
+ * The returned user is what the sign-up screen reads to decide whether to offer
  * guest play at all — `null` means signed out, and only then is it an offer
  * rather than a loop back to what they already are.
  *

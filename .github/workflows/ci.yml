@@ -23,8 +23,11 @@ jobs:
         with:
           filters: |
             api:
-              - 'apps/api/**'
-              - 'packages/protocol/**'
+              - 'apps/api/src/**'
+              - 'apps/api/build.gradle'
+              - 'apps/api/settings.gradle'
+              - 'apps/api/gradle/**'
+              - 'apps/api/gradlew'
               - '.github/workflows/ci.yml'
             web:
               - 'apps/web/**'
@@ -40,6 +43,10 @@ jobs:
     defaults:
       run:
         working-directory: apps/api
+    env:
+      # Tests exercise internal-request authentication, but CI should not need
+      # a production secret to boot the Spring context.
+      INTERNAL_API_KEY: ci-internal-api-key
     # BelaBackendApplicationTests.contextLoads() boots the full Spring context,
     # which needs both Postgres and Redis. Without these the job fails before
     # running a single assertion.
@@ -88,10 +95,11 @@ jobs:
           name: api-test-report
           path: apps/api/build/reports/tests/test
 
-  protocol:
-    name: Protocol types in sync
+  web:
+    name: Web (Next.js)
     needs: changes
-    if: needs.changes.outputs.api == 'true'
+    # API DTO changes can affect the generated package consumed by the web app.
+    if: needs.changes.outputs.web == 'true' || needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -105,25 +113,11 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Regenerate protocol types
+      # Always build against the protocol generated from this checkout. API
+      # changes no longer require a developer to run a package-manager command.
+      - name: Generate protocol types
         working-directory: apps/api
         run: ./gradlew generateTypeScript
-
-      # Fails when a Java DTO changed but `npm run protocol` was never re-run.
-      - name: Check for drift
-        run: |
-          if ! git diff --exit-code -- packages/protocol; then
-            echo "::error::packages/protocol is stale. Run 'npm run protocol' and commit the result."
-            exit 1
-          fi
-
-  web:
-    name: Web (Next.js)
-    needs: changes
-    if: needs.changes.outputs.web == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4

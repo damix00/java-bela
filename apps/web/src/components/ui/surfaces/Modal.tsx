@@ -39,6 +39,14 @@ type ModalProps = {
  * it — and it means the browser back button and the close button are the same
  * gesture rather than two that can disagree.
  *
+ * The dim is a real element rather than the dialog's `::backdrop`. A
+ * pseudo-element has no node to hand Motion, so animating it would mean a
+ * keyframed stylesheet running alongside — two halves of one fade, in two
+ * languages, kept in step by hand. A `fixed` child of a top-layer dialog covers
+ * the viewport just as the backdrop does, and it animates on the same timeline
+ * as the panel. It stays `pointer-events-none` so a click out there still lands
+ * on the dialog itself, which is how the dismiss below recognises it.
+ *
  * Which is also why there is no `AnimatePresence` here. The panel is unmounted
  * by a *navigation*, and by the time React hears about it the route is already
  * gone — nothing is left to hold in the tree and play out. So the exit runs
@@ -54,6 +62,7 @@ export default function Modal({
     const router = useRouter();
     const dialogRef = useRef<HTMLDialogElement>(null);
     const [scope, animate] = useAnimate<HTMLDivElement>();
+    const [dimScope, animateDim] = useAnimate<HTMLDivElement>();
     const reduceMotion = useReducedMotion();
     // A modal can be dismissed twice in the time the exit takes to play — `Esc`
     // on the way to a backdrop click. Two `router.back()` calls unwind two
@@ -108,18 +117,23 @@ export default function Modal({
         closing.current = true;
 
         if (!reduceMotion) {
-            // The only channel to the backdrop: it is a pseudo-element, so CSS in
-            // `globals.css` runs its half of the exit off this attribute.
-            dialogRef.current?.setAttribute("data-closing", "true");
-            await animate(
-                scope.current,
-                { opacity: 0, scale: 0.97, y: 8 },
-                { duration: 0.14, ease: "easeIn" },
-            );
+            // The dim leaves with the panel, on the one timeline.
+            await Promise.all([
+                animate(
+                    scope.current,
+                    { opacity: 0, scale: 0.97, y: 8 },
+                    { duration: 0.14, ease: "easeIn" },
+                ),
+                animateDim(
+                    dimScope.current,
+                    { opacity: 0 },
+                    { duration: 0.14, ease: "easeIn" },
+                ),
+            ]);
         }
 
         router.back();
-    }, [animate, reduceMotion, router, scope]);
+    }, [animate, animateDim, dimScope, reduceMotion, router, scope]);
 
     return (
         <dialog
@@ -141,13 +155,23 @@ export default function Modal({
                 if (event.target === dialogRef.current) void close();
             }}
             className={cn(
-                "modal-shell",
                 "m-auto max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-[1080px]",
                 "overflow-y-auto overscroll-contain bg-transparent p-0",
-                "backdrop:bg-ink/70",
+                "backdrop:bg-transparent",
                 className,
             )}
         >
+            {/* The dim itself is what makes the dialog read as modal, so under
+          reduced motion it is simply there from the first frame — only the
+          fade goes. */}
+            <motion.div
+                ref={dimScope}
+                aria-hidden
+                initial={reduceMotion ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.22, ease: "easeOut" }}
+                className="pointer-events-none fixed inset-0 bg-ink/70"
+            />
             {/* `relative` so the close button anchors to the content, not the
           scroll container — otherwise it drifts away on a tall form.
 

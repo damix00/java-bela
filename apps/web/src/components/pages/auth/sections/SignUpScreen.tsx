@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
-import { register as registerAccount } from "@/actions/auth";
+import { loginAnonymous, register as registerAccount } from "@/actions/auth";
 import { Button } from "@/components/controls/Button";
 import Checkbox from "@/components/controls/Checkbox";
 import Field, { errorId, invalidProps } from "@/components/controls/Field";
@@ -16,6 +16,7 @@ import AuthSplit from "@/components/pages/auth/blocks/AuthSplit";
 import PerkList from "@/components/pages/auth/blocks/PerkList";
 import RuleLine from "@/components/pages/auth/blocks/RuleLine";
 import { useAuthSubmit } from "@/components/pages/auth/useAuthSubmit";
+import LabeledRule from "@/components/ui/surfaces/LabeledRule";
 import Heading from "@/components/ui/typography/Heading";
 import Text from "@/components/ui/typography/Text";
 import TextLink from "@/components/ui/typography/TextLink";
@@ -38,6 +39,12 @@ type SignUpScreenProps = {
      * Only the cross-link to sign-in cares: see `TextLink`'s `hardNavigation`.
      */
     standalone?: boolean;
+    /**
+     * Whether to offer guest play. False for a visitor who is already signed in
+     * as a guest — the button would hand them a second throwaway account, which
+     * is the one thing they came here to stop having.
+     */
+    showGuest?: boolean;
     /** See `SignInScreen` — the destination the proxy stashed in `?next=`. */
     returnTo?: string | null;
 };
@@ -45,6 +52,10 @@ type SignUpScreenProps = {
 /**
  * One password field, one live requirement, no confirm field — a second box to
  * retype into catches typos that the reveal toggle catches better.
+ *
+ * Guest play sits below the fold of the form and never above it — the account
+ * is the offer, the guest table is the fallback. For someone who took that
+ * fallback already it is not offered at all.
  */
 export default function SignUpScreen({
     copy,
@@ -52,6 +63,7 @@ export default function SignUpScreen({
     form,
     locale,
     standalone = false,
+    showGuest = true,
     returnTo = null,
 }: SignUpScreenProps) {
     const schema = useMemo(() => signUpSchema(form.errors), [form.errors]);
@@ -217,6 +229,32 @@ export default function SignUpScreen({
                     {copy.submit}
                 </Button>
             </form>
+
+            {showGuest && (
+                <>
+                    <LabeledRule className="pt-1">{copy.or}</LabeledRule>
+
+                    <div className="flex flex-wrap items-center gap-4">
+                        <Button
+                            tone="cream"
+                            size="sm"
+                            disabled={pending}
+                            onClick={() =>
+                                submit(
+                                    loginAnonymous,
+                                    form.errors.signInFailed,
+                                )
+                            }
+                            className="text-[16px] disabled:cursor-wait disabled:opacity-70"
+                        >
+                            {copy.guest}
+                        </Button>
+                        <Text size="xs" className="max-w-[30ch]">
+                            {copy.guestNote}
+                        </Text>
+                    </div>
+                </>
+            )}
         </AuthSplit>
     );
 }

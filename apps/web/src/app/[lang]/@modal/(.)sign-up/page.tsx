@@ -19,7 +19,7 @@ export default async function Page({
 }: PageProps<"/[lang]/sign-up">) {
     const { lang, dict } = await localePage(params);
     const returnTo = readReturnTo(await searchParams, lang);
-    await guardCredentialScreen(lang, returnTo);
+    const user = await guardCredentialScreen(lang, returnTo);
 
     return (
         <Modal closeLabel={dict.auth.common.back}>
@@ -28,6 +28,7 @@ export default async function Page({
                 common={dict.auth.common}
                 form={dict.form}
                 locale={lang}
+                showGuest={user === null}
                 returnTo={returnTo}
             />
         </Modal>

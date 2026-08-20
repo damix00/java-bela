@@ -14,7 +14,7 @@ export default async function Page({
 }: PageProps<"/[lang]/sign-up">) {
     const { lang, dict } = await localePage(params);
     const returnTo = readReturnTo(await searchParams, lang);
-    await guardCredentialScreen(lang, returnTo);
+    const user = await guardCredentialScreen(lang, returnTo);
 
     return (
         <SignUpScreen
@@ -23,6 +23,7 @@ export default async function Page({
             form={dict.form}
             locale={lang}
             standalone
+            showGuest={user === null}
             returnTo={returnTo}
         />
     );

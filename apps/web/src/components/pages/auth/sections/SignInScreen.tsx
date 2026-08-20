@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 
-import { login, loginAnonymous } from "@/actions/auth";
+import { login } from "@/actions/auth";
 import { Button } from "@/components/controls/Button";
 import Field, { invalidProps } from "@/components/controls/Field";
 import FormError from "@/components/controls/FormError";
@@ -13,7 +13,6 @@ import PasswordInput from "@/components/controls/PasswordInput";
 import AuthSplit from "@/components/pages/auth/blocks/AuthSplit";
 import { useAuthSubmit } from "@/components/pages/auth/useAuthSubmit";
 import Logo from "@/components/ui/brand/Logo";
-import LabeledRule from "@/components/ui/surfaces/LabeledRule";
 import Heading from "@/components/ui/typography/Heading";
 import Text from "@/components/ui/typography/Text";
 import TextLink from "@/components/ui/typography/TextLink";
@@ -33,12 +32,6 @@ type SignInScreenProps = {
      */
     standalone?: boolean;
     /**
-     * Whether to offer guest play. False for a visitor who is already signed in
-     * as a guest — the button would hand them a second throwaway account, which
-     * is the one thing they came here to stop having.
-     */
-    showGuest?: boolean;
-    /**
      * Where to land once there is a session, when the player was sent here from
      * a gated URL. Validated server-side by `safeReturnPath` — never trusted
      * raw from the query string.
@@ -47,9 +40,9 @@ type SignInScreenProps = {
 };
 
 /**
- * Returning player. Guest play sits below the fold of the form and never above
- * it — the account is the offer, the guest table is the fallback. For someone
- * who took that fallback already it is not offered at all.
+ * Returning player. Nothing here but the credentials: guest play is offered on
+ * the sign-up screen, where the choice it belongs next to is the one between an
+ * account and a table right now.
  */
 export default function SignInScreen({
     copy,
@@ -57,7 +50,6 @@ export default function SignInScreen({
     errors: messages,
     locale,
     standalone = false,
-    showGuest = true,
     returnTo = null,
 }: SignInScreenProps) {
     const schema = useMemo(() => signInSchema(messages), [messages]);
@@ -178,29 +170,6 @@ export default function SignInScreen({
                     {copy.submit}
                 </Button>
             </form>
-
-            {showGuest && (
-                <>
-                    <LabeledRule className="pt-1">{copy.or}</LabeledRule>
-
-                    <div className="flex flex-wrap items-center gap-4">
-                        <Button
-                            tone="cream"
-                            size="sm"
-                            disabled={pending}
-                            onClick={() =>
-                                submit(loginAnonymous, messages.signInFailed)
-                            }
-                            className="text-[16px] disabled:cursor-wait disabled:opacity-70"
-                        >
-                            {copy.guest}
-                        </Button>
-                        <Text size="xs" className="max-w-[30ch]">
-                            {copy.guestNote}
-                        </Text>
-                    </div>
-                </>
-            )}
         </AuthSplit>
     );
 }

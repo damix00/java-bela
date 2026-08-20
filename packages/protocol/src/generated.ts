@@ -349,6 +349,7 @@ export interface TrumpChosenEvent extends PerspectiveOutgoingEvent {
 }
 
 export interface UserResponse {
+    authProvider: string;
     avatarUrl: string;
     createdAt: Date;
     email: string;

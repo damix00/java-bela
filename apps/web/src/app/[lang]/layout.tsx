@@ -4,6 +4,7 @@ import { Bricolage_Grotesque, Public_Sans } from "next/font/google";
 import { localePage } from "@/dictionaries";
 import { locales } from "@/lib/i18n";
 import "../globals.css";
+import Script from "next/script";
 
 const bricolage = Bricolage_Grotesque({
     variable: "--font-bricolage",
@@ -52,9 +53,15 @@ export default async function RootLayout({
     return (
         <html
             lang={lang}
-            className={`${bricolage.variable} ${publicSans.variable} h-full antialiased`}
-        >
-            <body className="flex min-h-full flex-col bg-cream font-sans text-ink selection:bg-rust selection:text-cream">
+            className={`${bricolage.variable} ${publicSans.variable} h-full antialiased`}>
+            <head>
+                <Script
+                    src="//unpkg.com/react-scan/dist/auto.global.js"
+                    crossOrigin="anonymous"
+                    strategy="beforeInteractive"
+                />
+            </head>
+            <body className="flex min-h-full flex-col bg-cream has-[[data-felt]]:bg-baize font-sans text-ink selection:bg-rust selection:text-cream">
                 {children}
                 {/* The intercepted auth routes render here, over `children`. The slot
             sits at this level so a click from anywhere under `/[lang]` — the
