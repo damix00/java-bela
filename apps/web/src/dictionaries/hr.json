@@ -51,7 +51,10 @@
             "backToSignIn": "Natrag na prijavu",
             "back": "Natrag",
             "digit": "Znamenka",
-            "avatarOption": "Avatar"
+            "avatarOption": "Avatar",
+            "or": "ili",
+            "guest": "Igraj kao gost",
+            "guestNote": "Gostujuće partije se ne rangiraju i ne spremaju se."
         },
         "signIn": {
             "title": "Prijava",
@@ -74,9 +77,6 @@
             "agreeMid": "i",
             "privacy": "pravilima privatnosti",
             "submit": "Otvori račun",
-            "or": "ili",
-            "guest": "Igraj kao gost",
-            "guestNote": "Gostujuće partije se ne rangiraju i ne spremaju se.",
             "perksHeading": "Što dobivaš s računom",
             "perks": [
                 "Rejting koji ide u oba smjera, sezonu za sezonom.",
@@ -150,10 +150,10 @@
             "title": "AI koji broji adute",
             "body": "Igra offline. Pamti svaku kartu."
         },
-        "noAds": "Bez reklama. Bez žetona.",
-        "devices": "Mobitel, tablet, preglednik.",
-        "replays": "Snimke nakon svake partije.",
-        "fairPlay": "Fer igra za rangiranim stolovima."
+        "noAds": "Bez reklama, bez pay-to-win",
+        "devices": "Mobitel, tablet, preglednik",
+        "replays": "Snimke nakon svake partije",
+        "fairPlay": "Fer igra za rangiranim stolovima"
     },
     "leaderboard": {
         "caption": "screenshot — ljestvica / poredak sezone",
@@ -218,9 +218,21 @@
             "signOut": "Odjava"
         },
         "guestBanner": {
-            "heading": "Igraš kao gost",
-            "body": "Gostujući računi nestaju nakon jednog dana, a gostujuće partije ne ulaze u rejting.",
-            "action": "Otvori račun"
+            "heading": "Ovaj račun ima rok",
+            "deadline": "Briše se za {time}, a s njim i svaka partija koju na njemu odigraš.",
+            "expired": "svaki čas",
+            "units": {
+                "hours": "h",
+                "minutes": "min"
+            },
+            "losses": [
+                "Ništa se ne broji — gostujuće partije ne nose rejting.",
+                "Bez povijesti: današnjih partija sutra više nema.",
+                "Bez popisa prijatelja i bez privatnog stola kojem se vraćaš."
+            ],
+            "action": "Otvori račun",
+            "keepsPrompt": "Od tog trena sve ostaje. Već ga imaš?",
+            "signIn": "Prijavi se"
         }
     },
     "table": {
@@ -230,7 +242,27 @@
             "table": "Stol",
             "ladder": "Ljestvica",
             "friends": "Prijatelji",
-            "hands": "Partije"
+            "hands": "Partije",
+            "profile": "Profil"
+        },
+        "profileMenu": {
+            "trigger": "Izbornik računa",
+            "guestAccount": "Gostujući račun",
+            "createAccount": "Otvori račun",
+            "viewProfile": "Pogledaj profil",
+            "settings": "Postavke",
+            "signOut": "Odjava",
+            "soon": "Uskoro"
+        },
+        "guestUpgrade": {
+            "label": "Bez rejtinga",
+            "action": "Otvori račun"
+        },
+        "guestRanked": {
+            "heading": "Rangirano traži račun",
+            "body": "Rejting mora pripadati nekome tko će i sutra biti tu, a tvoj gostujući račun briše se dan nakon što je napravljen. Casual, privatni stolovi i botovi otvoreni su ti odmah.",
+            "action": "Otvori račun",
+            "dismiss": "Ne sada"
         },
         "rulesLabel": "Pravila stola",
         "rules": {
@@ -249,8 +281,6 @@
         },
         "gameModeLabel": "Odaberi način igre",
         "selectedLabel": "Odabrano",
-        "botsLabel": "Botovi",
-        "botsNote": "vježba · igraj svojim tempom",
         "matchmakingNote": "Partner i protivnici po rangu · do 1001 · rejting se broji",
         "seasonLabel": "Sezona 2 · još 31 dan",
         "progressLabel": "Napredak ranga",

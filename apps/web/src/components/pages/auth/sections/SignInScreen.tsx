@@ -4,13 +4,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 
-import { login } from "@/actions/auth";
+import { login, loginAnonymous } from "@/actions/auth";
 import { Button } from "@/components/controls/Button";
 import Field, { invalidProps } from "@/components/controls/Field";
 import FormError from "@/components/controls/FormError";
 import Input from "@/components/controls/Input";
 import PasswordInput from "@/components/controls/PasswordInput";
 import AuthSplit from "@/components/pages/auth/blocks/AuthSplit";
+import GuestOption from "@/components/pages/auth/blocks/GuestOption";
 import { useAuthSubmit } from "@/components/pages/auth/useAuthSubmit";
 import Logo from "@/components/ui/brand/Logo";
 import Heading from "@/components/ui/typography/Heading";
@@ -18,7 +19,7 @@ import Text from "@/components/ui/typography/Text";
 import TextLink from "@/components/ui/typography/TextLink";
 import type { Dictionary } from "@/dictionaries";
 import type { Locale } from "@/lib/i18n";
-import { authPath, withReturn } from "@/lib/routes";
+import { authLink, authPath } from "@/lib/routes";
 import { signInSchema, type SignInValues } from "@/lib/validation";
 
 type SignInScreenProps = {
@@ -37,12 +38,24 @@ type SignInScreenProps = {
      * raw from the query string.
      */
     returnTo?: string | null;
+    /**
+     * Whether to offer guest play. False only for a visitor who is already
+     * signed in as a guest — the button would hand them a second throwaway
+     * account, which is the one thing they came here to stop having.
+     */
+    showGuest?: boolean;
+    /**
+     * Whether the cross-link to sign-up should carry the guest offer with it.
+     * True when this screen was itself reached from a landing-page CTA, so
+     * bouncing between the two forms never loses the way past them.
+     */
+    offerGuestOnSignUp?: boolean;
 };
 
 /**
- * Returning player. Nothing here but the credentials: guest play is offered on
- * the sign-up screen, where the choice it belongs next to is the one between an
- * account and a table right now.
+ * Returning player, and the home of guest play: this is the screen where "I
+ * don't want to type credentials right now" is the question actually being
+ * asked, so the table-without-an-account sits under the form that asks it.
  */
 export default function SignInScreen({
     copy,
@@ -51,6 +64,8 @@ export default function SignInScreen({
     locale,
     standalone = false,
     returnTo = null,
+    showGuest = true,
+    offerGuestOnSignUp = false,
 }: SignInScreenProps) {
     const schema = useMemo(() => signInSchema(messages), [messages]);
     const {
@@ -93,7 +108,10 @@ export default function SignInScreen({
                     {copy.noAccount}{" "}
                     <TextLink
                         replace
-                        href={withReturn(authPath(locale, "signUp"), returnTo)}
+                        href={authLink(locale, "signUp", {
+                            returnTo,
+                            offerGuest: offerGuestOnSignUp,
+                        })}
                         hardNavigation={standalone}
                         className="text-[17px] font-bold"
                     >
@@ -170,6 +188,14 @@ export default function SignInScreen({
                     {copy.submit}
                 </Button>
             </form>
+
+            {showGuest && (
+                <GuestOption
+                    copy={common}
+                    pending={pending}
+                    onPlay={() => submit(loginAnonymous, messages.signInFailed)}
+                />
+            )}
         </AuthSplit>
     );
 }

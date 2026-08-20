@@ -18,6 +18,13 @@ type ModalProps = {
      * way out is through the dialog's own controls.
      */
     dismissible?: boolean;
+    /**
+     * Where closing goes. Omitted, the dialog unwinds history, which is what an
+     * intercepted route needs — see below. Supplied, it is called instead, for
+     * a dialog that some component opened from its own state and has to close
+     * the same way.
+     */
+    onClose?: () => void;
     className?: string;
 };
 
@@ -34,10 +41,11 @@ type ModalProps = {
  * the close button, `Esc`, and the backdrop. The browser's own Back still
  * works, because history is not something a page should be able to take away.
  *
- * Closing always goes through `router.back()`, never local state. The modal
- * exists *because* of the URL, so unwinding history is what actually dismisses
- * it — and it means the browser back button and the close button are the same
- * gesture rather than two that can disagree.
+ * Closing goes through `router.back()` by default, never local state. A modal
+ * that exists *because* of the URL is dismissed by unwinding history — and that
+ * way the browser back button and the close button are the same gesture rather
+ * than two that can disagree. A dialog opened from component state has no such
+ * history entry to unwind and passes `onClose` instead.
  *
  * The dim is a real element rather than the dialog's `::backdrop`. A
  * pseudo-element has no node to hand Motion, so animating it would mean a
@@ -57,6 +65,7 @@ export default function Modal({
     children,
     closeLabel,
     dismissible = true,
+    onClose,
     className,
 }: ModalProps) {
     const router = useRouter();
@@ -132,8 +141,13 @@ export default function Modal({
             ]);
         }
 
+        if (onClose) {
+            onClose();
+            return;
+        }
+
         router.back();
-    }, [animate, animateDim, dimScope, reduceMotion, router, scope]);
+    }, [animate, animateDim, dimScope, onClose, reduceMotion, router, scope]);
 
     return (
         <dialog

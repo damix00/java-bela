@@ -14,6 +14,8 @@ type TableMockupProps = {
     copy: Dictionary["table"];
     errors: Dictionary["form"]["errors"];
     locale: Locale;
+    /** Anonymous account — see `PlayModes`, which is the only part that differs. */
+    guest: boolean;
 };
 
 /**
@@ -43,9 +45,8 @@ export default function TableMockup({
     copy,
     errors,
     locale,
+    guest,
 }: TableMockupProps) {
-    const signIn = authPath(locale, "signIn");
-
     return (
         <div className="flex flex-1 flex-col">
             <main
@@ -97,7 +98,8 @@ export default function TableMockup({
                         copy={copy}
                         errors={errors}
                         locale={locale}
-                        signInHref={signIn}
+                        signUpHref={authPath(locale, "signUp")}
+                        guest={guest}
                     />
                 </div>
             </main>

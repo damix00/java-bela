@@ -5,7 +5,7 @@ import Section from "@/components/layout/Section";
 import Text from "@/components/ui/typography/Text";
 import type { Dictionary } from "@/dictionaries";
 import type { Locale } from "@/lib/i18n";
-import { authPath } from "@/lib/routes";
+import { landingSignUpPath } from "@/lib/routes";
 
 type LeaderboardSectionProps = {
     copy: Dictionary["leaderboard"];
@@ -33,7 +33,7 @@ export default function LeaderboardSection({
                     {copy.sub}
                 </Text>
                 <ButtonLink
-                    href={authPath(locale, "signUp")}
+                    href={landingSignUpPath(locale)}
                     size="lg"
                     className="self-start"
                 >

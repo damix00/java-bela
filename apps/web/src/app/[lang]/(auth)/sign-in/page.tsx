@@ -1,7 +1,7 @@
 import SignInScreen from "@/components/pages/auth/sections/SignInScreen";
 import { localePage } from "@/dictionaries";
 import { localeMetadata } from "@/lib/metadata";
-import { readReturnTo } from "@/lib/routes";
+import { readGuestOffer, readReturnTo } from "@/lib/routes";
 import { guardCredentialScreen } from "@/lib/session-guards";
 
 export const generateMetadata = localeMetadata(
@@ -13,8 +13,9 @@ export default async function Page({
     searchParams,
 }: PageProps<"/[lang]/sign-in">) {
     const { lang, dict } = await localePage(params);
-    const returnTo = readReturnTo(await searchParams, lang);
-    await guardCredentialScreen(lang, returnTo);
+    const search = await searchParams;
+    const returnTo = readReturnTo(search, lang);
+    const user = await guardCredentialScreen(lang, returnTo);
 
     return (
         <SignInScreen
@@ -24,6 +25,8 @@ export default async function Page({
             locale={lang}
             standalone
             returnTo={returnTo}
+            showGuest={user === null}
+            offerGuestOnSignUp={readGuestOffer(search)}
         />
     );
 }

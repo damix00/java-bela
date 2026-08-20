@@ -5,6 +5,11 @@ import { cn } from "@/lib/cn";
 
 type RankMeterProps = {
     copy: Dictionary["table"];
+    /**
+     * `compact` is the phone's version: the same three facts laid on one line,
+     * for a bar that is only as tall as an avatar.
+     */
+    variant?: "full" | "compact";
     className?: string;
 };
 
@@ -24,8 +29,51 @@ type RankMeterProps = {
  * that exact is worth reading aloud but not worth three more lines of chrome in
  * a 76px bar.
  */
-export default function RankMeter({ copy, className }: RankMeterProps) {
+export default function RankMeter({
+    copy,
+    variant = "full",
+    className,
+}: RankMeterProps) {
     const filled = [true, true, true, false, false];
+    const compact = variant === "compact";
+
+    const meter = (
+        <div
+            role="img"
+            aria-label={`${copy.progressLabel}: ${copy.rankProgress.replace("{rank}", mockTable.rank)}`}
+            className={cn("flex gap-[3px]", compact ? "w-14" : "w-[132px]")}
+        >
+            {filled.map((isFilled, index) => (
+                <span
+                    key={index}
+                    className={cn(
+                        "flex-1 border-[1.5px] border-ink",
+                        compact ? "h-[5px]" : "h-[7px]",
+                        isFilled ? "bg-rust" : "bg-moss",
+                    )}
+                />
+            ))}
+        </div>
+    );
+
+    // On a phone the rating and its band go side by side and the meter tucks in
+    // after them, because the bar has one line to give and stacking would cost it
+    // the height it saved by dropping the username.
+    if (compact) {
+        return (
+            <div className={cn("shrink-0 items-center gap-2", className)}>
+                <strong className="font-display text-[16px] leading-none font-extrabold tracking-[-.04em] text-cream">
+                    {mockTable.rating}
+                </strong>
+                {/* The band name is the first thing to go on the narrowest phones —
+                    the number it qualifies is still there without it. */}
+                <MockLabel className="hidden text-[9px] tracking-[.12em] text-ash min-[380px]:block">
+                    {mockTable.band}
+                </MockLabel>
+                {meter}
+            </div>
+        );
+    }
 
     return (
         <div className={cn("shrink-0 flex-col items-end gap-[3px]", className)}>
@@ -38,21 +86,7 @@ export default function RankMeter({ copy, className }: RankMeterProps) {
                 </MockLabel>
             </div>
 
-            <div
-                role="img"
-                aria-label={`${copy.progressLabel}: ${copy.rankProgress.replace("{rank}", mockTable.rank)}`}
-                className="flex w-[132px] gap-[3px]"
-            >
-                {filled.map((isFilled, index) => (
-                    <span
-                        key={index}
-                        className={cn(
-                            "h-[7px] flex-1 border-[1.5px] border-ink",
-                            isFilled ? "bg-rust" : "bg-moss",
-                        )}
-                    />
-                ))}
-            </div>
+            {meter}
 
             {/* The season countdown is the reason to care about the bar above it, so
           it goes when there is no room to say why. */}

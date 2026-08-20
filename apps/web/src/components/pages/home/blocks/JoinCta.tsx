@@ -3,7 +3,7 @@ import Text from "@/components/ui/typography/Text";
 import TextLink from "@/components/ui/typography/TextLink";
 import { cn } from "@/lib/cn";
 import type { Locale } from "@/lib/i18n";
-import { authPath } from "@/lib/routes";
+import { authLink, landingSignUpPath } from "@/lib/routes";
 
 type JoinCtaProps = {
     /** The band's own verb — no two of these read the same. */
@@ -33,14 +33,16 @@ export default function JoinCta({
 }: JoinCtaProps) {
     return (
         <div className={cn("flex flex-col items-start gap-[18px]", className)}>
-            <ButtonLink href={authPath(locale, "signUp")} tone={tone} size="lg">
+            <ButtonLink href={landingSignUpPath(locale)} tone={tone} size="lg">
                 {label}
             </ButtonLink>
             {signIn && (
                 <Text size="xs">
                     {signIn.prompt}{" "}
                     <TextLink
-                        href={authPath(locale, "signIn")}
+                        href={authLink(locale, "signIn", {
+                            offerGuest: true,
+                        })}
                         weight="semibold"
                     >
                         {signIn.label}

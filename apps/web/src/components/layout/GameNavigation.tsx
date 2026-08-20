@@ -2,6 +2,7 @@ import Link from "next/link";
 import { History, Table2, Trophy, Users } from "lucide-react";
 
 import type { User } from "@/api/types/user";
+import { isGuest } from "@/api/types/user";
 import type { Dictionary } from "@/dictionaries";
 import type { Locale } from "@/lib/i18n";
 import { cn } from "@/lib/cn";
@@ -10,6 +11,8 @@ import { homePath } from "@/lib/routes";
 import Logo from "@/components/ui/brand/Logo";
 import Icon from "@/components/ui/graphics/Icon";
 import UserAvatar from "@/components/layout/UserAvatar";
+import ProfileMenu from "@/components/layout/ProfileMenu";
+import GuestUpgrade from "@/components/layout/GuestUpgrade";
 import RankMeter from "@/components/layout/RankMeter";
 
 type GameNavigationProps = {
@@ -25,6 +28,9 @@ const destinations = [
     { key: "hands", glyph: History, available: false },
 ] as const;
 
+const barItem =
+    "flex min-w-0 flex-col items-center justify-center gap-1 px-1 py-3 font-sans text-[10px] font-bold tracking-[.08em] uppercase";
+
 /** Shared chrome for the lobby and every table route. */
 export default function GameNavigation({
     copy,
@@ -32,6 +38,9 @@ export default function GameNavigation({
     user,
 }: GameNavigationProps) {
     const lobbyHref = homePath(locale);
+    // A guest has no rating, so the corner that shows one has nothing true to
+    // put there. It carries the way to earn one instead.
+    const guest = user !== null && isGuest(user);
 
     return (
         <>
@@ -96,13 +105,45 @@ export default function GameNavigation({
                             {/* Progression rides the top bar rather than a card beside the
                 table: the lobby body is for starting a game, and a rank a
                 player only glances at doesn't need a column of its own. */}
-                            <RankMeter copy={copy} className="hidden lg:flex" />
-                            <div className="flex min-w-0 items-center gap-3">
-                                <span className="max-w-24 truncate font-display text-[15px] font-extrabold tracking-[-.02em] text-cream sm:max-w-48 sm:text-[16px]">
-                                    {user.username}
-                                </span>
-                                <UserAvatar user={user} />
-                            </div>
+                            {/* Two cuts of the same block, not one that hides: the phone
+                gets a single line, and the width that has room for the season
+                countdown gets the stacked version. */}
+                            {guest ? (
+                                <>
+                                    <GuestUpgrade
+                                        copy={copy.guestUpgrade}
+                                        locale={locale}
+                                        variant="compact"
+                                        className="lg:hidden"
+                                    />
+                                    <GuestUpgrade
+                                        copy={copy.guestUpgrade}
+                                        locale={locale}
+                                        className="hidden lg:flex"
+                                    />
+                                </>
+                            ) : (
+                                <>
+                                    <RankMeter
+                                        copy={copy}
+                                        variant="compact"
+                                        className="flex lg:hidden"
+                                    />
+                                    <RankMeter
+                                        copy={copy}
+                                        className="hidden lg:flex"
+                                    />
+                                </>
+                            )}
+                            {/* The account corner is a menu from `sm` up. Below that the
+                bottom bar carries the avatar, and a second one up here would
+                be two doors to the same room in a bar that has no room. */}
+                            <ProfileMenu
+                                user={user}
+                                copy={copy.profileMenu}
+                                locale={locale}
+                                className="hidden sm:block"
+                            />
                         </div>
                     ) : null}
                 </div>
@@ -110,7 +151,10 @@ export default function GameNavigation({
 
             <nav
                 aria-label={copy.mobileNavigationLabel}
-                className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t-4 border-ink bg-ink pb-[env(safe-area-inset-bottom)] sm:hidden"
+                className={cn(
+                    "fixed inset-x-0 bottom-0 z-30 grid border-t-4 border-ink bg-ink pb-[env(safe-area-inset-bottom)] sm:hidden",
+                    user ? "grid-cols-5" : "grid-cols-4",
+                )}
             >
                 {destinations.map((destination) => {
                     const label = copy.nav[destination.key];
@@ -125,7 +169,7 @@ export default function GameNavigation({
                         </>
                     );
                     const className = cn(
-                        "flex min-w-0 flex-col items-center justify-center gap-1 px-1 py-3 font-sans text-[10px] font-bold tracking-[.08em] uppercase",
+                        barItem,
                         destination.available
                             ? "border-t-4 border-rust text-cream"
                             : "border-t-4 border-transparent text-ash/70",
@@ -153,6 +197,27 @@ export default function GameNavigation({
                         </span>
                     );
                 })}
+
+                {/* The account, wearing its own face. The avatar is the one glyph in
+            this bar a player recognises before reading the label under it —
+            which is what earns it the fifth slot on a screen this narrow. It
+            is inert for now, like the three destinations beside it. */}
+                {user ? (
+                    <span
+                        aria-disabled="true"
+                        className={cn(
+                            barItem,
+                            "border-t-4 border-transparent text-ash/70",
+                        )}
+                    >
+                        <UserAvatar
+                            user={user}
+                            size="sm"
+                            className="border-ash/70 opacity-80"
+                        />
+                        <span>{copy.nav.profile}</span>
+                    </span>
+                ) : null}
             </nav>
         </>
     );

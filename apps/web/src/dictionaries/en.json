@@ -51,7 +51,10 @@
             "backToSignIn": "Back to sign in",
             "back": "Back",
             "digit": "Digit",
-            "avatarOption": "Avatar"
+            "avatarOption": "Avatar",
+            "or": "or",
+            "guest": "Play as guest",
+            "guestNote": "Guest games are unranked and aren't saved."
         },
         "signIn": {
             "title": "Sign in",
@@ -74,9 +77,6 @@
             "agreeMid": "and",
             "privacy": "privacy policy",
             "submit": "Create account",
-            "or": "or",
-            "guest": "Play as guest",
-            "guestNote": "Guest games are unranked and aren't saved.",
             "perksHeading": "What you get with an account",
             "perks": [
                 "A rating that moves both ways, season after season.",
@@ -150,10 +150,10 @@
             "title": "An AI that counts trumps",
             "body": "Plays offline. Remembers every card."
         },
-        "noAds": "No ads. No coins.",
-        "devices": "Phone, tablet, browser.",
-        "replays": "Replays after every game.",
-        "fairPlay": "Fair play on ranked tables."
+        "noAds": "No ads, no pay-to win",
+        "devices": "Phone, tablet, browser",
+        "replays": "Replays after every game",
+        "fairPlay": "Fair play on ranked tables"
     },
     "leaderboard": {
         "caption": "screenshot — leaderboard / season standings",
@@ -218,9 +218,21 @@
             "signOut": "Sign out"
         },
         "guestBanner": {
-            "heading": "You’re playing as a guest",
-            "body": "Guest accounts disappear after a day, and guest games don’t count towards a rating.",
-            "action": "Create an account"
+            "heading": "This account is on a timer",
+            "deadline": "It’s deleted in {time}, and every game you play on it goes with it.",
+            "expired": "any moment now",
+            "units": {
+                "hours": "h",
+                "minutes": "m"
+            },
+            "losses": [
+                "Nothing you play counts — guest games earn no rating.",
+                "No history: today’s hands are gone tomorrow.",
+                "No friends list, and no private table you can reopen."
+            ],
+            "action": "Create an account",
+            "keepsPrompt": "Keeps everything from here on. Already have one?",
+            "signIn": "Sign in"
         }
     },
     "table": {
@@ -230,7 +242,27 @@
             "table": "Table",
             "ladder": "Ladder",
             "friends": "Friends",
-            "hands": "Hands"
+            "hands": "Hands",
+            "profile": "Profile"
+        },
+        "profileMenu": {
+            "trigger": "Account menu",
+            "guestAccount": "Guest account",
+            "createAccount": "Create an account",
+            "viewProfile": "View profile",
+            "settings": "Settings",
+            "signOut": "Sign out",
+            "soon": "Coming soon"
+        },
+        "guestUpgrade": {
+            "label": "Unranked",
+            "action": "Create account"
+        },
+        "guestRanked": {
+            "heading": "Ranked needs an account",
+            "body": "A rating has to belong to someone who’ll still be here tomorrow, and your guest account is deleted a day after it was made. Casual, private and bot tables are open to you right now.",
+            "action": "Create an account",
+            "dismiss": "Not now"
         },
         "rulesLabel": "Table rules",
         "rules": {
@@ -249,8 +281,6 @@
         },
         "gameModeLabel": "Choose a game mode",
         "selectedLabel": "Selected",
-        "botsLabel": "Bots",
-        "botsNote": "practice · play at your pace",
         "matchmakingNote": "Matchmade partner + opponents · to 1001 · rating counts",
         "seasonLabel": "Season 2 · 31 days left",
         "progressLabel": "Rank progress",

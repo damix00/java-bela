@@ -1,7 +1,7 @@
 import SignInScreen from "@/components/pages/auth/sections/SignInScreen";
 import Modal from "@/components/ui/surfaces/Modal";
 import { localePage } from "@/dictionaries";
-import { readReturnTo } from "@/lib/routes";
+import { readGuestOffer, readReturnTo } from "@/lib/routes";
 import { guardCredentialScreen } from "@/lib/session-guards";
 
 /**
@@ -23,8 +23,9 @@ export default async function Page({
     searchParams,
 }: PageProps<"/[lang]/sign-in">) {
     const { lang, dict } = await localePage(params);
-    const returnTo = readReturnTo(await searchParams, lang);
-    await guardCredentialScreen(lang, returnTo);
+    const search = await searchParams;
+    const returnTo = readReturnTo(search, lang);
+    const user = await guardCredentialScreen(lang, returnTo);
 
     return (
         <Modal closeLabel={dict.auth.common.back}>
@@ -34,6 +35,8 @@ export default async function Page({
                 errors={dict.form.errors}
                 locale={lang}
                 returnTo={returnTo}
+                showGuest={user === null}
+                offerGuestOnSignUp={readGuestOffer(search)}
             />
         </Modal>
     );

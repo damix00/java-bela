@@ -32,9 +32,13 @@ export default async function AuthLayout({
                 >
                     <Logo withMark />
                 </Link>
+                {/* Hard navigation: these pages have intercepting twins under
+                    `@modal`, and a routed language swap would reopen the very
+                    screen you are on as a modal stacked over itself. */}
                 <LanguageSwitcher
                     current={lang}
                     label={dict.nav.languageLabel}
+                    hardNavigation
                     className="ml-auto"
                 />
             </div>

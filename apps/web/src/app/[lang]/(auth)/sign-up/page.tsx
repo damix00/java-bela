@@ -1,7 +1,7 @@
 import SignUpScreen from "@/components/pages/auth/sections/SignUpScreen";
 import { localePage } from "@/dictionaries";
 import { localeMetadata } from "@/lib/metadata";
-import { readReturnTo } from "@/lib/routes";
+import { readGuestOffer, readReturnTo } from "@/lib/routes";
 import { guardCredentialScreen } from "@/lib/session-guards";
 
 export const generateMetadata = localeMetadata(
@@ -13,7 +13,8 @@ export default async function Page({
     searchParams,
 }: PageProps<"/[lang]/sign-up">) {
     const { lang, dict } = await localePage(params);
-    const returnTo = readReturnTo(await searchParams, lang);
+    const search = await searchParams;
+    const returnTo = readReturnTo(search, lang);
     const user = await guardCredentialScreen(lang, returnTo);
 
     return (
@@ -23,7 +24,7 @@ export default async function Page({
             form={dict.form}
             locale={lang}
             standalone
-            showGuest={user === null}
+            showGuest={user === null && readGuestOffer(search)}
             returnTo={returnTo}
         />
     );

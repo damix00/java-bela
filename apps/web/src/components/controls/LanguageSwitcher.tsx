@@ -19,6 +19,14 @@ type LanguageSwitcherProps = {
     current: Locale;
     /** Names the group for screen readers — "Language" / "Jezik". */
     label: string;
+    /**
+     * Renders plain anchors instead of routed links, forcing a full page load.
+     * Same escape hatch as `TextLink`'s prop of this name, for the same reason:
+     * on a standalone auth page a routed hop to `/hr/sign-in` is a client-side
+     * navigation, which is exactly what `@modal/(.)sign-in` intercepts — so
+     * switching language would reopen the page as a modal over itself.
+     */
+    hardNavigation?: boolean;
     className?: string;
 };
 
@@ -30,9 +38,11 @@ type LanguageSwitcherProps = {
 export default function LanguageSwitcher({
     current,
     label,
+    hardNavigation = false,
     className,
 }: LanguageSwitcherProps) {
     const pathname = usePathname();
+    const Tag = hardNavigation ? "a" : Link;
 
     return (
         <nav
@@ -46,7 +56,7 @@ export default function LanguageSwitcher({
                 const isCurrent = locale === current;
 
                 return (
-                    <Link
+                    <Tag
                         key={locale}
                         href={swapLocale(pathname, locale)}
                         hrefLang={locale}
@@ -65,7 +75,7 @@ export default function LanguageSwitcher({
                         )}
                     >
                         {locale}
-                    </Link>
+                    </Tag>
                 );
             })}
         </nav>

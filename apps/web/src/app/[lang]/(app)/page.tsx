@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/actions/auth";
+import { isGuest } from "@/api/types/user";
 import TableMockup from "@/components/pages/table/sections/TableMockup";
 import { localePage } from "@/dictionaries";
 import { localeMetadata } from "@/lib/metadata";
@@ -34,7 +35,7 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
     const user = await getCurrentUser();
 
     if (!user) {
-        redirect(authPath(lang, "signIn"));
+        redirect(authPath(lang, "signUp"));
     }
 
     return (
@@ -42,6 +43,7 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
             copy={dict.table}
             errors={dict.form.errors}
             locale={lang}
+            guest={isGuest(user)}
         />
     );
 }

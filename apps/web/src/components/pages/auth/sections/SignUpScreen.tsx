@@ -13,16 +13,16 @@ import FormError from "@/components/controls/FormError";
 import Input from "@/components/controls/Input";
 import PasswordInput from "@/components/controls/PasswordInput";
 import AuthSplit from "@/components/pages/auth/blocks/AuthSplit";
+import GuestOption from "@/components/pages/auth/blocks/GuestOption";
 import PerkList from "@/components/pages/auth/blocks/PerkList";
 import RuleLine from "@/components/pages/auth/blocks/RuleLine";
 import { useAuthSubmit } from "@/components/pages/auth/useAuthSubmit";
-import LabeledRule from "@/components/ui/surfaces/LabeledRule";
 import Heading from "@/components/ui/typography/Heading";
 import Text from "@/components/ui/typography/Text";
 import TextLink from "@/components/ui/typography/TextLink";
 import type { Dictionary } from "@/dictionaries";
 import type { Locale } from "@/lib/i18n";
-import { authPath, legalPath, withReturn } from "@/lib/routes";
+import { authLink, legalPath } from "@/lib/routes";
 import {
     PASSWORD_MIN,
     signUpSchema,
@@ -40,9 +40,11 @@ type SignUpScreenProps = {
      */
     standalone?: boolean;
     /**
-     * Whether to offer guest play. False for a visitor who is already signed in
-     * as a guest — the button would hand them a second throwaway account, which
-     * is the one thing they came here to stop having.
+     * Whether to offer guest play. True only for a signed-out visitor who
+     * arrived from a landing-page CTA — see `GUEST_OFFER_PARAM`. It stays false
+     * for someone already signed in as a guest, since the button would hand
+     * them a second throwaway account, which is the one thing they came here to
+     * stop having.
      */
     showGuest?: boolean;
     /** See `SignInScreen` — the destination the proxy stashed in `?next=`. */
@@ -53,9 +55,9 @@ type SignUpScreenProps = {
  * One password field, one live requirement, no confirm field — a second box to
  * retype into catches typos that the reveal toggle catches better.
  *
- * Guest play sits below the fold of the form and never above it — the account
- * is the offer, the guest table is the fallback. For someone who took that
- * fallback already it is not offered at all.
+ * Guest play normally lives on the sign-in screen. It appears here only for
+ * someone sent over by a landing-page CTA: they clicked a button that promised
+ * a game, so the form they land on owes them a way past it.
  */
 export default function SignUpScreen({
     copy,
@@ -63,7 +65,7 @@ export default function SignUpScreen({
     form,
     locale,
     standalone = false,
-    showGuest = true,
+    showGuest = false,
     returnTo = null,
 }: SignUpScreenProps) {
     const schema = useMemo(() => signUpSchema(form.errors), [form.errors]);
@@ -114,7 +116,10 @@ export default function SignUpScreen({
                     {copy.already}{" "}
                     <TextLink
                         replace
-                        href={withReturn(authPath(locale, "signIn"), returnTo)}
+                        href={authLink(locale, "signIn", {
+                            returnTo,
+                            offerGuest: showGuest,
+                        })}
                         hardNavigation={standalone}
                         className="text-[17px] font-bold"
                     >
@@ -231,29 +236,13 @@ export default function SignUpScreen({
             </form>
 
             {showGuest && (
-                <>
-                    <LabeledRule className="pt-1">{copy.or}</LabeledRule>
-
-                    <div className="flex flex-wrap items-center gap-4">
-                        <Button
-                            tone="cream"
-                            size="sm"
-                            disabled={pending}
-                            onClick={() =>
-                                submit(
-                                    loginAnonymous,
-                                    form.errors.signInFailed,
-                                )
-                            }
-                            className="text-[16px] disabled:cursor-wait disabled:opacity-70"
-                        >
-                            {copy.guest}
-                        </Button>
-                        <Text size="xs" className="max-w-[30ch]">
-                            {copy.guestNote}
-                        </Text>
-                    </div>
-                </>
+                <GuestOption
+                    copy={common}
+                    pending={pending}
+                    onPlay={() =>
+                        submit(loginAnonymous, form.errors.signInFailed)
+                    }
+                />
             )}
         </AuthSplit>
     );

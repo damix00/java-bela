@@ -4,7 +4,7 @@ import Logo from "@/components/ui/brand/Logo";
 import TextLink from "@/components/ui/typography/TextLink";
 import type { Dictionary } from "@/dictionaries";
 import type { Locale } from "@/lib/i18n";
-import { authPath } from "@/lib/routes";
+import { landingSignUpPath } from "@/lib/routes";
 
 type SiteHeaderProps = {
     copy: Dictionary["nav"];
@@ -36,7 +36,7 @@ export default function SiteHeader({ copy, cta, locale }: SiteHeaderProps) {
           + both CTAs don't fit a phone. The hero carries the same pair just
           below the fold, so these are what give way. */}
             <ButtonLink
-                href={authPath(locale, "signUp")}
+                href={landingSignUpPath(locale)}
                 size="sm"
                 className="hidden sm:inline-block"
             >

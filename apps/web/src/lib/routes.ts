@@ -68,19 +68,63 @@ export function playPath(locale: Locale, gameId: string) {
 export const RETURN_TO_PARAM = "next";
 
 /**
- * Folds a destination into any URL as `?next=`, or leaves it alone when there
- * is none. The sign-in ⇄ sign-up cross-links use this so switching screens
- * mid-flow does not drop the table the player was headed for.
+ * The flag the marketing page's CTAs put on their sign-up links.
+ *
+ * Guest play lives on the sign-in screen, where "I don't want to type
+ * credentials right now" is the question actually being asked. Sign-up only
+ * offers it to someone who arrived from a landing CTA: they clicked a button
+ * that promised a game, and a registration form with no way past it is not
+ * what they clicked. Everyone else reaching sign-up came to make an account.
  */
-export function withReturn(path: string, returnTo: string | null | undefined) {
-    if (!returnTo) return path;
+export const GUEST_OFFER_PARAM = "guest";
 
-    return `${path}?${RETURN_TO_PARAM}=${encodeURIComponent(returnTo)}`;
+/** Drops the empty entries, so a path with nothing to carry keeps its bare form. */
+function withQuery(
+    path: string,
+    params: Record<string, string | null | undefined>,
+) {
+    const query = new URLSearchParams();
+
+    for (const [key, value] of Object.entries(params)) {
+        if (value) query.set(key, value);
+    }
+
+    const search = query.toString();
+
+    return search ? `${path}?${search}` : path;
+}
+
+type AuthLinkOptions = {
+    /** Where to land once there is a session — see `RETURN_TO_PARAM`. */
+    returnTo?: string | null;
+    /** Whether the guest offer should survive the hop — see `GUEST_OFFER_PARAM`. */
+    offerGuest?: boolean;
+};
+
+/**
+ * An auth screen's URL with the flow's state folded in. The sign-in ⇄ sign-up
+ * cross-links go through here so switching screens mid-flow drops neither the
+ * table the player was headed for nor the guest offer they arrived with.
+ */
+export function authLink(
+    locale: Locale,
+    screen: AuthScreen,
+    { returnTo, offerGuest }: AuthLinkOptions = {},
+) {
+    return withQuery(authPath(locale, screen), {
+        [RETURN_TO_PARAM]: returnTo,
+        [GUEST_OFFER_PARAM]: offerGuest ? "1" : null,
+    });
 }
 
 /** Sign-in, with the gated destination folded in. */
 export function signInPathWithReturn(locale: Locale, returnTo: string) {
-    return withReturn(authPath(locale, "signIn"), returnTo);
+    return authLink(locale, "signIn", { returnTo });
+}
+
+/** Sign-up as the marketing page links to it: guest play still on the table. */
+export function landingSignUpPath(locale: Locale) {
+    return authLink(locale, "signUp", { offerGuest: true });
 }
 
 /**
@@ -129,4 +173,17 @@ export function readReturnTo(
     const value = search[RETURN_TO_PARAM];
 
     return safeReturnPath(Array.isArray(value) ? value[0] : value, locale);
+}
+
+/**
+ * Whether this screen was reached from a landing-page CTA, and so should still
+ * offer guest play. Unlike `?next=` there is nothing to validate: the flag only
+ * ever adds a button that the sign-in screen shows unconditionally anyway.
+ */
+export function readGuestOffer(
+    search: Record<string, string | string[] | undefined>,
+): boolean {
+    const value = search[GUEST_OFFER_PARAM];
+
+    return (Array.isArray(value) ? value[0] : value) === "1";
 }

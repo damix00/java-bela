@@ -35,11 +35,21 @@ export default function LobbyScreen({ user, copy, locale }: LobbyScreenProps) {
                 <Heading as="h1" size="cardHero">
                     {t.greeting} {user.username}
                 </Heading>
-                <SignOutButton label={t.signOut} className="ml-auto" />
+                {/* The account menu in the top bar owns sign-out from `sm` up. It
+                    stays here on a phone, where the bar's profile item is still
+                    inert and this is the only way out. */}
+                <SignOutButton
+                    label={t.signOut}
+                    className="ml-auto sm:hidden"
+                />
             </div>
 
             {isGuest(user) && (
-                <GuestBanner copy={copy.guestBanner} locale={locale} />
+                <GuestBanner
+                    copy={copy.guestBanner}
+                    user={user}
+                    locale={locale}
+                />
             )}
 
             <div className="grid gap-6 sm:grid-cols-2">
