@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.index.Indexed;
+import pro.damjan.belabackend.game.model.config.GameConfiguration;
 import pro.damjan.belabackend.lobby.exception.LobbyFullException;
 import pro.damjan.belabackend.lobby.exception.PlayerNotInLobbyException;
 
@@ -27,6 +28,9 @@ public class Lobby implements Serializable {
 
     @Getter @Setter
     private String gameId;
+
+    @Getter @Setter
+    private GameConfiguration gameConfiguration;
 
     @Getter @Setter
     private boolean joinable = true;

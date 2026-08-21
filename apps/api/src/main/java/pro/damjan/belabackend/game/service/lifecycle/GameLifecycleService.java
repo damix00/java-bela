@@ -15,6 +15,7 @@ import pro.damjan.belabackend.game.scheduling.registry.ScheduledTaskRegistry;
 import pro.damjan.belabackend.game.service.access.GameAccessService;
 import pro.damjan.belabackend.game.service.play.GameFlowService;
 import pro.damjan.belabackend.game.service.play.TrumpPhaseService;
+import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 import pro.damjan.belabackend.user.presence.UserPresenceService;
 
@@ -34,7 +35,9 @@ public class GameLifecycleService {
     private final TrumpPhaseService trumpPhaseService;
     private final GameFlowService gameFlowService;
 
-    public BeloteGame createGame(List<LobbyPlayer> lobbyPlayers) {
+    public BeloteGame createGame(Lobby lobby) {
+        List<LobbyPlayer> lobbyPlayers = lobby.getPlayersAsList();
+
         List<GamePlayer> players = lobbyPlayers
                 .stream()
                 .map(p -> new GamePlayer(p.getUserId(), p.getSeat(), p.isBot()))
@@ -46,7 +49,7 @@ public class GameLifecycleService {
                 .id(UUID.randomUUID().toString())
                 .team1(teams.teamA())
                 .team2(teams.teamB())
-                .maxPoints(501) // TODO: make configurable
+                .config(lobby.getGameConfiguration())
                 .status(GameStatus.WAITING)
                 .build();
 

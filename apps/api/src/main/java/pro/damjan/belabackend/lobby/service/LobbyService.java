@@ -4,13 +4,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pro.damjan.belabackend.game.model.BeloteGame;
+import pro.damjan.belabackend.game.model.config.GameConfiguration;
 import pro.damjan.belabackend.game.service.BeloteGameService;
-import pro.damjan.belabackend.lobby.exception.LobbyNotJoinableException;
-import pro.damjan.belabackend.lobby.model.LobbyStatus;
-import pro.damjan.belabackend.lobby.repository.LobbyRepository;
 import pro.damjan.belabackend.lobby.exception.AlreadyInLobbyException;
 import pro.damjan.belabackend.lobby.exception.LobbyFullException;
 import pro.damjan.belabackend.lobby.exception.LobbyNotFoundException;
+import pro.damjan.belabackend.lobby.exception.LobbyNotJoinableException;
+import pro.damjan.belabackend.lobby.exception.PlayerNotHostException;
+import pro.damjan.belabackend.lobby.exception.PlayerNotInLobbyException;
+import pro.damjan.belabackend.lobby.model.LobbyStatus;
+import pro.damjan.belabackend.lobby.repository.LobbyRepository;
 import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 import pro.damjan.belabackend.lobby.model.LobbyPlayerStatus;
@@ -93,6 +96,7 @@ public class LobbyService {
         Lobby lobby = new Lobby();
         lobby.setId(generateLobbyId());
         lobby.setInviteCode(generateInviteCode());
+        lobby.setGameConfiguration(GameConfiguration.privateGame(501));
 
         // Get empty player list and set the first player as the creator
         Map<Integer, LobbyPlayer> players = lobby.getPlayerSeats();
@@ -210,7 +214,7 @@ public class LobbyService {
     }
 
     public void createGame(Lobby lobby) {
-        BeloteGame game = beloteGameService.createGame(lobby.getPlayersAsList());
+        BeloteGame game = beloteGameService.createGame(lobby);
 
         lobby.setGameId(game.getId());
         lobby.setStatus(LobbyStatus.IN_GAME);
@@ -259,6 +263,26 @@ public class LobbyService {
         lobbyRepository.save(lobby);
 
         lobbyEventPublisher.seatsUpdated(lobby);
+    }
+
+    public void updateConfig(String userId, GameConfiguration configuration) {
+        Lobby lobby = getUserLobby(userId);
+
+        if (lobby == null) {
+            throw new LobbyNotFoundException();
+        }
+
+        LobbyPlayer lobbyPlayer = lobby.findPlayerById(userId)
+                .orElseThrow(PlayerNotInLobbyException::new);
+        if (!lobbyPlayer.isHost()) {
+            throw new PlayerNotHostException();
+        }
+
+        lobby.setGameConfiguration(configuration);
+
+        lobbyRepository.save(lobby);
+
+        lobbyEventPublisher.configChanged(lobby);
     }
 
     public void startWithBots(String userId) {

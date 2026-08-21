@@ -7,6 +7,7 @@ import pro.damjan.belabackend.game.events.BeloteGameEventPublisher;
 import pro.damjan.belabackend.game.model.BeloteGame;
 import pro.damjan.belabackend.game.model.GameStatus;
 import pro.damjan.belabackend.game.model.card.Card;
+import pro.damjan.belabackend.game.model.config.GameConfiguration;
 import pro.damjan.belabackend.game.model.card.Declaration;
 import pro.damjan.belabackend.game.model.card.Rank;
 import pro.damjan.belabackend.game.model.card.Suite;
@@ -496,7 +497,7 @@ class CardPlayServiceTest {
                 .id("game-1")
                 .team1(teams.teamA())
                 .team2(teams.teamB())
-                .maxPoints(1001)
+                .config(GameConfiguration.ranked())
                 .status(GameStatus.IN_PROGRESS)
                 .build();
         game.createNewRound();

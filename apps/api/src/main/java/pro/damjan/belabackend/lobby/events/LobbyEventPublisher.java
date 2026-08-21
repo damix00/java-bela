@@ -10,8 +10,6 @@ import pro.damjan.belabackend.user.presence.session.SessionService;
 import pro.damjan.belabackend.websocket.events.WebSocketPublisher;
 import pro.damjan.belabackend.websocket.events.dto.OutgoingEvent;
 
-import java.util.Map;
-
 @Service
 @RequiredArgsConstructor
 public class LobbyEventPublisher {
@@ -61,6 +59,10 @@ public class LobbyEventPublisher {
 
     public void seatsUpdated(Lobby lobby) {
         broadcastToLobby(lobby, new LobbySeatsUpdatedEvent(lobby.getPlayerSeats()));
+    }
+
+    public void configChanged(Lobby lobby) {
+        broadcastToLobby(lobby, new LobbyConfigurationChangedEvent(lobby.getGameConfiguration()));
     }
 
     public void gameCreated(Lobby lobby, BeloteGame game) {

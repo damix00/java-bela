@@ -2,6 +2,10 @@ package pro.damjan.belabackend.lobby.events;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import pro.damjan.belabackend.game.model.config.GameConfiguration;
+import pro.damjan.belabackend.game.model.config.MatchType;
+import pro.damjan.belabackend.lobby.events.dto.incoming.ChangeLobbyConfigCommand;
+import pro.damjan.belabackend.lobby.exception.InvalidLobbyConfigurationException;
 import pro.damjan.belabackend.lobby.service.LobbyService;
 import pro.damjan.belabackend.lobby.events.dto.incoming.JoinLobbyViaCodeCommand;
 import pro.damjan.belabackend.lobby.events.dto.incoming.LobbyReadyCommand;
@@ -9,6 +13,8 @@ import pro.damjan.belabackend.lobby.events.dto.incoming.SwapSeatsCommand;
 import pro.damjan.belabackend.user.User;
 import pro.damjan.belabackend.user.presence.session.UserSession;
 import pro.damjan.belabackend.websocket.events.OnEvent;
+
+import java.util.Locale;
 
 @Component
 @RequiredArgsConstructor
@@ -48,5 +54,19 @@ public class LobbyEventHandler {
     @OnEvent("lobby:startWithBots")
     public void startWithBots(UserSession session, User user) {
         lobbyService.startWithBots(user.getId());
+    }
+
+    @OnEvent("lobby:changeConfig")
+    public void changeConfig(UserSession session, User user, ChangeLobbyConfigCommand command) {
+        lobbyService.updateConfig(user.getId(), parseConfiguration(command));
+    }
+
+    private GameConfiguration parseConfiguration(ChangeLobbyConfigCommand command) {
+        try {
+            MatchType matchType = MatchType.valueOf(command.getMatchType().trim().toUpperCase(Locale.ROOT));
+            return GameConfiguration.forMatchType(matchType, command.getPoints());
+        } catch (IllegalArgumentException | NullPointerException exception) {
+            throw new InvalidLobbyConfigurationException();
+        }
     }
 }

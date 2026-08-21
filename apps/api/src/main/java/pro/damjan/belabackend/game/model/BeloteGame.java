@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.redis.core.RedisHash;
+import pro.damjan.belabackend.game.model.config.GameConfiguration;
 import pro.damjan.belabackend.game.model.player.GamePlayer;
 import pro.damjan.belabackend.game.model.player.Team;
 import pro.damjan.belabackend.game.model.round.BeloteRound;
@@ -25,7 +26,7 @@ public class BeloteGame implements Serializable {
     private final Team team1;
     private final Team team2;
 
-    private final int maxPoints;
+    private final GameConfiguration config;
 
     @Setter
     private GameStatus status;
@@ -102,11 +103,15 @@ public class BeloteGame implements Serializable {
     }
 
     public boolean hasWinner() {
-        return (team1.getTotalScore() >= maxPoints || team2.getTotalScore() >= maxPoints)
+        return (team1.getTotalScore() >= config.targetScore() || team2.getTotalScore() >= config.targetScore())
                 && team1.getTotalScore() != team2.getTotalScore();
     }
 
+    public int getMaxPoints() {
+        return config.targetScore();
+    }
+
     public int getWinningTeamIndex() {
-        return team1.getTotalScore() >= team2.getTotalScore() ? 0 : 1;
+        return team1.getTotalScore() > team2.getTotalScore() ? 0 : 1;
     }
 }

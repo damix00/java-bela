@@ -11,6 +11,7 @@ import pro.damjan.belabackend.game.service.lifecycle.GameLifecycleService;
 import pro.damjan.belabackend.game.service.lock.GameLockService;
 import pro.damjan.belabackend.game.service.play.CardPlayService;
 import pro.damjan.belabackend.game.service.play.TrumpPhaseService;
+import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 
 import java.util.List;
@@ -25,8 +26,8 @@ public class BeloteGameService {
     private final CardPlayService cardPlayService;
     private final GameLockService gameLockService;
 
-    public BeloteGame createGame(List<LobbyPlayer> lobbyPlayers) {
-        return gameLifecycleService.createGame(lobbyPlayers);
+    public BeloteGame createGame(Lobby lobby) {
+        return gameLifecycleService.createGame(lobby);
     }
 
     public BeloteGame findGameById(String gameId) {

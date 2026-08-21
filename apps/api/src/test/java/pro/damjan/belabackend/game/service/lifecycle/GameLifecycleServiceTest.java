@@ -8,6 +8,7 @@ import pro.damjan.belabackend.game.events.BeloteGameEventPublisher;
 import pro.damjan.belabackend.game.model.BeloteGame;
 import pro.damjan.belabackend.game.model.GameStatus;
 import pro.damjan.belabackend.game.model.card.Card;
+import pro.damjan.belabackend.game.model.config.GameConfiguration;
 import pro.damjan.belabackend.game.model.player.GamePlayer;
 import pro.damjan.belabackend.game.model.player.Team;
 import pro.damjan.belabackend.game.model.player.TeamPair;
@@ -19,6 +20,7 @@ import pro.damjan.belabackend.game.service.access.GameAccessService;
 import pro.damjan.belabackend.game.service.play.GameFlowService;
 import pro.damjan.belabackend.game.service.play.TrumpPhaseService;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
+import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.lobby.model.LobbyPlayerStatus;
 import pro.damjan.belabackend.user.presence.UserPresenceService;
 
@@ -71,14 +73,16 @@ class GameLifecycleServiceTest {
     void createGameMapsLobbyPlayersToTeamsAndCountsBotsAsLoaded() {
         when(gameAccessService.save(any(BeloteGame.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        BeloteGame game = gameLifecycleService.createGame(List.of(
+        Lobby lobby = lobby(List.of(
                 lobbyPlayer("p0", 0, false),
                 lobbyPlayer("bot-1", 1, true),
                 lobbyPlayer("p2", 2, false),
                 lobbyPlayer("bot-3", 3, true)
         ));
+        BeloteGame game = gameLifecycleService.createGame(lobby);
 
         assertThat(game.getStatus()).isEqualTo(GameStatus.WAITING);
+        assertThat(game.getConfig()).isEqualTo(GameConfiguration.privateGame(701));
         assertThat(game.getPlayer(0).getUserId()).isEqualTo("p0");
         assertThat(game.getPlayer(1).getUserId()).isEqualTo("bot-1");
         assertThat(game.getPlayer(2).getUserId()).isEqualTo("p2");
@@ -180,7 +184,7 @@ class GameLifecycleServiceTest {
                 .id("game-1")
                 .team1(teams.teamA())
                 .team2(teams.teamB())
-                .maxPoints(1001)
+                .config(GameConfiguration.ranked())
                 .status(GameStatus.WAITING)
                 .build();
     }
@@ -189,5 +193,12 @@ class GameLifecycleServiceTest {
         LobbyPlayer player = new LobbyPlayer(userId, false, LobbyPlayerStatus.READY, seat);
         player.setBot(bot);
         return player;
+    }
+
+    private Lobby lobby(List<LobbyPlayer> players) {
+        Lobby lobby = new Lobby();
+        lobby.setGameConfiguration(GameConfiguration.privateGame(701));
+        players.forEach(player -> lobby.getPlayerSeats().put(player.getSeat(), player));
+        return lobby;
     }
 }
