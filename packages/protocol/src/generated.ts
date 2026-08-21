@@ -10,6 +10,7 @@ export interface AuthResponse {
 }
 
 export interface BeloteGame {
+    config: GameConfiguration;
     currentRound: BeloteRound;
     currentRoundNumber: number;
     id: string;
@@ -89,6 +90,11 @@ export interface CardTurnStartedEvent extends OutgoingEvent {
     trickNumber: number;
 }
 
+export interface ChangeLobbyConfigCommand extends IncomingEvent {
+    matchType: string;
+    points: number;
+}
+
 export interface ChooseTrumpCommand extends IncomingEvent {
     suite: Suite;
 }
@@ -101,6 +107,11 @@ export interface Declaration {
     playerIndex: number;
     points: number;
     type: Type;
+}
+
+export interface GameConfiguration {
+    matchType: MatchType;
+    targetScore: number;
 }
 
 export interface GameEndedEvent extends OutgoingEvent {
@@ -139,12 +150,17 @@ export interface JoinLobbyViaCodeCommand extends IncomingEvent {
 }
 
 export interface Lobby {
+    gameConfiguration: GameConfiguration;
     gameId: string;
     id: string;
     inviteCode: string;
     joinable: boolean;
     playerSeats: { [index: string]: LobbyPlayer };
     status: LobbyStatus;
+}
+
+export interface LobbyConfigurationChangedEvent extends OutgoingEvent {
+    configuration: GameConfiguration;
 }
 
 export interface LobbyGameCreatedEvent extends OutgoingEvent {
@@ -373,6 +389,12 @@ export enum LobbyPlayerStatus {
 export enum LobbyStatus {
     IN_LOBBY = "IN_LOBBY",
     IN_GAME = "IN_GAME",
+}
+
+export enum MatchType {
+    RANKED = "RANKED",
+    CASUAL = "CASUAL",
+    PRIVATE = "PRIVATE",
 }
 
 export enum PresenceStatus {

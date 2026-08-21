@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/actions/auth";
 import { isGuest } from "@/api/types/user";
-import TableMockup from "@/components/pages/table/sections/TableMockup";
+import TableScreen from "@/components/pages/table/sections/TableScreen";
 import { localePage } from "@/dictionaries";
 import { localeMetadata } from "@/lib/metadata";
 import { authPath } from "@/lib/routes";
@@ -23,8 +23,8 @@ export const generateMetadata = localeMetadata((dict) => ({
  * `generateStaticParams` still applies: it constrains *which* locales exist,
  * not how their pages render.
  *
- * The table mockup is the front door for anyone with a session, guests
- * included. Signed-out visitors get the sign-in screen as a page of its own
+ * The table is the front door for anyone with a session, guests included.
+ * Signed-out visitors get the sign-in screen as a page of its own
  * rather than a dialog that opens itself over a lobby they cannot use: a form
  * that arrives uninvited over live content reads as an interruption, and this
  * one would be covering the only thing on the screen. The modal twin of that
@@ -39,11 +39,12 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
     }
 
     return (
-        <TableMockup
+        <TableScreen
             copy={dict.table}
-            errors={dict.form.errors}
             locale={lang}
+            user={user}
             guest={isGuest(user)}
+            signUpHref={authPath(lang, "signUp")}
         />
     );
 }

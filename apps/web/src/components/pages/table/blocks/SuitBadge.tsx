@@ -1,5 +1,7 @@
 import { cn } from "@/lib/cn";
-import type { BadgeTone } from "@/components/pages/table/mock-data";
+
+/** Fill for a suit badge. Chosen per seat so a table isn't four of one tile. */
+export type BadgeTone = "rust" | "forest" | "ink" | "muted";
 
 const tones: Record<BadgeTone, string> = {
     rust: "bg-rust text-cream",

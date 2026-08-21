@@ -306,7 +306,47 @@
         "queueLabel": "Dubina reda",
         "queueValue": "~1:10 čekanja u ovo doba",
         "playNow": "Igraj sad",
-        "playRankedNote": "protivnici unutar ±100 tvog rejtinga"
+        "playRankedNote": "protivnici unutar ±100 tvog rejtinga",
+        "lobby": {
+            "heading": "Tvoj stol",
+            "opening": "Otvaram tvoj stol…",
+            "waitingNote": "Zauzeto {count} od četiri mjesta. Pošalji link — svatko tko ga ima može sjesti.",
+            "allReadyNote": "Svi su spremni. Dijeljenje kreće čim se popuni četvrto mjesto.",
+            "takeSeat": "Sjedni ovdje",
+            "swapWith": "Zamijeni mjesto s {name}",
+            "host": "domaćin",
+            "ready": "Spreman",
+            "opponent": "protivnik",
+            "readyAction": "Spreman sam",
+            "unreadyAction": "Nisam spreman",
+            "startWithBots": "Igraj s botovima",
+            "botFillNote": {
+                "one": "Kreneš li sad, zadnje prazno mjesto popunjava bot.",
+                "other": "Kreneš li sad, {count} prazna mjesta popunjavaju botovi."
+            },
+            "copied": "Kopirano",
+            "unknownPlayer": "Igrač",
+            "botNames": ["Bot Alfa", "Bot Beta", "Bot Gama", "Bot Delta"]
+        },
+        "join": {
+            "heading": "Pridruži se kodom",
+            "joining": "Sjedam za stol…",
+            "back": "Natrag na tvoj stol"
+        },
+        "connection": {
+            "reconnecting": "Ponovno se spajam…",
+            "expired": "Sesija je istekla. Prijavi se da opet sjedneš.",
+            "signIn": "Prijava"
+        },
+        "lobbyErrors": {
+            "notFound": "Nema stola s tim kodom. Možda je zatvoren.",
+            "full": "Taj stol je pun.",
+            "notJoinable": "Taj stol je već počeo.",
+            "alreadyIn": "Već si za stolom.",
+            "sessionLocked": "Već si za stolom u drugom prozoru. Prvo ga napusti.",
+            "notHost": "To može samo domaćin.",
+            "generic": "Nije uspjelo. Pokušaj za koji trenutak."
+        }
     },
     "game": {
         "title": "Stol",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, type KeyboardEvent } from "react";
+import { useRef, type ClipboardEvent, type KeyboardEvent } from "react";
 
 import { cn } from "@/lib/cn";
 import { focusRing } from "@/lib/styles";
@@ -44,12 +44,19 @@ export default function CodeInput({
         (value[index] ?? "").trim(),
     );
 
-    function setDigit(index: number, typed: string) {
-        // Last character wins, so typing over a filled box replaces it rather than
-        // being rejected by `maxLength`.
-        const digit = typed.replace(/\D/g, "").slice(-1);
+    /**
+     * Writes `typed` into the boxes from `index` on, and leaves the caret in
+     * the box after the last one written. One digit is the typing case; more
+     * than one is a paste, which fills forward from wherever it landed.
+     */
+    function fillFrom(index: number, typed: string) {
+        const incoming = typed.replace(/\D/g, "").slice(0, length - index);
         const next = digits.slice();
-        next[index] = digit;
+        // Typing over a filled box replaces it: with one digit in hand this is
+        // the overwrite `maxLength` would otherwise refuse.
+        for (let offset = 0; offset < incoming.length; offset += 1) {
+            next[index + offset] = incoming[offset];
+        }
 
         // A skipped box is held open with a space rather than closed up, so a code
         // typed out of order stays in the boxes it was typed into — and stays
@@ -61,7 +68,40 @@ export default function CodeInput({
                 .join("")
                 .trimEnd(),
         );
-        if (digit) boxes.current[index + 1]?.focus();
+        if (incoming.length) {
+            const landed = index + incoming.length;
+            boxes.current[Math.min(landed, length - 1)]?.focus();
+        }
+    }
+
+    /**
+     * `maxLength` clips a pasted code down to its first character, which is the
+     * one thing nobody pastes a code to get. Taking the clipboard directly is
+     * the only way to see the whole of it.
+     */
+    function onPaste(event: ClipboardEvent<HTMLInputElement>, index: number) {
+        const pasted = event.clipboardData.getData("text");
+        if (!pasted) return;
+
+        event.preventDefault();
+        // A code pasted whole belongs in the whole field, not from the box that
+        // happened to have focus — that is what a full-length paste means.
+        const digitsPasted = pasted.replace(/\D/g, "");
+        fillFrom(digitsPasted.length >= length ? 0 : index, digitsPasted);
+    }
+
+    /**
+     * Typed input, one box at a time. `maxLength` usually refuses a keystroke on
+     * a filled box outright, but where the browser lets the character through
+     * the box holds two: the digit already there and the new one, and it is the
+     * new one the player meant.
+     */
+    function onType(index: number, raw: string) {
+        const typed =
+            raw.length > 1 && raw.startsWith(digits[index])
+                ? raw.slice(1)
+                : raw;
+        fillFrom(index, typed);
     }
 
     function onKeyDown(event: KeyboardEvent<HTMLInputElement>, index: number) {
@@ -85,10 +125,9 @@ export default function CodeInput({
                             boxes.current[index] = element;
                         }}
                         value={digit}
-                        onChange={(event) =>
-                            setDigit(index, event.target.value)
-                        }
+                        onChange={(event) => onType(index, event.target.value)}
                         onKeyDown={(event) => onKeyDown(event, index)}
+                        onPaste={(event) => onPaste(event, index)}
                         onBlur={onBlur}
                         aria-label={`${digitLabel} ${index + 1}`}
                         // The six boxes are one field, so they carry one verdict between

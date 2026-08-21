@@ -51,11 +51,6 @@ public class LobbyEventHandler {
         lobbyService.swapSeats(user.getId(), command.getSeat());
     }
 
-    @OnEvent("lobby:startWithBots")
-    public void startWithBots(UserSession session, User user) {
-        lobbyService.startWithBots(user.getId());
-    }
-
     @OnEvent("lobby:changeConfig")
     public void changeConfig(UserSession session, User user, ChangeLobbyConfigCommand command) {
         lobbyService.updateConfig(user.getId(), parseConfiguration(command));

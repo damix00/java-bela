@@ -306,7 +306,47 @@
         "queueLabel": "Queue depth",
         "queueValue": "~1:10 wait at this hour",
         "playNow": "Play now",
-        "playRankedNote": "matched within ±100 of your rating"
+        "playRankedNote": "matched within ±100 of your rating",
+        "lobby": {
+            "heading": "Your table",
+            "opening": "Opening your table…",
+            "waitingNote": "{count} of four seats taken. Send the link — anyone with it can sit down.",
+            "allReadyNote": "Everyone’s ready. The hand deals itself the moment the fourth seat is set.",
+            "takeSeat": "Take this seat",
+            "swapWith": "Swap seats with {name}",
+            "host": "host",
+            "ready": "Ready",
+            "opponent": "opponent",
+            "readyAction": "I’m ready",
+            "unreadyAction": "Not ready",
+            "startWithBots": "Play with bots",
+            "botFillNote": {
+                "one": "Starting now fills the last open seat with a bot.",
+                "other": "Starting now fills the {count} open seats with bots."
+            },
+            "copied": "Copied",
+            "unknownPlayer": "Player",
+            "botNames": ["Bot Alpha", "Bot Beta", "Bot Gamma", "Bot Delta"]
+        },
+        "join": {
+            "heading": "Join with a code",
+            "joining": "Taking a seat…",
+            "back": "Back to your table"
+        },
+        "connection": {
+            "reconnecting": "Reconnecting…",
+            "expired": "Your session ended. Sign in to sit back down.",
+            "signIn": "Sign in"
+        },
+        "lobbyErrors": {
+            "notFound": "No table with that code. It may have been closed.",
+            "full": "That table is full.",
+            "notJoinable": "That table has already started.",
+            "alreadyIn": "You’re already at a table.",
+            "sessionLocked": "You’re already at a table in another window. Leave it first.",
+            "notHost": "Only the host can do that.",
+            "generic": "That didn’t work. Try again in a moment."
+        }
     },
     "game": {
         "title": "Table",

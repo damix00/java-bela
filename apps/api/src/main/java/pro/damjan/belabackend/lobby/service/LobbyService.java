@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pro.damjan.belabackend.game.model.BeloteGame;
 import pro.damjan.belabackend.game.model.config.GameConfiguration;
+import pro.damjan.belabackend.game.model.config.MatchType;
 import pro.damjan.belabackend.game.service.BeloteGameService;
 import pro.damjan.belabackend.lobby.exception.AlreadyInLobbyException;
 import pro.damjan.belabackend.lobby.exception.LobbyFullException;
@@ -245,10 +246,17 @@ public class LobbyService {
         lobbyRepository.save(lobby);
         lobbyEventPublisher.playerStatusChanged(lobby, player);
 
-        // Check if all players are ready
-        // TODO: add actual matchmaking. For now only start if lobby is full and all players are ready
-        if (lobby.allPlayersReady() && lobby.isFull()) {
+        if (!lobby.allPlayersReady()) return;
+
+        // everyone is ready and the lobby is full => start the game
+        if (lobby.isFull()) {
             createGame(lobby);
+            return;
+        }
+
+        if (lobby.getGameConfiguration().matchType() == MatchType.PRIVATE) {
+            startWithBots(lobby);
+            return;
         }
     }
 
@@ -285,25 +293,13 @@ public class LobbyService {
         lobbyEventPublisher.configChanged(lobby);
     }
 
-    public void startWithBots(String userId) {
-        User user = userService.getUserById(userId);
-
-        if (user == null) {
-            throw new IllegalArgumentException("User not found");
-        }
-
-        // TODO: For now allow anyone to start with bots, but maybe restrict this to admins in the future
-//        if (user.getRole() != Role.ADMIN) {
-//            throw new IllegalStateException("Only admins can start games with bots");
-//        }
-
-        Lobby lobby = getUserLobby(userId);
-        if (lobby == null) {
-            throw new LobbyNotFoundException();
-        }
-
+    public void startWithBots(Lobby lobby) {
         if (lobby.getGameId() != null) {
             throw new IllegalStateException("Game already started");
+        }
+
+        if (lobby.getGameConfiguration().matchType() != MatchType.PRIVATE) {
+            throw new IllegalStateException("Can't have bots in a non-private match");
         }
 
         // Fill empty seats with bots

@@ -71,8 +71,14 @@ export async function proxy(request: NextRequest) {
  * still session-less, and it redirects again. That ping-pong runs until the
  * browser refuses the `history.replaceState()` behind it. Turning the visitor
  * away out here, before the lobby renders at all, is what breaks the cycle.
+ *
+ * `join` is an invite link arriving from outside — a chat app, usually — and it
+ * needs a session before it can take a seat. Gating it here is what makes
+ * `?next=` carry the table through sign-in, so someone who clicks a friend's
+ * link while signed out lands back on that lobby rather than on the front door
+ * with the code lost.
  */
-const gatedSections = new Set(["", "play", "welcome", "username"]);
+const gatedSections = new Set(["", "play", "welcome", "username", "join"]);
 
 function isGated(section: string) {
     return gatedSections.has(section);

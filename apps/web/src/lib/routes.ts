@@ -61,6 +61,33 @@ export function playPath(locale: Locale, gameId: string) {
 }
 
 /**
+ * An invite link, as it is pasted into a chat.
+ *
+ * The code is the lobby's own `inviteCode` — six characters of `A-Z0-9`, which
+ * the backend generates with a uniqueness loop and indexes. It goes in the path
+ * rather than a query parameter because this is a link people read aloud and
+ * retype, and `?code=` invites being stripped by the tidier link previewers.
+ *
+ * Uppercased on the way in: the backend matches the code exactly, and nobody
+ * typing one by hand is going to hold shift for six characters.
+ */
+export function joinPath(locale: Locale, code: string) {
+    return `/${locale}/join/${code.toUpperCase()}`;
+}
+
+/**
+ * The same link, absolute — what actually goes on the clipboard.
+ *
+ * Reads the origin from the browser, so it is correct on localhost, on the LAN
+ * address the phone testing uses, and in production without a configured base
+ * URL to drift out of date. Client-side only; there is no origin to read on the
+ * server, and nothing server-side needs one.
+ */
+export function joinUrl(locale: Locale, code: string) {
+    return `${window.location.origin}${joinPath(locale, code)}`;
+}
+
+/**
  * The query parameter that carries "where they were actually headed" through
  * the sign-in screen. Written by the proxy when it turns someone away, read by
  * the credential screens once they have a session.

@@ -15,11 +15,13 @@ export * from "./generated";
 import type {
     CardThrownEvent,
     CardTurnStartedEvent,
+    ChangeLobbyConfigCommand,
     ChooseTrumpCommand,
     GameEndedEvent,
     GameSnapshotEvent,
     GameStatusChangedEvent,
     JoinLobbyViaCodeCommand,
+    LobbyConfigurationChangedEvent,
     LobbyGameCreatedEvent,
     LobbyHostChangedEvent,
     LobbyInitialStateEvent,
@@ -47,6 +49,7 @@ export interface ServerEvents {
     "game:trumpChoiceSkipped": TrumpChoiceSkippedEvent;
     "game:trumpChoosingStarted": TrumpChoosingStartedEvent;
     "game:trumpChosen": TrumpChosenEvent;
+    "lobby:configChanged": LobbyConfigurationChangedEvent;
     "lobby:gameCreated": LobbyGameCreatedEvent;
     "lobby:hostUpdated": LobbyHostChangedEvent;
     "lobby:initialState": LobbyInitialStateEvent;
@@ -66,6 +69,7 @@ export interface ClientEvents {
     "game:loaded": null;
     "game:trump:choose": ChooseTrumpCommand;
     "game:trump:pass": null;
+    "lobby:changeConfig": ChangeLobbyConfigCommand;
     "lobby:create": null;
     "lobby:join:code": JoinLobbyViaCodeCommand;
     "lobby:leave": null;
