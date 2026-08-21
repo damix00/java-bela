@@ -7,8 +7,12 @@ import { ButtonLink } from "@/components/controls/Button";
 import Card from "@/components/ui/surfaces/Card";
 import Heading from "@/components/ui/typography/Heading";
 import Text from "@/components/ui/typography/Text";
-import { SNAPSHOT_GRACE_MS, useLobby } from "@/context/lobby-context";
-import { useSocket } from "@/context/socket-context";
+import {
+    SNAPSHOT_GRACE_MS,
+    useLobby,
+    useLobbyActions,
+} from "@/context/lobby-context";
+import { useSocketStatus } from "@/context/socket-context";
 import type { Dictionary } from "@/dictionaries";
 import type { Locale } from "@/lib/i18n";
 import { localiseLobbyError } from "@/lib/lobby-errors";
@@ -47,8 +51,9 @@ export default function JoinScreen({ copy, locale, code }: JoinScreenProps) {
     const t = copy.join;
     const wanted = code.toUpperCase();
 
-    const { status } = useSocket();
-    const { lobby, error, joinByCode, leave } = useLobby();
+    const status = useSocketStatus();
+    const { lobby, error } = useLobby();
+    const { joinByCode, leave } = useLobbyActions();
     const router = useRouter();
 
     // Guards the join against the socket's own reconnects: re-sending it would

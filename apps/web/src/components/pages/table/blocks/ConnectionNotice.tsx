@@ -1,7 +1,7 @@
 "use client";
 
 import { ButtonLink } from "@/components/controls/Button";
-import { useSocket } from "@/context/socket-context";
+import { useSocketStatus } from "@/context/socket-context";
 import type { Dictionary } from "@/dictionaries";
 import type { Locale } from "@/lib/i18n";
 import { authPath } from "@/lib/routes";
@@ -42,7 +42,7 @@ export default function ConnectionNotice({
     copy: Dictionary["table"]["connection"];
     locale: Locale;
 }) {
-    const { status } = useSocket();
+    const status = useSocketStatus();
 
     const expired = status === "auth-failed";
     const settled = status === "connected" || status === "connecting";

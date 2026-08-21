@@ -6,14 +6,23 @@ import { locales } from "@/lib/i18n";
 import "../globals.css";
 import Script from "next/script";
 
+// `latin-ext` is not optional here, it is what Croatian is written in. Every
+// one of č ć đ š ž lives in U+0100–024F, outside the `latin` range, and `hr` is
+// half the site's copy. Declaring only `latin` still *builds* the latin-ext
+// face — Google serves it as its own `@font-face` — but next/font only emits a
+// `<link rel="preload">` for the subsets named here, so those glyphs were
+// discovered a round trip late and repainted after the rest of the line.
+// Spelled out per family rather than shared from a const: next/font reads these
+// options at build time from the call site itself, so anything it cannot see
+// literally is not a subset it will fetch.
 const bricolage = Bricolage_Grotesque({
     variable: "--font-bricolage",
-    subsets: ["latin"],
+    subsets: ["latin", "latin-ext"],
 });
 
 const publicSans = Public_Sans({
     variable: "--font-public-sans",
-    subsets: ["latin"],
+    subsets: ["latin", "latin-ext"],
 });
 
 export function generateStaticParams() {

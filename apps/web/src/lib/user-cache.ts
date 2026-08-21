@@ -56,13 +56,6 @@ export function getUsersSnapshot(): Record<string, PublicUser> {
     return snapshot;
 }
 
-/** Server and hydration snapshot: nothing has been fetched yet, by definition. */
-const emptySnapshot: Record<string, PublicUser> = {};
-
-export function getServerUsersSnapshot(): Record<string, PublicUser> {
-    return emptySnapshot;
-}
-
 export function subscribeUsers(listener: () => void): () => void {
     listeners.add(listener);
     return () => listeners.delete(listener);

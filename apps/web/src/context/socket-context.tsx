@@ -5,6 +5,7 @@ import {
     useCallback,
     useContext,
     useEffect,
+    useMemo,
     useRef,
     useState,
     type ReactNode,
@@ -66,8 +67,11 @@ export type SocketError = {
 
 type Handler = (data: never) => void;
 
-type SocketContextType = {
-    status: SocketStatus;
+/**
+ * The socket's verbs. Every one of these is stable for the life of the
+ * provider — they close over refs, never over state.
+ */
+type SocketCommands = {
     send: <K extends ClientEventName>(
         event: K,
         ...body: ClientEvents[K] extends null ? [] : [ClientEvents[K]]
@@ -80,7 +84,23 @@ type SocketContextType = {
     subscribeErrors: (handler: (error: SocketError) => void) => () => void;
 };
 
-const SocketContext = createContext<SocketContextType | undefined>(undefined);
+/**
+ * The status and the commands are two contexts, not one object, because they
+ * change on completely different clocks.
+ *
+ * `status` flips on every reconnect — and a backoff cycle can flip it several
+ * times a minute — while the commands never change at all. Behind one context
+ * that distinction is lost: the value object is rebuilt on each flip, so
+ * everything holding it re-renders, including `LobbyProvider`, which only ever
+ * wanted `send`. That re-render rebuilds the lobby's own value and the whole
+ * table follows it down. Splitting them means a reconnect touches exactly the
+ * two components that draw the connection state.
+ */
+const SocketCommandsContext = createContext<SocketCommands | undefined>(
+    undefined,
+);
+
+const SocketStatusContext = createContext<SocketStatus | undefined>(undefined);
 
 /** The channel `error:*` frames are fanned out to. Not a real server event. */
 const ERROR_CHANNEL = "\0error";
@@ -328,19 +348,42 @@ export function SocketProvider({ children }: { children: ReactNode }) {
         return () => clearInterval(id);
     }, [status, send]);
 
+    // Built once: every dependency is a `useCallback` with no dependencies of
+    // its own, so this object outlives every status change under it.
+    const commands = useMemo<SocketCommands>(
+        () => ({ send, subscribe, subscribeErrors }),
+        [send, subscribe, subscribeErrors],
+    );
+
     return (
-        <SocketContext.Provider
-            value={{ status, send, subscribe, subscribeErrors }}
-        >
-            {children}
-        </SocketContext.Provider>
+        <SocketCommandsContext.Provider value={commands}>
+            <SocketStatusContext.Provider value={status}>
+                {children}
+            </SocketStatusContext.Provider>
+        </SocketCommandsContext.Provider>
     );
 }
 
-export function useSocket() {
-    const context = useContext(SocketContext);
+/**
+ * The socket's verbs, without subscribing to its status.
+ *
+ * This is what anything that only *talks* to the backend should take. Reading
+ * the status alongside it is what drags a component into re-rendering on every
+ * reconnect.
+ */
+export function useSocketCommands() {
+    const context = useContext(SocketCommandsContext);
     if (context === undefined) {
-        throw new Error("useSocket must be used within a SocketProvider");
+        throw new Error("useSocketCommands must be used within a SocketProvider");
+    }
+    return context;
+}
+
+/** The connection state on its own, for the components that draw it. */
+export function useSocketStatus() {
+    const context = useContext(SocketStatusContext);
+    if (context === undefined) {
+        throw new Error("useSocketStatus must be used within a SocketProvider");
     }
     return context;
 }

@@ -9,7 +9,11 @@ import { Button } from "@/components/controls/Button";
 import FormError from "@/components/controls/FormError";
 import MockLabel from "@/components/pages/table/blocks/MockLabel";
 import TableRules from "@/components/pages/table/blocks/TableRules";
-import { SEAT_COUNT, useLobby } from "@/context/lobby-context";
+import {
+    SEAT_COUNT,
+    useLobby,
+    useLobbyActions,
+} from "@/context/lobby-context";
 import type { Dictionary } from "@/dictionaries";
 import { cn } from "@/lib/cn";
 import type { Locale } from "@/lib/i18n";
@@ -54,8 +58,8 @@ export default function LobbyBand({
     guest,
 }: LobbyBandProps) {
     const t = copy.lobby;
-    const { lobby, seats, playerCount, isHost, isReady, error, setReady } =
-        useLobby();
+    const { lobby, seats, playerCount, isHost, isReady, error } = useLobby();
+    const { setReady } = useLobbyActions();
 
     const [copied, setCopied] = useState(false);
 

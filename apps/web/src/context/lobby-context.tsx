@@ -17,7 +17,10 @@ import {
 } from "@bela/protocol";
 
 import { useAuth } from "@/context/auth-context";
-import { useSocket, type SocketError } from "@/context/socket-context";
+import {
+    useSocketCommands,
+    type SocketError,
+} from "@/context/socket-context";
 import { useSocketErrors, useSocketEvent } from "@/hooks/use-socket-event";
 import type { Locale } from "@/lib/i18n";
 import { playPath } from "@/lib/routes";
@@ -40,7 +43,8 @@ export const SNAPSHOT_GRACE_MS = 600;
 /** A seat is either occupied or open; the array is always `SEAT_COUNT` long. */
 export type Seats = (LobbyPlayer | null)[];
 
-type LobbyContextType = {
+/** What the table currently *is*. Changes whenever a `lobby:*` frame lands. */
+type LobbyState = {
     lobby: Lobby | null;
     /** Indexed by seat, so `seats[2]` is seat 2 whether or not anyone is in it. */
     seats: Seats;
@@ -51,6 +55,10 @@ type LobbyContextType = {
     playerCount: number;
     /** The last refusal from a `lobby:*` command, for the UI to explain. */
     error: SocketError | null;
+};
+
+/** What can be *done* to the table. Stable for the life of the provider. */
+type LobbyActions = {
     clearError: () => void;
     create: () => void;
     joinByCode: (inviteCode: string) => void;
@@ -70,7 +78,17 @@ type LobbyContextType = {
  */
 const PRIVATE_TARGET_SCORE = 501;
 
-const LobbyContext = createContext<LobbyContextType | undefined>(undefined);
+/**
+ * Split for the same reason the socket's is: the two halves change on different
+ * clocks, and behind one value the slower half is dragged along by the faster.
+ *
+ * Every `lobby:*` frame rebuilds the state — a ready toggle, a seat swap, a
+ * keepalive-era reconnect snapshot. The actions never change. Held together, a
+ * component that only wanted `setMatchType` re-rendered on all of it.
+ */
+const LobbyStateContext = createContext<LobbyState | undefined>(undefined);
+
+const LobbyActionsContext = createContext<LobbyActions | undefined>(undefined);
 
 /** Immutably replace one seat, dropping the key when the seat empties. */
 function withSeat(lobby: Lobby, seat: number, player: LobbyPlayer | null) {
@@ -116,7 +134,9 @@ export function LobbyProvider({
     locale: Locale;
 }) {
     const { user } = useAuth();
-    const { send } = useSocket();
+    // Commands only. Taking the status here would re-render this provider — and
+    // so every table under it — on each step of a reconnect backoff.
+    const { send } = useSocketCommands();
     const router = useRouter();
 
     const [lobby, setLobby] = useState<Lobby | null>(null);
@@ -207,12 +227,19 @@ export function LobbyProvider({
         if (incoming.command.startsWith("lobby:")) setError(incoming);
     });
 
+    // Keyed on `playerSeats`, not on `lobby`. The two are not the same trigger:
+    // `lobby:configChanged` rebuilds the lobby object and leaves `playerSeats`
+    // untouched, and keying on the whole lobby handed out a brand new array for
+    // it anyway — which invalidates every memo downstream that is watching the
+    // seats, and re-renders four chairs because the match type changed.
+    const playerSeats = lobby?.playerSeats;
+
     const seats = useMemo<Seats>(() => {
         const empty: Seats = Array.from({ length: SEAT_COUNT }, () => null);
-        if (!lobby) return empty;
+        if (!playerSeats) return empty;
 
-        return empty.map((_, seat) => lobby.playerSeats[seat] ?? null);
-    }, [lobby]);
+        return empty.map((_, seat) => playerSeats[seat] ?? null);
+    }, [playerSeats]);
 
     const me = useMemo(
         () =>
@@ -265,33 +292,71 @@ export function LobbyProvider({
         [send],
     );
 
+    const state = useMemo<LobbyState>(
+        () => ({
+            lobby,
+            seats,
+            me,
+            isHost: me?.host ?? false,
+            isReady: me?.status === LobbyPlayerStatus.READY,
+            playerCount: seats.filter(Boolean).length,
+            error,
+        }),
+        [lobby, seats, me, error],
+    );
+
+    // Built once: each of these is a `useCallback` over `send`, which is itself
+    // stable for the life of the socket provider.
+    const actions = useMemo<LobbyActions>(
+        () => ({
+            clearError,
+            create,
+            joinByCode,
+            leave,
+            setReady,
+            swapSeat,
+            setMatchType,
+        }),
+        [
+            clearError,
+            create,
+            joinByCode,
+            leave,
+            setReady,
+            swapSeat,
+            setMatchType,
+        ],
+    );
+
     return (
-        <LobbyContext.Provider
-            value={{
-                lobby,
-                seats,
-                me,
-                isHost: me?.host ?? false,
-                isReady: me?.status === LobbyPlayerStatus.READY,
-                playerCount: seats.filter(Boolean).length,
-                error,
-                clearError,
-                create,
-                joinByCode,
-                leave,
-                setReady,
-                swapSeat,
-                setMatchType,
-            }}>
-            {children}
-        </LobbyContext.Provider>
+        <LobbyActionsContext.Provider value={actions}>
+            <LobbyStateContext.Provider value={state}>
+                {children}
+            </LobbyStateContext.Provider>
+        </LobbyActionsContext.Provider>
     );
 }
 
+/** What the table is. Re-renders the caller on every `lobby:*` frame. */
 export function useLobby() {
-    const context = useContext(LobbyContext);
+    const context = useContext(LobbyStateContext);
     if (context === undefined) {
         throw new Error("useLobby must be used within a LobbyProvider");
+    }
+    return context;
+}
+
+/**
+ * What can be done to the table, without subscribing to what it currently is.
+ *
+ * A control that only sends commands — a leave button, a rule selector — should
+ * take this and nothing else, and then it re-renders for its own reasons rather
+ * than for everyone else's.
+ */
+export function useLobbyActions() {
+    const context = useContext(LobbyActionsContext);
+    if (context === undefined) {
+        throw new Error("useLobbyActions must be used within a LobbyProvider");
     }
     return context;
 }

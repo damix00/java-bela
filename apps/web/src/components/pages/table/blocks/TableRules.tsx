@@ -6,7 +6,7 @@ import { MatchType } from "@bela/protocol";
 
 import MockLabel from "@/components/pages/table/blocks/MockLabel";
 import RankedGate from "@/components/pages/table/blocks/RankedGate";
-import { useLobby } from "@/context/lobby-context";
+import { useLobby, useLobbyActions } from "@/context/lobby-context";
 import type { Dictionary } from "@/dictionaries";
 import { cn } from "@/lib/cn";
 import { focusRing, pressSm } from "@/lib/styles";
@@ -53,7 +53,8 @@ export default function TableRules({
     signUpHref,
     guest,
 }: TableRulesProps) {
-    const { lobby, isHost, setMatchType } = useLobby();
+    const { lobby, isHost } = useLobby();
+    const { setMatchType } = useLobbyActions();
 
     const [open, setOpen] = useState(false);
     // Which option the keyboard is on while the list is open, as distinct from

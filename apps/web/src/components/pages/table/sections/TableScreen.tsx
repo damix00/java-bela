@@ -19,10 +19,11 @@ import {
     SEAT_COUNT,
     SNAPSHOT_GRACE_MS,
     useLobby,
+    useLobbyActions,
 } from "@/context/lobby-context";
-import { useSocket } from "@/context/socket-context";
+import { useSocketStatus } from "@/context/socket-context";
 import { useSeatProfiles } from "@/hooks/use-seat-profiles";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { Dictionary } from "@/dictionaries";
 import { cn } from "@/lib/cn";
 import type { Locale } from "@/lib/i18n";
@@ -70,9 +71,9 @@ export default function TableScreen({
     guest,
     signUpHref,
 }: TableScreenProps) {
-    const { lobby, seats, me, playerCount, error, create, swapSeat } =
-        useLobby();
-    const { status } = useSocket();
+    const { lobby, seats, me, playerCount, error } = useLobby();
+    const { create, swapSeat } = useLobbyActions();
+    const status = useSocketStatus();
     const profiles = useSeatProfiles(seats);
 
     // One attempt per visit. A second `lobby:create` would only be answered
@@ -113,140 +114,173 @@ export default function TableScreen({
     // pair to either side. With no chair yet — the idle screen — seat 0 stands
     // in, which puts the player at the near edge either way.
     const chair = me?.seat ?? 0;
-    const [near, left, across, right] = seatsFromChair(chair);
 
-    function nameFor(seat: number): string {
-        const player = seats[seat];
-        if (!player) return "";
-
-        if (player.bot || isBotId(player.userId)) {
-            return t.botNames[seat % t.botNames.length];
-        }
-
-        if (player.userId === user.id) return user.username;
-
-        // A name still in flight. The seat is drawn either way — a table that
-        // waits for four lookups before showing anybody is a blank screen for
-        // as long as the slowest one takes.
-        return profiles[player.userId]?.username ?? t.unknownPlayer;
-    }
-
-    /** What clicking a seat does, or nothing when there is no table to sit at. */
-    function seatAction(seat: number) {
-        if (!lobby || seat === chair) return undefined;
-        return () => swapSeat(seat);
-    }
-
-    function seatActionLabel(seat: number) {
-        const player = seats[seat];
-
-        return player
-            ? t.swapWith.replace("{name}", nameFor(seat))
-            : t.takeSeat;
-    }
+    // Whether there is a table, as a boolean rather than the lobby itself. The
+    // seats below only ever ask *if* one exists — to decide whether a chair can
+    // be clicked, and whether the near seat is the idle screen's stand-in — and
+    // depending on the object instead would rebuild all four of them every time
+    // any unrelated field of the lobby changed, the match type included.
+    const hasTable = lobby !== null;
 
     /**
-     * The line under a name: who they are to you, and what they are doing.
+     * The four seats, already rendered.
      *
-     * Your own seat gets no relation — you are neither your partner nor your
-     * opponent, and the tag beside the name has already said which chair this
-     * is. It can still say you are the host, which is the one thing about
-     * yourself the table needs to tell you.
+     * Memoised as *elements* rather than left as calls in the JSX, because the
+     * helpers below are closures: `onClick={seatAction(seat)}` is a new
+     * function on every pass, and `tags={[...]}` a new array, so no amount of
+     * `memo()` on `SeatCard` could ever let it bail out. Holding the element
+     * means React compares one reference and skips the whole subtree — which is
+     * what makes a reconnect blip, or a ready toggle three seats away, cost
+     * nothing here.
+     *
+     * The helpers live inside the memo for the same reason. Outside it they
+     * would each need their own `useCallback` before they could be depended on,
+     * and the dependency list would be six entries of bookkeeping instead of
+     * the state this actually reads.
      */
-    function metaFor(seat: number): string {
-        const player = seats[seat];
-        if (!player) return "";
+    const [nearSeat, leftSeat, acrossSeat, rightSeat] = useMemo(() => {
+        const [near, left, across, right] = seatsFromChair(chair);
 
-        const relation =
-            seat === chair
-                ? null
-                : seat === partnerSeat(chair)
-                  ? copy.partner
-                  : t.opponent;
+        function nameFor(seat: number): string {
+            const player = seats[seat];
+            if (!player) return "";
 
-        return [relation, player.host ? t.host : null]
-            .filter(Boolean)
-            .join(" · ");
-    }
+            if (player.bot || isBotId(player.userId)) {
+                return t.botNames[seat % t.botNames.length];
+            }
 
-    function renderRowSeat(seat: number, isYou: boolean) {
-        const player = seats[seat];
-        const { suit, tone } = seatIdentity(seat);
+            if (player.userId === user.id) return user.username;
 
-        // Before there is a table, the near seat is still occupied — by the
-        // person looking at it. Drawing four empty chairs would be truer to the
-        // lobby state and worse as a picture of what pressing play does.
-        if (!player && isYou && !lobby) {
+            // A name still in flight. The seat is drawn either way — a table that
+            // waits for four lookups before showing anybody is a blank screen for
+            // as long as the slowest one takes.
+            return profiles[player.userId]?.username ?? t.unknownPlayer;
+        }
+
+        /** What clicking a seat does, or nothing when there is no table to sit at. */
+        function seatAction(seat: number) {
+            if (!hasTable || seat === chair) return undefined;
+            return () => swapSeat(seat);
+        }
+
+        function seatActionLabel(seat: number) {
+            const player = seats[seat];
+
+            return player
+                ? t.swapWith.replace("{name}", nameFor(seat))
+                : t.takeSeat;
+        }
+
+        /**
+         * The line under a name: who they are to you, and what they are doing.
+         *
+         * Your own seat gets no relation — you are neither your partner nor your
+         * opponent, and the tag beside the name has already said which chair this
+         * is. It can still say you are the host, which is the one thing about
+         * yourself the table needs to tell you.
+         */
+        function metaFor(seat: number): string {
+            const player = seats[seat];
+            if (!player) return "";
+
+            const relation =
+                seat === chair
+                    ? null
+                    : seat === partnerSeat(chair)
+                      ? copy.partner
+                      : t.opponent;
+
+            return [relation, player.host ? t.host : null]
+                .filter(Boolean)
+                .join(" · ");
+        }
+
+        function renderRowSeat(seat: number, isYou: boolean) {
+            const player = seats[seat];
+            const { suit, tone } = seatIdentity(seat);
+
+            // Before there is a table, the near seat is still occupied — by the
+            // person looking at it. Drawing four empty chairs would be truer to the
+            // lobby state and worse as a picture of what pressing play does.
+            if (!player && isYou && !hasTable) {
+                return (
+                    <SeatCard
+                        name={user.username}
+                        // Nothing true to say under the name yet: there is no
+                        // partner to be across from and no deal to be holding.
+                        meta=""
+                        suit={suit}
+                        tone={tone}
+                        tags={[{ label: copy.you }]}
+                        className="w-full"
+                    />
+                );
+            }
+
+            if (!player) {
+                return (
+                    <EmptySeat
+                        label={copy.inviteSeat}
+                        onClick={seatAction(seat)}
+                        className="w-full"
+                    />
+                );
+            }
+
             return (
                 <SeatCard
-                    name={user.username}
-                    // Nothing true to say under the name yet: there is no
-                    // partner to be across from and no deal to be holding.
-                    meta=""
+                    name={nameFor(seat)}
+                    meta={metaFor(seat)}
                     suit={suit}
                     tone={tone}
-                    tags={[{ label: copy.you }]}
-                    className="w-full"
-                />
-            );
-        }
-
-        if (!player) {
-            return (
-                <EmptySeat
-                    label={copy.inviteSeat}
+                    tags={[
+                        ...(isYou ? [{ label: copy.you }] : []),
+                        ...(player.status === LobbyPlayerStatus.READY
+                            ? [{ label: t.ready, tone: "ready" as const }]
+                            : []),
+                    ]}
                     onClick={seatAction(seat)}
+                    actionLabel={seatActionLabel(seat)}
                     className="w-full"
                 />
             );
         }
 
-        return (
-            <SeatCard
-                name={nameFor(seat)}
-                meta={metaFor(seat)}
-                suit={suit}
-                tone={tone}
-                tags={[
-                    ...(isYou ? [{ label: copy.you }] : []),
-                    ...(player.status === LobbyPlayerStatus.READY
-                        ? [{ label: t.ready, tone: "ready" as const }]
-                        : []),
-                ]}
-                onClick={seatAction(seat)}
-                actionLabel={seatActionLabel(seat)}
-                className="w-full"
-            />
-        );
-    }
+        function renderSideSeat(seat: number) {
+            const player = seats[seat];
+            const { suit, tone } = seatIdentity(seat);
 
-    function renderSideSeat(seat: number) {
-        const player = seats[seat];
-        const { suit, tone } = seatIdentity(seat);
+            if (!player) {
+                return (
+                    <EmptySeat
+                        label={copy.inviteSeat}
+                        onClick={seatAction(seat)}
+                        className="w-full"
+                    />
+                );
+            }
 
-        if (!player) {
             return (
-                <EmptySeat
-                    label={copy.inviteSeat}
+                <SideSeat
+                    name={nameFor(seat)}
+                    suit={suit}
+                    tone={tone}
+                    ready={player.status === LobbyPlayerStatus.READY}
+                    note={player.host ? t.host : t.opponent}
                     onClick={seatAction(seat)}
+                    actionLabel={seatActionLabel(seat)}
                     className="w-full"
                 />
             );
         }
 
-        return (
-            <SideSeat
-                name={nameFor(seat)}
-                suit={suit}
-                tone={tone}
-                ready={player.status === LobbyPlayerStatus.READY}
-                note={player.host ? t.host : t.opponent}
-                onClick={seatAction(seat)}
-                actionLabel={seatActionLabel(seat)}
-                className="w-full"
-            />
-        );
-    }
+        return [
+            renderRowSeat(near, true),
+            renderSideSeat(left),
+            renderRowSeat(across, false),
+            renderSideSeat(right),
+        ];
+    }, [chair, seats, hasTable, profiles, user, copy, t, swapSeat]);
 
     return (
         <div className="flex flex-1 flex-col">
@@ -263,10 +297,10 @@ export default function TableScreen({
             >
                 <div className="flex min-w-0 flex-col gap-8 sm:gap-10">
                     <TableStage
-                        near={renderRowSeat(near, true)}
-                        across={renderRowSeat(across, false)}
-                        left={renderSideSeat(left)}
-                        right={renderSideSeat(right)}
+                        near={nearSeat}
+                        across={acrossSeat}
+                        left={leftSeat}
+                        right={rightSeat}
                         centre={
                             <>
                                 <CardFan />
