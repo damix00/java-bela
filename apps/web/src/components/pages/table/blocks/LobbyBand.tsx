@@ -19,7 +19,7 @@ import { cn } from "@/lib/cn";
 import type { Locale } from "@/lib/i18n";
 import { localiseLobbyError } from "@/lib/lobby-errors";
 import { joinUrl } from "@/lib/routes";
-import { pressOnButton } from "@/lib/styles";
+import { focusRing, pressSm } from "@/lib/styles";
 
 type LobbyBandProps = {
     copy: Dictionary["table"];
@@ -46,10 +46,8 @@ const COPIED_MS = 2000;
  * chat is the actual gesture, and a bare code leaves the recipient hunting for
  * where to type it.
  *
- * The code and its copy button are welded into one block: the frame carries the
- * shadow and the press physics for the pair, the button inside drops its own.
- * That is what `pressOnButton` is for, and it is why the button no longer casts
- * a second shadow across the frame it sits in.
+ * The code and copy icon are one button. The whole block is the invitation,
+ * rather than a read-only field with a much smaller action hidden inside it.
  */
 export default function LobbyBand({
     copy,
@@ -130,10 +128,15 @@ export default function LobbyBand({
             <div className="grid gap-3 sm:grid-cols-[minmax(150px,0.9fr)_minmax(190px,1.2fr)_minmax(160px,auto)] sm:gap-4">
                 <TableRules copy={copy} signUpHref={signUpHref} guest={guest} />
 
-                <div
+                <button
+                    type="button"
+                    onClick={copyInvite}
+                    aria-label={copy.copyInvite}
+                    title={copied ? t.copied : copy.copyInvite}
                     className={cn(
-                        "flex min-h-16 items-center gap-3 border-[3px] border-ink bg-baize py-2 pr-2 pl-4 shadow-hard-sm",
-                        pressOnButton,
+                        "flex min-h-16 w-full cursor-pointer items-center gap-3 border-[3px] border-ink bg-baize py-2 pr-2 pl-4 text-left shadow-hard-sm",
+                        pressSm,
+                        focusRing,
                     )}>
                     <span className="min-w-0">
                         <MockLabel className="block truncate text-[9px] tracking-[.12em] text-mint/75">
@@ -147,24 +150,16 @@ export default function LobbyBand({
                         </span>
                     </span>
 
-                    {/* Icon only. The label would be the longest string in the
-                        band and it sits next to the six characters it copies,
-                        which say what it is for better than a caption would. */}
-                    <Button
-                        tone="cream"
-                        size="sm"
-                        joined
-                        onClick={copyInvite}
-                        aria-label={copy.copyInvite}
-                        title={copied ? t.copied : copy.copyInvite}
-                        className="ml-auto flex size-11 shrink-0 items-center justify-center p-0">
+                    {/* The icon is part of the button face, so any point in the
+                        code block performs the same copy action. */}
+                    <span className="ml-auto grid size-11 shrink-0 place-items-center border-[3px] border-ink bg-cream text-ink">
                         {copied ? (
                             <Check aria-hidden size={18} strokeWidth={3} />
                         ) : (
                             <Copy aria-hidden size={18} strokeWidth={3} />
                         )}
-                    </Button>
-                </div>
+                    </span>
+                </button>
 
                 <Button
                     tone={!starts && isReady ? "cream" : "rust"}

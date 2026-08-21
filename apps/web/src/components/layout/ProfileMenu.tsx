@@ -109,8 +109,7 @@ export default function ProfileMenu({
                 aria-expanded={open}
                 aria-label={copy.trigger}
                 onClick={() => setOpen((wasOpen) => !wasOpen)}
-                className="flex min-w-0 cursor-pointer items-center gap-3 focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-rust"
-            >
+                className="flex min-w-0 cursor-pointer items-center gap-3 focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-rust">
                 <span className="max-w-24 truncate font-display text-[15px] font-extrabold tracking-[-.02em] text-cream sm:max-w-48 sm:text-[16px]">
                     {user.username}
                 </span>
@@ -130,8 +129,7 @@ export default function ProfileMenu({
                 <div
                     role="menu"
                     aria-label={copy.trigger}
-                    className="absolute top-[calc(100%+14px)] right-0 z-40 w-[268px] border-4 border-ink bg-cream shadow-hard"
-                >
+                    className="absolute top-[calc(100%+14px)] right-0 z-40 w-[268px] border-4 border-ink bg-cream shadow-hard">
                     {/* Who you are, before what you can do about it: the avatar repeats
                         at menu scale so the panel reads as belonging to the corner it
                         dropped out of. */}
@@ -147,27 +145,26 @@ export default function ProfileMenu({
                         </div>
                     </div>
 
-                    {isGuest(user) && (
+                    {isGuest(user) ? (
                         <MenuItem
                             glyph={Sparkles}
                             href={authPath(locale, "signUp")}
                             onNavigate={() => setOpen(false)}
-                            emphasis
-                        >
+                            emphasis>
                             {copy.createAccount}
                         </MenuItem>
+                    ) : (
+                        <MenuItem glyph={UserRound} soon={copy.soon}>
+                            {copy.viewProfile}
+                        </MenuItem>
                     )}
-                    <MenuItem glyph={UserRound} soon={copy.soon}>
-                        {copy.viewProfile}
-                    </MenuItem>
                     <MenuItem glyph={Settings} soon={copy.soon}>
                         {copy.settings}
                     </MenuItem>
                     <MenuItem
                         glyph={LogOut}
                         onClick={signOut}
-                        disabled={pending}
-                    >
+                        disabled={pending}>
                         {copy.signOut}
                     </MenuItem>
                 </div>
@@ -243,8 +240,7 @@ function MenuItem({
                     emphasis
                         ? "hover:bg-rust/90 hover:text-cream focus-visible:outline-ink"
                         : "hover:bg-sage focus-visible:bg-sage",
-                )}
-            >
+                )}>
                 {content}
             </Link>
         );
@@ -255,8 +251,7 @@ function MenuItem({
             <span
                 role="menuitem"
                 aria-disabled="true"
-                className={cn(className, "text-moss")}
-            >
+                className={cn(className, "text-moss")}>
                 {content}
             </span>
         );
@@ -272,8 +267,7 @@ function MenuItem({
                 className,
                 interactive,
                 "hover:bg-sage focus-visible:bg-sage disabled:pointer-events-none disabled:opacity-60",
-            )}
-        >
+            )}>
             {content}
         </button>
     );

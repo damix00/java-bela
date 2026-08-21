@@ -222,7 +222,11 @@ export default function TableScreen({
                     <EmptySeat
                         label={copy.inviteSeat}
                         onClick={seatAction(seat)}
-                        className="w-full"
+                        className={
+                            isYou
+                                ? "w-full"
+                                : "mx-auto size-[60px] shrink-0 sm:size-[104px] lg:size-[240px]"
+                        }
                     />
                 );
             }

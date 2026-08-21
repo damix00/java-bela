@@ -57,7 +57,7 @@ export default function TableStage({
             </div>
 
             <div className="col-start-2 row-start-2 w-full border-4 border-ink bg-baize-deep p-2 shadow-hard-lg lg:p-[10px]">
-                <div className="flex h-full flex-col items-center justify-center gap-4 border-2 border-mint/15 bg-baize px-3 py-6 sm:px-5 sm:py-8">
+                <div className="flex h-full flex-col items-center justify-center gap-2 border-2 border-mint/15 bg-baize px-2 py-3 sm:gap-4 sm:px-5 sm:py-8">
                     {centre}
                 </div>
             </div>
