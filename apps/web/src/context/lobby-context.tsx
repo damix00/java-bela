@@ -11,6 +11,7 @@ import {
 } from "react";
 import {
     LobbyPlayerStatus,
+    LobbyStatus,
     MatchType,
     type Lobby,
     type LobbyPlayer,
@@ -147,6 +148,25 @@ export function LobbyProvider({
     useSocketEvent("lobby:initialState", ({ lobby }) => {
         setError(null);
         setLobby(lobby);
+
+        /**
+         * A table that is already playing sends you to it.
+         *
+         * This snapshot arrives unprompted on every reconnect — `LobbyReconnectService`
+         * sees the socket come back, finds the player's presence still naming a
+         * lobby, and re-sends it. Without this branch a player who reloaded
+         * mid-game landed on the lobby screen and stayed there, looking at four
+         * seats for a game that was carrying on without them.
+         *
+         * `LobbyService.createGame` sets both fields together, so a lobby that
+         * says IN_GAME always has the id to route to.
+         *
+         * `replace`, not `push`: the lobby being left is not somewhere Back
+         * should be able to return to.
+         */
+        if (lobby.status === LobbyStatus.IN_GAME && lobby.gameId) {
+            router.replace(playPath(locale, lobby.gameId));
+        }
     });
 
     useSocketEvent("lobby:playerJoined", ({ player }) => {
@@ -214,10 +234,18 @@ export function LobbyProvider({
         );
     });
 
-    useSocketEvent("lobby:gameCreated", ({ game }) => {
-        // The lobby's job ends here. Whatever the table becomes lives at its own
-        // URL, and the lobby state stops being the thing on screen.
-        setLobby(null);
+    useSocketEvent("lobby:gameCreated", ({ lobby, game }) => {
+        // Keep the lobby rather than clearing it, even though the screen is
+        // about to change. Clearing it left `TableScreen` mounted for the frames
+        // before the route resolved, with no table and its create-on-arrival
+        // timer running — which fired, was refused ("already in lobby", the game
+        // having just claimed it), and flashed the session-locked modal over a
+        // game that was starting perfectly well.
+        //
+        // The event carries the lobby in its IN_GAME state, so holding it makes
+        // this path identical to the reconnect one below: same state, same
+        // route, one way of getting there.
+        setLobby(lobby);
         router.push(playPath(locale, game.id));
     });
 

@@ -356,8 +356,70 @@
     },
     "game": {
         "title": "Stol",
-        "heading": "Stol se sprema",
-        "body": "Ovdje će biti partija. Karte još nisu podijeljene — sam stol stiže u sljedećem krugu rada.",
-        "back": "Natrag u predvorje"
+        "loading": "Sjedanje za stol…",
+        "waiting": "Čekamo ostale igrače…",
+        "dealing": "Dijelim…",
+        "gone": "Ta je igra završila.",
+        "you": "ti",
+        "hiddenCard": "Zatvorena karta",
+        "suits": {
+            "HEARTS": "Srce",
+            "BELLS": "Bundeva",
+            "ACORN": "Žir",
+            "LEAF": "List"
+        },
+        "trump": {
+            "heading": "Zovi aduta",
+            "pass": "Dalje",
+            "mustCall": "Svi su rekli dalje — moraš zvati.",
+            "waiting": "{name} zove aduta…",
+            "label": "Adut"
+        },
+        "declarations": {
+            "heading": "Zvanja",
+            "mine": "Vaša strana",
+            "theirs": "Njihova strana",
+            "none": "Nema zvanja",
+            "decline": "Ne zovi moja",
+            "types": {
+                "BELOTE": "Belot",
+                "BELA": "Bela",
+                "SEQUENCE_3": "Terca",
+                "SEQUENCE_4": "Kvarta",
+                "SEQUENCE_5": "Kvinta",
+                "FOUR_JACKS": "Četiri dečka",
+                "FOUR_NINES": "Četiri devetke",
+                "FOUR_OF_A_KIND": "Četiri iste"
+            }
+        },
+        "bela": {
+            "heading": "Zvati belu?",
+            "body": "Adutski kralj i baba zajedno vrijede 20 — ali samo ako to kažeš kad baciš drugu od njih.",
+            "declare": "Zovi belu",
+            "skip": "Baci bez zvanja"
+        },
+        "trick": {
+            "empty": "Još nema bačenih karata",
+            "won": "nosi",
+            "yourTurn": "Ti si na redu",
+            "waitingFor": "Čekamo {name}"
+        },
+        "timer": {
+            "turn": "još {seconds}s",
+            "nextTrick": "Sljedeći štih za {seconds}s",
+            "nextRound": "Sljedeća runda za {seconds}s"
+        },
+        "score": {
+            "us": "Mi",
+            "them": "Oni",
+            "round": "(+{points})",
+            "target": "do {target}"
+        },
+        "over": {
+            "won": "Pobijedili ste",
+            "lost": "Izgubili ste",
+            "score": "{us} — {them}",
+            "back": "Natrag u predsoblje"
+        }
     }
 }

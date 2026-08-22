@@ -1,6 +1,7 @@
 import { getInitialSession } from "@/actions/auth";
 import GameNavigation from "@/components/layout/GameNavigation";
 import { AuthProvider } from "@/context/auth-context";
+import { GameProvider } from "@/context/game-context";
 import { LobbyProvider } from "@/context/lobby-context";
 import { SocketProvider } from "@/context/socket-context";
 import { localePage } from "@/dictionaries";
@@ -42,19 +43,28 @@ export default async function AppLayout({
         >
             <SocketProvider>
                 <LobbyProvider locale={lang}>
-                    <div
-                        data-felt=""
-                        className={cn(felt, "flex min-h-screen flex-col")}
-                    >
-                        <GameNavigation
-                            copy={dict.table}
-                            locale={lang}
-                            user={user}
-                        />
-                        <div className="flex flex-1 flex-col pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:pb-0">
-                            {children}
+                    {/* Mounted here rather than on the play route, and that is
+                        load-bearing: on reconnect the backend pushes
+                        `game:snapshot` straight after `lobby:initialState`,
+                        while the player is still standing on the lobby. A
+                        provider that only mounted at `/play/[gameId]` would not
+                        be listening yet and would miss the one frame it exists
+                        to catch. */}
+                    <GameProvider userId={user?.id ?? null}>
+                        <div
+                            data-felt=""
+                            className={cn(felt, "flex min-h-screen flex-col")}
+                        >
+                            <GameNavigation
+                                copy={dict.table}
+                                locale={lang}
+                                user={user}
+                            />
+                            <div className="flex flex-1 flex-col pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:pb-0">
+                                {children}
+                            </div>
                         </div>
-                    </div>
+                    </GameProvider>
                 </LobbyProvider>
             </SocketProvider>
         </AuthProvider>

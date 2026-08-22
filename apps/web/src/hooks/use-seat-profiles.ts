@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 
-import type { Seats } from "@/context/lobby-context";
 import {
     getUsersSnapshot,
     requestUser,
@@ -35,7 +34,14 @@ const getServerSnapshot = () => EMPTY;
  * means `useSyncExternalStore` compares the four people at *this* table and
  * bails out before the render happens.
  */
-export function useSeatProfiles(seats: Seats): Record<string, PublicUser> {
+export function useSeatProfiles(
+    /**
+     * Anything seat-shaped. Only `userId` is read, and the game screen's seats
+     * are `PlayerSnapshot`s rather than the lobby's `LobbyPlayer`s — widening
+     * the parameter is cheaper than a second copy of this store plumbing.
+     */
+    seats: readonly ({ userId: string } | null | undefined)[],
+): Record<string, PublicUser> {
     // The ids, not the seats: swapping two players around the table changes
     // every seat object and none of the people at it.
     const ids = seats

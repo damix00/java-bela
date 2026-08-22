@@ -356,8 +356,70 @@
     },
     "game": {
         "title": "Table",
-        "heading": "The table is being set",
-        "body": "This is where the game will be. Nothing is dealt yet — the table itself lands in the next round of work.",
-        "back": "Back to the lobby"
+        "loading": "Sitting down…",
+        "waiting": "Waiting for the other players…",
+        "dealing": "Dealing…",
+        "gone": "That game has finished.",
+        "you": "you",
+        "hiddenCard": "Face-down card",
+        "suits": {
+            "HEARTS": "Hearts",
+            "BELLS": "Bells",
+            "ACORN": "Acorns",
+            "LEAF": "Leaves"
+        },
+        "trump": {
+            "heading": "Call trump",
+            "pass": "Pass",
+            "mustCall": "Everyone passed — you have to call.",
+            "waiting": "{name} is calling trump…",
+            "label": "Trump"
+        },
+        "declarations": {
+            "heading": "Declarations",
+            "mine": "Your side",
+            "theirs": "Their side",
+            "none": "Nothing declared",
+            "decline": "Keep mine hidden",
+            "types": {
+                "BELOTE": "Belot",
+                "BELA": "Bela",
+                "SEQUENCE_3": "Three in a row",
+                "SEQUENCE_4": "Four in a row",
+                "SEQUENCE_5": "Five in a row",
+                "FOUR_JACKS": "Four jacks",
+                "FOUR_NINES": "Four nines",
+                "FOUR_OF_A_KIND": "Four of a kind"
+            }
+        },
+        "bela": {
+            "heading": "Declare bela?",
+            "body": "The trump king and queen together are worth 20 — but only if you say so as you play the second one.",
+            "declare": "Declare it",
+            "skip": "Play quietly"
+        },
+        "trick": {
+            "empty": "No cards played yet",
+            "won": "took it",
+            "yourTurn": "Your turn",
+            "waitingFor": "Waiting for {name}"
+        },
+        "timer": {
+            "turn": "{seconds}s left",
+            "nextTrick": "Next trick in {seconds}s",
+            "nextRound": "Next round in {seconds}s"
+        },
+        "score": {
+            "us": "You",
+            "them": "Them",
+            "round": "(+{points})",
+            "target": "to {target}"
+        },
+        "over": {
+            "won": "You won",
+            "lost": "You lost",
+            "score": "{us} — {them}",
+            "back": "Back to the lobby"
+        }
     }
 }

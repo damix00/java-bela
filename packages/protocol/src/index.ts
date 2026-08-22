@@ -74,7 +74,6 @@ export interface ClientEvents {
     "lobby:join:code": JoinLobbyViaCodeCommand;
     "lobby:leave": null;
     "lobby:ready": LobbyReadyCommand;
-    "lobby:startWithBots": null;
     "lobby:swapSeats": SwapSeatsCommand;
     "session:keepAlive": null;
 }
