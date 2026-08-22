@@ -7,8 +7,8 @@ import { LobbyPlayerStatus } from "@bela/protocol";
 
 import { Button } from "@/components/controls/Button";
 import FormError from "@/components/controls/FormError";
-import MockLabel from "@/components/pages/table/blocks/MockLabel";
-import TableRules from "@/components/pages/table/blocks/TableRules";
+import TableRules from "@/components/pages/table/blocks/lobby/TableRules";
+import MockLabel from "@/components/pages/table/blocks/shared/MockLabel";
 import {
     SEAT_COUNT,
     useLobby,

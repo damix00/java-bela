@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 363 585" role="img" aria-labelledby="title description">
+    <title id="title">Belote card back</title>
+    <description id="description">A symmetrical geometric card back in cream, rust, forest green, and dark ink.</description>
+
+    <defs>
+        <pattern id="lattice" x="13.5" y="-19.5" width="48" height="48" patternUnits="userSpaceOnUse">
+            <rect width="48" height="48" fill="#1d4a2d" />
+            <path d="M-24 24 24-24M0 48 48 0M24 72 72 24" fill="none" stroke="#e2e5cf" stroke-width="3" opacity=".28" />
+            <path d="M-24 24 24 72M0 0 48 48M24-24 72 24" fill="none" stroke="#16210f" stroke-width="3" opacity=".42" />
+            <rect x="18" y="18" width="12" height="12" fill="#d1603d" stroke="#16210f" stroke-width="3" transform="rotate(45 24 24)" />
+            <rect x="22" y="22" width="4" height="4" fill="#f3f1e7" transform="rotate(45 24 24)" />
+        </pattern>
+
+        <clipPath id="card-shape">
+            <rect x="3" y="3" width="357" height="579" rx="27" />
+        </clipPath>
+    </defs>
+
+    <g clip-path="url(#card-shape)">
+        <rect width="363" height="585" fill="#f3f1e7" />
+        <rect x="15" y="15" width="333" height="555" rx="18" fill="#d1603d" stroke="#16210f" stroke-width="6" />
+        <rect x="27" y="27" width="309" height="531" rx="10" fill="url(#lattice)" stroke="#f3f1e7" stroke-width="4" />
+
+        <path d="M39 82V39h43M324 82V39h-43M39 503v43h43M324 503v43h-43" fill="none" stroke="#f3f1e7" stroke-width="6" />
+
+        <g fill="#f3f1e7" stroke="#16210f" stroke-width="4">
+            <rect x="45" y="45" width="18" height="18" transform="rotate(45 54 54)" />
+            <rect x="300" y="45" width="18" height="18" transform="rotate(45 309 54)" />
+            <rect x="45" y="522" width="18" height="18" transform="rotate(45 54 531)" />
+            <rect x="300" y="522" width="18" height="18" transform="rotate(45 309 531)" />
+        </g>
+    </g>
+
+    <rect x="3" y="3" width="357" height="579" rx="27" fill="none" stroke="#16210f" stroke-width="6" />
+</svg>

@@ -8,6 +8,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # Guidelines
 
+## General
+
+- This project uses pnpm. Do not use npm or yarn.
+- For animations, use either Motion (formerly Framer Motion) or css transitions. Do not use any other animation libraries or plain CSS animations.
+
 ## Typography
 
 - Use the correct typography for the language of the text.

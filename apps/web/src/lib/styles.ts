@@ -91,6 +91,23 @@ export const pressOnButton =
 export const focusRing =
     "focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-rust";
 
+/**
+ * Calm feedback while a seat switch resolves: the target seat fades in a rust
+ * ring for as long as the request is in flight, then flashes mint once it
+ * lands. The transparent base sits unconditionally so `outline-color` fades
+ * instead of popping; callers must append this fragment after their own outline
+ * classes for the tone to win.
+ */
+export function swapRing(status?: "pending" | "complete"): string {
+    const tone =
+        status === "pending"
+            ? "outline-rust"
+            : status === "complete"
+              ? "outline-mint"
+              : "";
+    return `outline-4 outline-offset-2 outline-transparent transition-[outline-color] duration-200 ${tone}`;
+}
+
 // Fields. The ink frame is the same 4px rule the cards and buttons are drawn
 // with, so a control reads as another block on the page rather than a widget
 // borrowed from the browser. Two shapes: `inputBox` is a field that owns its

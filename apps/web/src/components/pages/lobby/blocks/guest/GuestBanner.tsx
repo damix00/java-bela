@@ -1,5 +1,5 @@
 import { ButtonLink } from "@/components/controls/Button";
-import GuestCountdown from "@/components/pages/lobby/blocks/GuestCountdown";
+import GuestCountdown from "@/components/pages/lobby/blocks/guest/GuestCountdown";
 import Card from "@/components/ui/surfaces/Card";
 import Heading from "@/components/ui/typography/Heading";
 import Text from "@/components/ui/typography/Text";

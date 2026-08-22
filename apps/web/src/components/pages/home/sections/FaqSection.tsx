@@ -1,4 +1,4 @@
-import FaqItem from "@/components/pages/home/blocks/FaqItem";
+import FaqItem from "@/components/pages/home/blocks/faq/FaqItem";
 import DividedPanel from "@/components/ui/surfaces/DividedPanel";
 import Heading from "@/components/ui/typography/Heading";
 import Section from "@/components/layout/Section";

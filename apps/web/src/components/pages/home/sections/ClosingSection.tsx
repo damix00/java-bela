@@ -1,5 +1,5 @@
 import Section from "@/components/layout/Section";
-import JoinCta from "@/components/pages/home/blocks/JoinCta";
+import JoinCta from "@/components/pages/home/blocks/cta/JoinCta";
 import Heading from "@/components/ui/typography/Heading";
 import Text from "@/components/ui/typography/Text";
 import type { Dictionary } from "@/dictionaries";

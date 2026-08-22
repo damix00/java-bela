@@ -1,4 +1,4 @@
-import MockLabel from "@/components/pages/table/blocks/MockLabel";
+import MockLabel from "@/components/pages/table/blocks/shared/MockLabel";
 import { mockTable } from "@/components/pages/table/mock-data";
 import type { Dictionary } from "@/dictionaries";
 import { cn } from "@/lib/cn";

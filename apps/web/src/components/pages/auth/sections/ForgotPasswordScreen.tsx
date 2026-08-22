@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/controls/Button";
 import Field, { invalidProps } from "@/components/controls/Field";
 import Input from "@/components/controls/Input";
-import AuthCard from "@/components/pages/auth/blocks/AuthCard";
+import AuthCard from "@/components/pages/auth/blocks/layout/AuthCard";
 import { onSubmitPlaceholder } from "@/components/pages/auth/placeholders";
 import Icon from "@/components/ui/graphics/Icon";
 import Heading from "@/components/ui/typography/Heading";

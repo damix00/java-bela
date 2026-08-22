@@ -1,7 +1,7 @@
 import { Mail } from "lucide-react";
 
 import { Button } from "@/components/controls/Button";
-import AuthCard from "@/components/pages/auth/blocks/AuthCard";
+import AuthCard from "@/components/pages/auth/blocks/layout/AuthCard";
 import { demoAccount } from "@/components/pages/auth/placeholders";
 import { IconBadge } from "@/components/ui/graphics/Icon";
 import Heading from "@/components/ui/typography/Heading";

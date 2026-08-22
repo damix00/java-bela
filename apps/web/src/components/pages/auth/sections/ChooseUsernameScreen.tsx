@@ -6,11 +6,11 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { Button } from "@/components/controls/Button";
 import Field, { invalidProps } from "@/components/controls/Field";
-import AuthSplit from "@/components/pages/auth/blocks/AuthSplit";
+import AuthSplit from "@/components/pages/auth/blocks/layout/AuthSplit";
 import AvatarPicker, {
     AVATAR_GLYPHS,
-} from "@/components/pages/auth/blocks/AvatarPicker";
-import LadderPreview from "@/components/pages/auth/blocks/LadderPreview";
+} from "@/components/pages/auth/blocks/forms/AvatarPicker";
+import LadderPreview from "@/components/pages/auth/blocks/rating/LadderPreview";
 import {
     demoAccount,
     onSubmitPlaceholder,

@@ -1,10 +1,10 @@
-import MockLabel from "@/components/pages/table/blocks/MockLabel";
+import MockLabel from "@/components/pages/table/blocks/shared/MockLabel";
 import SuitBadge, {
     type BadgeTone,
-} from "@/components/pages/table/blocks/SuitBadge";
+} from "@/components/pages/table/blocks/seats/SuitBadge";
 import Card from "@/components/ui/surfaces/Card";
 import { cn } from "@/lib/cn";
-import { pressSm } from "@/lib/styles";
+import { pressSm, swapRing } from "@/lib/styles";
 
 /** A short mark on a seat — "You", "Host", "Ready". */
 export type SeatTag = {
@@ -29,6 +29,9 @@ type SeatCardProps = {
     onClick?: () => void;
     /** What pressing this seat does, for anyone who cannot see the table. */
     actionLabel?: string;
+    /** A team switch involving this seat is in flight or has just landed. */
+    status?: "pending" | "complete";
+    disabled?: boolean;
     className?: string;
 };
 
@@ -46,6 +49,8 @@ export default function SeatCard({
     tags,
     onClick,
     actionLabel,
+    status,
+    disabled = false,
     className,
 }: SeatCardProps) {
     const body = (
@@ -77,6 +82,8 @@ export default function SeatCard({
 
     const shell = cn(
         "flex-row items-center gap-3 px-3 py-3 shadow-hard sm:gap-4 sm:px-4 sm:py-[14px]",
+        swapRing(status),
+        disabled && status === "pending" && "cursor-wait",
         className,
     );
 
@@ -94,7 +101,9 @@ export default function SeatCard({
             type="button"
             padding="none"
             onClick={onClick}
+            disabled={disabled}
             aria-label={actionLabel}
+            aria-busy={status === "pending"}
             className={cn(shell, "cursor-pointer text-left", pressSm)}
         >
             {body}

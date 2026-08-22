@@ -8,7 +8,7 @@ import { Button } from "@/components/controls/Button";
 import CodeInput from "@/components/controls/CodeInput";
 import { errorId } from "@/components/controls/Field";
 import FieldError from "@/components/controls/FieldError";
-import AuthCard from "@/components/pages/auth/blocks/AuthCard";
+import AuthCard from "@/components/pages/auth/blocks/layout/AuthCard";
 import {
     demoAccount,
     onSubmitPlaceholder,

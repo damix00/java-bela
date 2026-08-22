@@ -1,4 +1,4 @@
-import type { BadgeTone } from "@/components/pages/table/blocks/SuitBadge";
+import type { BadgeTone } from "@/components/pages/table/blocks/seats/SuitBadge";
 
 /**
  * The tile a seat wears.

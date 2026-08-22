@@ -4,8 +4,8 @@ import { Check, ChevronDown } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { MatchType } from "@bela/protocol";
 
-import MockLabel from "@/components/pages/table/blocks/MockLabel";
-import RankedGate from "@/components/pages/table/blocks/RankedGate";
+import RankedGate from "@/components/pages/table/blocks/lobby/RankedGate";
+import MockLabel from "@/components/pages/table/blocks/shared/MockLabel";
 import { useLobby, useLobbyActions } from "@/context/lobby-context";
 import type { Dictionary } from "@/dictionaries";
 import { cn } from "@/lib/cn";

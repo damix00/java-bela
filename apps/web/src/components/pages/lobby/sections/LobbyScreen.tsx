@@ -1,6 +1,6 @@
 import { Button } from "@/components/controls/Button";
-import GuestBanner from "@/components/pages/lobby/blocks/GuestBanner";
-import SignOutButton from "@/components/pages/lobby/blocks/SignOutButton";
+import SignOutButton from "@/components/pages/lobby/blocks/actions/SignOutButton";
+import GuestBanner from "@/components/pages/lobby/blocks/guest/GuestBanner";
 import Card from "@/components/ui/surfaces/Card";
 import Chip from "@/components/ui/surfaces/Chip";
 import Heading from "@/components/ui/typography/Heading";

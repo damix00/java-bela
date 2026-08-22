@@ -1,20 +1,8 @@
 "use client";
 
-import { LobbyPlayerStatus } from "@bela/protocol";
-
-import CardFan from "@/components/pages/table/blocks/CardFan";
-import ConnectionNotice from "@/components/pages/table/blocks/ConnectionNotice";
-import EmptySeat from "@/components/pages/table/blocks/EmptySeat";
-import LobbyBand from "@/components/pages/table/blocks/LobbyBand";
-import MockLabel from "@/components/pages/table/blocks/MockLabel";
-import SeatCard from "@/components/pages/table/blocks/SeatCard";
-import SideSeat from "@/components/pages/table/blocks/SideSeat";
-import TableStage from "@/components/pages/table/blocks/TableStage";
-import {
-    partnerSeat,
-    seatIdentity,
-    seatsFromChair,
-} from "@/components/pages/table/seat-identity";
+import ConnectionNotice from "@/components/pages/table/blocks/lobby/ConnectionNotice";
+import LobbyBand from "@/components/pages/table/blocks/lobby/LobbyBand";
+import LobbyTable from "@/components/pages/table/blocks/stage/LobbyTable";
 import {
     SEAT_COUNT,
     SNAPSHOT_GRACE_MS,
@@ -22,14 +10,12 @@ import {
     useLobbyActions,
 } from "@/context/lobby-context";
 import { useSocketStatus } from "@/context/socket-context";
-import { useSeatProfiles } from "@/hooks/use-seat-profiles";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { Dictionary } from "@/dictionaries";
 import { cn } from "@/lib/cn";
 import type { Locale } from "@/lib/i18n";
 import { localiseLobbyError } from "@/lib/lobby-errors";
 import { appGutters } from "@/lib/styles";
-import { isBotId } from "@/lib/user-cache";
 import type { User } from "@/api/types/user";
 
 type TableScreenProps = {
@@ -74,12 +60,14 @@ export default function TableScreen({
     const { lobby, seats, me, playerCount, error } = useLobby();
     const { create, swapSeat } = useLobbyActions();
     const status = useSocketStatus();
-    const profiles = useSeatProfiles(seats);
-
     // One attempt per visit. A second `lobby:create` would only be answered
     // with "already in lobby", and a retry loop against that is a request every
     // frame for as long as the tab is open.
     const requested = useRef(false);
+    const requestLobby = useCallback(() => {
+        requested.current = true;
+        create();
+    }, [create]);
 
     /**
      * The table opens itself.
@@ -100,191 +88,15 @@ export default function TableScreen({
     useEffect(() => {
         if (lobby || status !== "connected" || requested.current) return;
 
-        const id = setTimeout(() => {
-            requested.current = true;
-            create();
-        }, SNAPSHOT_GRACE_MS);
+        const id = setTimeout(requestLobby, SNAPSHOT_GRACE_MS);
 
         return () => clearTimeout(id);
-    }, [lobby, status, create]);
+    }, [lobby, status, requestLobby]);
 
     const t = copy.lobby;
 
-    // Laid out from the reader's chair: their partner opposite, the opposing
-    // pair to either side. With no chair yet — the idle screen — seat 0 stands
-    // in, which puts the player at the near edge either way.
     const chair = me?.seat ?? 0;
-
-    // Whether there is a table, as a boolean rather than the lobby itself. The
-    // seats below only ever ask *if* one exists — to decide whether a chair can
-    // be clicked, and whether the near seat is the idle screen's stand-in — and
-    // depending on the object instead would rebuild all four of them every time
-    // any unrelated field of the lobby changed, the match type included.
     const hasTable = lobby !== null;
-
-    /**
-     * The four seats, already rendered.
-     *
-     * Memoised as *elements* rather than left as calls in the JSX, because the
-     * helpers below are closures: `onClick={seatAction(seat)}` is a new
-     * function on every pass, and `tags={[...]}` a new array, so no amount of
-     * `memo()` on `SeatCard` could ever let it bail out. Holding the element
-     * means React compares one reference and skips the whole subtree — which is
-     * what makes a reconnect blip, or a ready toggle three seats away, cost
-     * nothing here.
-     *
-     * The helpers live inside the memo for the same reason. Outside it they
-     * would each need their own `useCallback` before they could be depended on,
-     * and the dependency list would be six entries of bookkeeping instead of
-     * the state this actually reads.
-     */
-    const [nearSeat, leftSeat, acrossSeat, rightSeat] = useMemo(() => {
-        const [near, left, across, right] = seatsFromChair(chair);
-
-        function nameFor(seat: number): string {
-            const player = seats[seat];
-            if (!player) return "";
-
-            if (player.bot || isBotId(player.userId)) {
-                return t.botNames[seat % t.botNames.length];
-            }
-
-            if (player.userId === user.id) return user.username;
-
-            // A name still in flight. The seat is drawn either way — a table that
-            // waits for four lookups before showing anybody is a blank screen for
-            // as long as the slowest one takes.
-            return profiles[player.userId]?.username ?? t.unknownPlayer;
-        }
-
-        /** What clicking a seat does, or nothing when there is no table to sit at. */
-        function seatAction(seat: number) {
-            if (!hasTable || seat === chair) return undefined;
-            return () => swapSeat(seat);
-        }
-
-        function seatActionLabel(seat: number) {
-            const player = seats[seat];
-
-            return player
-                ? t.swapWith.replace("{name}", nameFor(seat))
-                : t.takeSeat;
-        }
-
-        /**
-         * The line under a name: who they are to you, and what they are doing.
-         *
-         * Your own seat gets no relation — you are neither your partner nor your
-         * opponent, and the tag beside the name has already said which chair this
-         * is. It can still say you are the host, which is the one thing about
-         * yourself the table needs to tell you.
-         */
-        function metaFor(seat: number): string {
-            const player = seats[seat];
-            if (!player) return "";
-
-            const relation =
-                seat === chair
-                    ? null
-                    : seat === partnerSeat(chair)
-                      ? copy.partner
-                      : t.opponent;
-
-            return [relation, player.host ? t.host : null]
-                .filter(Boolean)
-                .join(" · ");
-        }
-
-        function renderRowSeat(seat: number, isYou: boolean) {
-            const player = seats[seat];
-            const { suit, tone } = seatIdentity(seat);
-
-            // Before there is a table, the near seat is still occupied — by the
-            // person looking at it. Drawing four empty chairs would be truer to the
-            // lobby state and worse as a picture of what pressing play does.
-            if (!player && isYou && !hasTable) {
-                return (
-                    <SeatCard
-                        name={user.username}
-                        // Nothing true to say under the name yet: there is no
-                        // partner to be across from and no deal to be holding.
-                        meta=""
-                        suit={suit}
-                        tone={tone}
-                        tags={[{ label: copy.you }]}
-                        className="w-full"
-                    />
-                );
-            }
-
-            if (!player) {
-                return (
-                    <EmptySeat
-                        label={copy.inviteSeat}
-                        onClick={seatAction(seat)}
-                        className={
-                            isYou
-                                ? "w-full"
-                                : "mx-auto size-[60px] shrink-0 sm:size-[104px] lg:size-[240px]"
-                        }
-                    />
-                );
-            }
-
-            return (
-                <SeatCard
-                    name={nameFor(seat)}
-                    meta={metaFor(seat)}
-                    suit={suit}
-                    tone={tone}
-                    tags={[
-                        ...(isYou ? [{ label: copy.you }] : []),
-                        ...(player.status === LobbyPlayerStatus.READY
-                            ? [{ label: t.ready, tone: "ready" as const }]
-                            : []),
-                    ]}
-                    onClick={seatAction(seat)}
-                    actionLabel={seatActionLabel(seat)}
-                    className="w-full"
-                />
-            );
-        }
-
-        function renderSideSeat(seat: number) {
-            const player = seats[seat];
-            const { suit, tone } = seatIdentity(seat);
-
-            if (!player) {
-                return (
-                    <EmptySeat
-                        label={copy.inviteSeat}
-                        onClick={seatAction(seat)}
-                        className="w-full"
-                    />
-                );
-            }
-
-            return (
-                <SideSeat
-                    name={nameFor(seat)}
-                    suit={suit}
-                    tone={tone}
-                    ready={player.status === LobbyPlayerStatus.READY}
-                    note={player.host ? t.host : t.opponent}
-                    onClick={seatAction(seat)}
-                    actionLabel={seatActionLabel(seat)}
-                    className="w-full"
-                />
-            );
-        }
-
-        return [
-            renderRowSeat(near, true),
-            renderSideSeat(left),
-            renderRowSeat(across, false),
-            renderSideSeat(right),
-        ];
-    }, [chair, seats, hasTable, profiles, user, copy, t, swapSeat]);
 
     return (
         <div className="flex flex-1 flex-col">
@@ -300,29 +112,16 @@ export default function TableScreen({
                 )}
             >
                 <div className="flex min-w-0 flex-col gap-8 sm:gap-10">
-                    <TableStage
-                        near={nearSeat}
-                        across={acrossSeat}
-                        left={leftSeat}
-                        right={rightSeat}
-                        centre={
-                            <>
-                                <CardFan />
-                                {/* How much room is left, not the code — the
-                                    code lives in the band below next to the
-                                    button that copies it, and repeating it on a
-                                    screen this sparse reads as two codes rather
-                                    than one. */}
-                                {lobby && (
-                                    <MockLabel className="text-center text-[10px] tracking-[.1em] text-mint/75 sm:text-[11px] sm:tracking-[.14em]">
-                                        {copy.seatsOpen.replace(
-                                            "{count}",
-                                            String(SEAT_COUNT - playerCount),
-                                        )}
-                                    </MockLabel>
-                                )}
-                            </>
+                    <LobbyTable
+                        copy={copy}
+                        user={user}
+                        seats={seats}
+                        chair={chair}
+                        hasTable={hasTable}
+                        openSeatCount={
+                            hasTable ? SEAT_COUNT - playerCount : null
                         }
+                        onSwapSeat={swapSeat}
                     />
 
                     {lobby ? (

@@ -1,8 +1,8 @@
 import { Ban, Rewind, ShieldCheck, Smartphone, TrendingUp } from "lucide-react";
 
 import Section from "@/components/layout/Section";
-import FeatureCard from "@/components/pages/home/blocks/FeatureCard";
-import HighlightCard from "@/components/pages/home/blocks/HighlightCard";
+import FeatureCard from "@/components/pages/home/blocks/cards/FeatureCard";
+import HighlightCard from "@/components/pages/home/blocks/cards/HighlightCard";
 import Card from "@/components/ui/surfaces/Card";
 import Heading from "@/components/ui/typography/Heading";
 import { IconBadge } from "@/components/ui/graphics/Icon";

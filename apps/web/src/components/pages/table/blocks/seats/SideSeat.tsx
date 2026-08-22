@@ -1,9 +1,9 @@
-import MockLabel from "@/components/pages/table/blocks/MockLabel";
+import MockLabel from "@/components/pages/table/blocks/shared/MockLabel";
 import SuitBadge, {
     type BadgeTone,
-} from "@/components/pages/table/blocks/SuitBadge";
+} from "@/components/pages/table/blocks/seats/SuitBadge";
 import { cn } from "@/lib/cn";
-import { focusRing, pressSm } from "@/lib/styles";
+import { focusRing, pressSm, swapRing } from "@/lib/styles";
 
 type SideSeatProps = {
     name: string;
@@ -15,6 +15,9 @@ type SideSeatProps = {
     note?: string;
     onClick?: () => void;
     actionLabel?: string;
+    /** A team switch involving this seat is in flight or has just landed. */
+    swapStatus?: "pending" | "complete";
+    disabled?: boolean;
     className?: string;
 };
 
@@ -38,12 +41,16 @@ export default function SideSeat({
     note,
     onClick,
     actionLabel,
+    swapStatus,
+    disabled = false,
     className,
 }: SideSeatProps) {
     const shell = cn(
-        "flex flex-col items-center justify-center gap-2 border-4 border-ink bg-cream p-2 shadow-hard md:p-3",
+        "relative flex flex-col items-center justify-center gap-2 border-4 border-ink bg-cream p-2 shadow-hard md:p-3",
         ready && "bg-forest",
-        onClick && ["cursor-pointer", pressSm, focusRing],
+        onClick && !disabled && ["cursor-pointer", pressSm, focusRing],
+        disabled && "cursor-wait",
+        swapRing(swapStatus),
         className,
     );
 
@@ -83,7 +90,9 @@ export default function SideSeat({
         <button
             type="button"
             onClick={onClick}
+            disabled={disabled}
             aria-label={actionLabel ?? name}
+            aria-busy={swapStatus === "pending"}
             className={shell}
         >
             {body}

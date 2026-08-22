@@ -1,5 +1,5 @@
 import { Button } from "@/components/controls/Button";
-import PlacementCard from "@/components/pages/auth/blocks/PlacementCard";
+import PlacementCard from "@/components/pages/auth/blocks/rating/PlacementCard";
 import { demoAccount } from "@/components/pages/auth/placeholders";
 import Card from "@/components/ui/surfaces/Card";
 import Heading from "@/components/ui/typography/Heading";

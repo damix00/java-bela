@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { motion, useReducedMotion } from "motion/react";
+
 import { cn } from "@/lib/cn";
 
 type TableStageProps = {
@@ -12,6 +14,8 @@ type TableStageProps = {
     right: ReactNode;
     /** What sits on the felt between them. */
     centre: ReactNode;
+    /** True while a seat switch is resolving — the felt dips and settles back. */
+    settling?: boolean;
     className?: string;
 };
 
@@ -37,8 +41,14 @@ export default function TableStage({
     left,
     right,
     centre,
+    settling = false,
     className,
 }: TableStageProps) {
+    const reduceMotion = useReducedMotion();
+    const feltTransition = reduceMotion
+        ? { duration: 0 }
+        : { type: "spring" as const, stiffness: 300, damping: 26 };
+
     return (
         <div
             className={cn(
@@ -56,11 +66,15 @@ export default function TableStage({
                 {left}
             </div>
 
-            <div className="col-start-2 row-start-2 w-full border-4 border-ink bg-baize-deep p-2 shadow-hard-lg lg:p-[10px]">
+            <motion.div
+                animate={{ scale: settling && !reduceMotion ? 0.985 : 1 }}
+                transition={feltTransition}
+                className="col-start-2 row-start-2 w-full border-4 border-ink bg-baize-deep p-2 shadow-hard-lg lg:p-[10px]"
+            >
                 <div className="flex h-full flex-col items-center justify-center gap-2 border-2 border-mint/15 bg-baize px-2 py-3 sm:gap-4 sm:px-5 sm:py-8">
                     {centre}
                 </div>
-            </div>
+            </motion.div>
 
             <div className="col-start-3 row-start-2 flex aspect-square w-full self-center lg:mx-auto lg:max-w-[240px]">
                 {right}
