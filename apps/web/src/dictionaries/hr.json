@@ -347,6 +347,11 @@
             "sessionLocked": "Već si za stolom u drugom prozoru. Prvo ga napusti.",
             "notHost": "To može samo domaćin.",
             "generic": "Nije uspjelo. Pokušaj za koji trenutak."
+        },
+        "sessionLockedModal": {
+            "heading": "Tvoje mjesto je u drugom prozoru",
+            "action": "Pokušaj ponovno",
+            "close": "Zatvori"
         }
     },
     "game": {

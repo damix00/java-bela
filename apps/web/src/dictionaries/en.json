@@ -347,6 +347,11 @@
             "sessionLocked": "You’re already at a table in another window. Leave it first.",
             "notHost": "Only the host can do that.",
             "generic": "That didn’t work. Try again in a moment."
+        },
+        "sessionLockedModal": {
+            "heading": "Your seat is in another window",
+            "action": "Try again",
+            "close": "Close"
         }
     },
     "game": {

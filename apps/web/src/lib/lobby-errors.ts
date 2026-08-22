@@ -20,6 +20,21 @@ type LobbyErrors = Dictionary["table"]["lobbyErrors"];
  * will actually hit, and "session is locked" explains nothing to the person
  * looking at two tabs.
  */
+/**
+ * Whether the refusal is the session lock — the same sentence the backend
+ * sends a second window. Kept beside `localiseLobbyError` so the string match
+ * has one home; the table screen needs it as a predicate (to raise the modal
+ * and to poll) rather than as a sentence.
+ */
+export function isSessionLocked(error: SocketError): boolean {
+    return error.message.toLowerCase().includes("session is locked");
+}
+
+/** Whether the backend still has a lobby presence for this player. */
+export function isAlreadyInLobby(error: SocketError): boolean {
+    return error.message.toLowerCase().includes("already in lobby");
+}
+
 export function localiseLobbyError(
     error: SocketError,
     copy: LobbyErrors,
@@ -30,7 +45,7 @@ export function localiseLobbyError(
     if (message.includes("lobby not found")) return copy.notFound;
     if (message.includes("lobby is full")) return copy.full;
     if (message.includes("not joinable")) return copy.notJoinable;
-    if (message.includes("already in lobby")) return copy.alreadyIn;
+    if (isAlreadyInLobby(error)) return copy.alreadyIn;
     if (message.includes("not the lobby host")) return copy.notHost;
 
     return copy.generic;

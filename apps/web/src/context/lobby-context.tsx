@@ -224,7 +224,14 @@ export function LobbyProvider({
     // Only this feature's refusals. A `game:*` failure is not the lobby's to
     // explain, and showing it beside a lobby control would be misdirection.
     useSocketErrors((incoming) => {
-        if (incoming.command.startsWith("lobby:")) setError(incoming);
+        if (!incoming.command.startsWith("lobby:")) return;
+
+        // A create retry can already be in flight when its successful attempt
+        // delivers the lobby snapshot. Any later refusal belongs to that stale
+        // retry, not to the table now on screen.
+        if (incoming.command === "lobby:create" && lobby) return;
+
+        setError(incoming);
     });
 
     // Keyed on `playerSeats`, not on `lobby`. The two are not the same trigger:

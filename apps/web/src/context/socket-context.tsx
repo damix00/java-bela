@@ -72,6 +72,8 @@ type Handler = (data: never) => void;
  * provider — they close over refs, never over state.
  */
 type SocketCommands = {
+    /** Start a fresh socket session immediately, without waiting for backoff. */
+    reconnect: () => void;
     send: <K extends ClientEventName>(
         event: K,
         ...body: ClientEvents[K] extends null ? [] : [ClientEvents[K]]
@@ -261,6 +263,12 @@ export function SocketProvider({ children }: { children: ReactNode }) {
         socketRef.current = null;
     }, []);
 
+    const reconnect = useCallback(() => {
+        disconnect();
+        attemptRef.current = 0;
+        void connect();
+    }, [connect, disconnect]);
+
     useEffect(() => {
         connectRef.current = () => void connect();
     }, [connect]);
@@ -348,11 +356,11 @@ export function SocketProvider({ children }: { children: ReactNode }) {
         return () => clearInterval(id);
     }, [status, send]);
 
-    // Built once: every dependency is a `useCallback` with no dependencies of
-    // its own, so this object outlives every status change under it.
+    // Built from stable callbacks, so this object outlives every status change
+    // under it.
     const commands = useMemo<SocketCommands>(
-        () => ({ send, subscribe, subscribeErrors }),
-        [send, subscribe, subscribeErrors],
+        () => ({ reconnect, send, subscribe, subscribeErrors }),
+        [reconnect, send, subscribe, subscribeErrors],
     );
 
     return (

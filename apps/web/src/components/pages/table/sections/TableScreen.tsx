@@ -2,6 +2,8 @@
 
 import ConnectionNotice from "@/components/pages/table/blocks/lobby/ConnectionNotice";
 import LobbyBand from "@/components/pages/table/blocks/lobby/LobbyBand";
+import LobbyBandSkeleton from "@/components/pages/table/blocks/lobby/LobbyBandSkeleton";
+import SessionLockedModal from "@/components/pages/table/blocks/lobby/SessionLockedModal";
 import LobbyTable from "@/components/pages/table/blocks/stage/LobbyTable";
 import {
     SEAT_COUNT,
@@ -9,14 +11,33 @@ import {
     useLobby,
     useLobbyActions,
 } from "@/context/lobby-context";
-import { useSocketStatus } from "@/context/socket-context";
+import {
+    useSocketCommands,
+    useSocketStatus,
+    type SocketError,
+} from "@/context/socket-context";
 import { useCallback, useEffect, useRef } from "react";
 import type { Dictionary } from "@/dictionaries";
 import { cn } from "@/lib/cn";
 import type { Locale } from "@/lib/i18n";
-import { localiseLobbyError } from "@/lib/lobby-errors";
+import {
+    isAlreadyInLobby,
+    isSessionLocked,
+    localiseLobbyError,
+} from "@/lib/lobby-errors";
 import { appGutters } from "@/lib/styles";
 import type { User } from "@/api/types/user";
+
+/** How often to re-ask for a table while another window holds the lock. */
+const SESSION_LOCK_RETRY_MS = 3000;
+
+/** A create refusal that reconnecting can resolve into an existing snapshot. */
+function isRecoverableCreateError(error: SocketError): boolean {
+    return (
+        error.command === "lobby:create" &&
+        (isSessionLocked(error) || isAlreadyInLobby(error))
+    );
+}
 
 type TableScreenProps = {
     copy: Dictionary["table"];
@@ -60,6 +81,7 @@ export default function TableScreen({
     const { lobby, seats, me, playerCount, error } = useLobby();
     const { create, swapSeat } = useLobbyActions();
     const status = useSocketStatus();
+    const { reconnect } = useSocketCommands();
     // One attempt per visit. A second `lobby:create` would only be answered
     // with "already in lobby", and a retry loop against that is a request every
     // frame for as long as the tab is open.
@@ -92,6 +114,30 @@ export default function TableScreen({
 
         return () => clearTimeout(id);
     }, [lobby, status, requestLobby]);
+
+    /**
+     * The lock in another window clears itself; the screen follows.
+     *
+     * A session lock lifts when the player closes or leaves their first table.
+     * The backend only transfers that existing lobby to this tab during its
+     * reconnect lifecycle; another `lobby:create` merely changes the refusal
+     * from "session locked" to "already in lobby" and sends no snapshot.
+     * Reconnecting preserves the standing modal until the snapshot arrives.
+     */
+    useEffect(() => {
+        if (
+            lobby ||
+            status !== "connected" ||
+            !error ||
+            !isRecoverableCreateError(error)
+        ) {
+            return;
+        }
+
+        const id = setTimeout(reconnect, SESSION_LOCK_RETRY_MS);
+
+        return () => clearTimeout(id);
+    }, [lobby, status, error, reconnect]);
 
     const t = copy.lobby;
 
@@ -131,18 +177,27 @@ export default function TableScreen({
                             signUpHref={signUpHref}
                             guest={guest}
                         />
-                    ) : (
+                    ) : error && !isRecoverableCreateError(error) ? (
                         <p
                             role="status"
                             className="mx-auto text-center text-[13px] font-semibold text-mint/75 sm:text-[14px]"
                         >
-                            {error
-                                ? localiseLobbyError(error, copy.lobbyErrors)
-                                : t.opening}
+                            {localiseLobbyError(error, copy.lobbyErrors)}
                         </p>
+                    ) : (
+                        <LobbyBandSkeleton label={t.opening} />
                     )}
                 </div>
             </main>
+
+            {!lobby && error && isRecoverableCreateError(error) && (
+                <SessionLockedModal
+                    copy={copy.sessionLockedModal}
+                    body={copy.lobbyErrors.sessionLocked}
+                    closeLabel={copy.sessionLockedModal.close}
+                    onRetry={reconnect}
+                />
+            )}
         </div>
     );
 }
