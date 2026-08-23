@@ -94,3 +94,12 @@ tasks.named('generateTypeScript') {
     // that every model pointlessly extends.
     excludeClasses = ['java.io.Serializable']
 }
+
+// The single entry point for code generation. Right now TypeScript is the only
+// generator; wire any future one in here rather than teaching callers (the IDE
+// run configuration, CI) about each task by name.
+tasks.register('generateTypes') {
+    group = 'build'
+    description = 'Runs every wire-protocol generator.'
+    dependsOn 'generateTypeScript'
+}

@@ -45,7 +45,8 @@ CMakeUserPresets.json
 *.log
 
 # ============ IDE / Editor ============
-.idea/
+.idea/*
+!.idea/runConfigurations/
 *.iml
 .vscode/
 *.swp

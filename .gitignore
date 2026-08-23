@@ -8,7 +8,10 @@
 node_modules/
 
 # Editors
-.idea/
+# .idea/* rather than .idea/ so git still descends into it and the negation
+# below can take effect — an excluded *directory* is never walked at all.
+**/.idea/*
+!**/.idea/runConfigurations/
 *.iml
 .vscode/
 

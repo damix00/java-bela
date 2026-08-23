@@ -19,7 +19,10 @@ bin/
 !**/src/test/**/bin/
 
 ### IntelliJ IDEA ###
-.idea
+# .idea/* rather than .idea so git descends and the negation below applies:
+# run configurations are shared, everything else in there is personal.
+.idea/*
+!.idea/runConfigurations/
 *.iws
 *.iml
 *.ipr
