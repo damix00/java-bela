@@ -373,7 +373,8 @@
             "pass": "Dalje",
             "mustCall": "Svi su rekli dalje — moraš zvati.",
             "waiting": "{name} zove aduta…",
-            "label": "Adut"
+            "label": "Adut",
+            "calledBy": "Zvao/la {name}"
         },
         "declarations": {
             "heading": "Zvanja",

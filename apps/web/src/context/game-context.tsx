@@ -52,6 +52,8 @@ export type RoundView = {
     roundStatus: RoundStatus;
     /** Absent until somebody calls. The generator cannot say "nullable". */
     trumpSuite: Suite | null;
+    /** The seat that called trump. Snapshots do not currently carry it. */
+    trumpCallerIndex: number | null;
     /** A seat index — every event calls this `playerIndex` or `currentTurnIndex`. */
     currentTurnIndex: number;
     currentTrickNumber: number;
@@ -278,6 +280,7 @@ export function GameProvider({
                   roundNumber: snapshot.roundNumber,
                   roundStatus: snapshot.roundStatus,
                   trumpSuite: snapshot.trumpSuite ?? null,
+                  trumpCallerIndex: null,
                   currentTurnIndex: snapshot.currentTurnIndex,
                   currentTrickNumber: snapshot.currentTrickNumber,
                   trickCards: snapshot.currentTrickCards ?? [],
@@ -371,6 +374,7 @@ export function GameProvider({
                     roundNumber: data.roundNumber,
                     roundStatus: data.roundStatus,
                     trumpSuite: null,
+                    trumpCallerIndex: null,
                     currentTurnIndex: data.currentTurnIndex,
                     currentTrickNumber: -1,
                     trickCards: [],
@@ -475,6 +479,7 @@ export function GameProvider({
                     ...prev.round,
                     roundStatus: data.roundStatus,
                     trumpSuite: data.trumpSuite,
+                    trumpCallerIndex: data.chosenByTurnIndex,
                     currentTurnIndex: data.currentTurnIndex,
                     team1RoundPoints: data.team1RoundPoints,
                     team2RoundPoints: data.team2RoundPoints,

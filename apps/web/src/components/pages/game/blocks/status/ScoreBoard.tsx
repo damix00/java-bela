@@ -15,6 +15,7 @@ type ScoreBoardProps = {
     trumpSuite: Suite | null;
     trumpLabel: string;
     trumpName: string | null;
+    trumpCallerLabel: string | null;
     roundLabel: string;
 };
 
@@ -37,6 +38,7 @@ export default function ScoreBoard({
     trumpSuite,
     trumpLabel,
     trumpName,
+    trumpCallerLabel,
     roundLabel,
 }: ScoreBoardProps) {
     const sides = [
@@ -72,21 +74,28 @@ export default function ScoreBoard({
 
             <div className="col-start-2 row-start-1 flex min-w-14 flex-col items-center justify-center gap-0.5 px-2 text-center">
                 {trumpSuite ? (
-                    <span
-                        className="flex items-center gap-1.5"
-                        aria-label={`${trumpLabel}: ${trumpName ?? ""}`}
-                    >
-                        <Image
-                            src={HUNGARIAN_SUIT_ASSETS[trumpSuite]}
-                            alt=""
-                            width={24}
-                            height={24}
-                            className="size-5 object-contain sm:size-6"
-                        />
-                        <span className="hidden font-display text-[13px] font-extrabold text-cream sm:inline">
-                            {trumpName}
+                    <>
+                        <span
+                            className="flex items-center gap-1.5"
+                            aria-label={`${trumpLabel}: ${trumpName ?? ""}`}
+                        >
+                            <Image
+                                src={HUNGARIAN_SUIT_ASSETS[trumpSuite]}
+                                alt=""
+                                width={24}
+                                height={24}
+                                className="size-5 object-contain sm:size-6"
+                            />
+                            <span className="hidden font-display text-[13px] font-extrabold text-cream sm:inline">
+                                {trumpName}
+                            </span>
                         </span>
-                    </span>
+                        {trumpCallerLabel ? (
+                            <span className="max-w-32 truncate text-[8px] leading-none font-bold whitespace-nowrap text-mint/80 sm:max-w-40 sm:text-[10px]">
+                                {trumpCallerLabel}
+                            </span>
+                        ) : null}
+                    </>
                 ) : null}
                 <span className="text-[9px] font-semibold whitespace-nowrap text-mint/60 sm:text-[11px]">
                     {targetLabel.replace("{target}", String(target))}

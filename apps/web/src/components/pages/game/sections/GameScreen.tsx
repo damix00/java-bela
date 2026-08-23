@@ -241,6 +241,15 @@ export default function GameScreen({
                     trumpSuite={trumpSuite}
                     trumpLabel={copy.trump.label}
                     trumpName={trumpSuite ? copy.suits[trumpSuite] : null}
+                    trumpCallerLabel={
+                        round?.trumpCallerIndex === null ||
+                        round?.trumpCallerIndex === undefined
+                            ? null
+                            : copy.trump.calledBy.replace(
+                                  "{name}",
+                                  nameOf(round.trumpCallerIndex),
+                              )
+                    }
                     roundLabel={copy.score.round}
                 />
             </div>
