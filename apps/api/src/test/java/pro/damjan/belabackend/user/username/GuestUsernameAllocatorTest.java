@@ -44,8 +44,8 @@ class GuestUsernameAllocatorTest {
 
         String allocated = guestUsernameAllocator.allocate();
 
-        assertThat(allocated).isEqualTo("SwiftFalcon1111#1");
-        assertThat(requestedSuffixDigits).containsExactly(4);
+        assertThat(allocated).isEqualTo("SwiftFalcon11#1");
+        assertThat(requestedSuffixDigits).containsExactly(2);
         verify(guestUsernameGenerator, never()).generateWithHexSuffix();
     }
 
@@ -55,31 +55,31 @@ class GuestUsernameAllocatorTest {
 
         String allocated = guestUsernameAllocator.allocate();
 
-        assertThat(allocated).isEqualTo("SwiftFalcon1111#3");
-        assertThat(requestedSuffixDigits).containsExactly(4, 4, 4);
+        assertThat(allocated).isEqualTo("SwiftFalcon11#3");
+        assertThat(requestedSuffixDigits).containsExactly(2, 2, 2);
     }
 
     @Test
-    void widensTheSuffixWhenTheFourDigitRungIsExhausted() {
-        // Five four-digit candidates taken, then a six-digit one is free.
+    void widensTheSuffixWhenTheTwoDigitRungIsExhausted() {
+        // Five two-digit candidates taken, then a four-digit one is free.
         when(userRepository.existsByUsername(anyString()))
                 .thenReturn(true, true, true, true, true, false);
 
         String allocated = guestUsernameAllocator.allocate();
 
-        assertThat(allocated).isEqualTo("SwiftFalcon111111#6");
-        assertThat(requestedSuffixDigits).containsExactly(4, 4, 4, 4, 4, 6);
+        assertThat(allocated).isEqualTo("SwiftFalcon1111#6");
+        assertThat(requestedSuffixDigits).containsExactly(2, 2, 2, 2, 2, 4);
     }
 
     @Test
-    void widensToEightDigitsWhenTheSixDigitRungIsExhausted() {
+    void widensToEightDigitsWhenTheFourDigitRungIsExhausted() {
         when(userRepository.existsByUsername(anyString()))
                 .thenReturn(true, true, true, true, true, true, true, true, false);
 
         String allocated = guestUsernameAllocator.allocate();
 
         assertThat(allocated).isEqualTo("SwiftFalcon11111111#9");
-        assertThat(requestedSuffixDigits).containsExactly(4, 4, 4, 4, 4, 6, 6, 6, 8);
+        assertThat(requestedSuffixDigits).containsExactly(2, 2, 2, 2, 2, 4, 4, 4, 8);
     }
 
     @Test
@@ -90,6 +90,6 @@ class GuestUsernameAllocatorTest {
         String allocated = guestUsernameAllocator.allocate();
 
         assertThat(allocated).isEqualTo("SwiftFalcon3f2a91b4");
-        assertThat(requestedSuffixDigits).containsExactly(4, 4, 4, 4, 4, 6, 6, 6, 8, 8);
+        assertThat(requestedSuffixDigits).containsExactly(2, 2, 2, 2, 2, 4, 4, 4, 8, 8);
     }
 }

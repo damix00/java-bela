@@ -80,7 +80,7 @@ class GuestUsernameGeneratorTest {
         int longestAdjective = longestWordLength("usernames/adjectives.txt");
         int longestNoun = longestWordLength("usernames/nouns.txt");
 
-        assertThat(longestAdjective + longestNoun + GuestUsernameGenerator.DEFAULT_SUFFIX_DIGITS)
+        assertThat(longestAdjective + longestNoun + GuestUsernameGenerator.BASELINE_SUFFIX_DIGITS)
                 .isLessThanOrEqualTo(FRONTEND_USERNAME_MAX);
     }
 

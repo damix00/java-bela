@@ -28,9 +28,15 @@ public class GuestUsernameGenerator {
     private static final String ADJECTIVES_RESOURCE = "usernames/adjectives.txt";
     private static final String NOUNS_RESOURCE = "usernames/nouns.txt";
 
-    /** The product of both word lists and a four-digit suffix must clear this floor. */
+    /**
+     * The suffix width the guarantees below are stated against. Allocation starts at a
+     * shorter suffix and widens on collision, so this is the ladder's four-digit rung
+     * rather than the first name a guest is offered.
+     */
+    static final int BASELINE_SUFFIX_DIGITS = 4;
+
+    /** Both word lists plus a baseline suffix must reach at least this many names. */
     static final long MINIMUM_COMBINATIONS = 100_000_000L;
-    static final int DEFAULT_SUFFIX_DIGITS = 4;
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -57,7 +63,7 @@ public class GuestUsernameGenerator {
      * @return the number of distinct names reachable with the default suffix length.
      */
     public long combinationCount() {
-        return (long) adjectives.size() * nouns.size() * pow10(DEFAULT_SUFFIX_DIGITS);
+        return (long) adjectives.size() * nouns.size() * pow10(BASELINE_SUFFIX_DIGITS);
     }
 
     /**

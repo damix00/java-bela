@@ -3,6 +3,8 @@ package pro.damjan.belabackend.user.username;
 import org.springframework.stereotype.Component;
 import pro.damjan.belabackend.user.UserRepository;
 
+import java.util.List;
+
 /**
  * Finds a guest username that no user currently holds.
  *
@@ -13,10 +15,17 @@ import pro.damjan.belabackend.user.UserRepository;
 @Component
 public class GuestUsernameAllocator {
 
-    /** Attempts to spend at each suffix length before widening the suffix. */
-    private static final int ATTEMPTS_WITH_FOUR_DIGITS = 5;
-    private static final int ATTEMPTS_WITH_SIX_DIGITS = 3;
-    private static final int ATTEMPTS_WITH_EIGHT_DIGITS = 2;
+    /** One rung of the escalation ladder: how wide the suffix is, and how many names to try at that width. */
+    private record Rung(int suffixDigits, int attempts) {}
+
+    /**
+     * Short names first, widening only when the short ones keep colliding. Two digits is
+     * 13.3 million names, four is 1.33 billion, eight is past any plausible collision.
+     */
+    private static final List<Rung> LADDER = List.of(
+            new Rung(2, 5),
+            new Rung(4, 3),
+            new Rung(8, 2));
 
     private final GuestUsernameGenerator guestUsernameGenerator;
     private final UserRepository userRepository;
@@ -31,19 +40,18 @@ public class GuestUsernameAllocator {
      * @return a username that was free at the time of checking, never null
      */
     public String allocate() {
-        String name = tryAllocateWithSuffix(2, ATTEMPTS_WITH_FOUR_DIGITS);
-        if (name == null) {
-            name = tryAllocateWithSuffix(4, ATTEMPTS_WITH_SIX_DIGITS);
+        for (Rung rung : LADDER) {
+            String name = tryAllocate(rung);
+            if (name != null) {
+                return name;
+            }
         }
-        if (name == null) {
-            name = tryAllocateWithSuffix(8, ATTEMPTS_WITH_EIGHT_DIGITS);
-        }
-        return name != null ? name : guestUsernameGenerator.generateWithHexSuffix();
+        return guestUsernameGenerator.generateWithHexSuffix();
     }
 
-    private String tryAllocateWithSuffix(int suffixDigits, int attempts) {
-        for (int attempt = 0; attempt < attempts; attempt++) {
-            String candidate = guestUsernameGenerator.generate(suffixDigits);
+    private String tryAllocate(Rung rung) {
+        for (int attempt = 0; attempt < rung.attempts(); attempt++) {
+            String candidate = guestUsernameGenerator.generate(rung.suffixDigits());
             if (!userRepository.existsByUsername(candidate)) {
                 return candidate;
             }
