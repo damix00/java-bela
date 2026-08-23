@@ -36,7 +36,6 @@ export default async function Page({
     return (
         <GameScreen
             copy={dict.game}
-            botNames={dict.table.lobby.botNames}
             gameId={gameId}
             locale={lang}
             user={user}

@@ -19,6 +19,12 @@ public class GamePlayer implements Serializable {
 
     private boolean bot;
 
+    // Carried over from the lobby seat so a game snapshot can name a player
+    // without the client having to look them up.
+    private String username;
+
+    private String avatarUrl;
+
     private List<Card> hand = new ArrayList<>();
 
     // Used only for serialization/deserialization
@@ -37,6 +43,12 @@ public class GamePlayer implements Serializable {
         this.userId = userId;
         this.seatIndex = seatIndex;
         this.bot = bot;
+    }
+
+    public GamePlayer(String userId, int seatIndex, boolean bot, String username, String avatarUrl) {
+        this(userId, seatIndex, bot);
+        this.username = username;
+        this.avatarUrl = avatarUrl;
     }
 
     public void receiveCards(List<Card> cards) {

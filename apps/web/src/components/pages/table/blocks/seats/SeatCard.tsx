@@ -2,6 +2,7 @@ import MockLabel from "@/components/pages/table/blocks/shared/MockLabel";
 import SuitBadge, {
     type BadgeTone,
 } from "@/components/pages/table/blocks/seats/SuitBadge";
+import SwapBadge from "@/components/pages/table/blocks/seats/SwapBadge";
 import Card from "@/components/ui/surfaces/Card";
 import { cn } from "@/lib/cn";
 import { pressSm, swapRing } from "@/lib/styles";
@@ -77,13 +78,13 @@ export default function SeatCard({
                     {tag.label}
                 </MockLabel>
             ))}
+            {onClick && <SwapBadge />}
         </>
     );
 
     const shell = cn(
         "flex-row items-center gap-3 px-3 py-3 shadow-hard sm:gap-4 sm:px-4 sm:py-[14px]",
         swapRing(status),
-        disabled && status === "pending" && "cursor-wait",
         className,
     );
 

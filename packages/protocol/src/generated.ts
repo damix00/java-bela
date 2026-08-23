@@ -122,11 +122,13 @@ export interface GameEndedEvent extends OutgoingEvent {
 }
 
 export interface GamePlayer {
+    avatarUrl: string;
     bot: boolean;
     hand: Card[];
     seatIndex: number;
     teamIndex: number;
     userId: string;
+    username: string;
 }
 
 export interface GameSnapshotEvent extends PerspectiveOutgoingEvent {
@@ -177,11 +179,13 @@ export interface LobbyInitialStateEvent extends OutgoingEvent {
 }
 
 export interface LobbyPlayer {
+    avatarUrl: string;
     bot: boolean;
     host: boolean;
     seat: number;
     status: LobbyPlayerStatus;
     userId: string;
+    username: string;
 }
 
 export interface LobbyPlayerJoinedEvent extends OutgoingEvent {
@@ -233,11 +237,13 @@ export interface PlayerDeclarations {
 }
 
 export interface PlayerSnapshot {
+    avatarUrl: string;
     bot: boolean;
     cardCount: number;
     hand: Card[];
     seatIndex: number;
     userId: string;
+    username: string;
 }
 
 export interface PublicUserResponse {

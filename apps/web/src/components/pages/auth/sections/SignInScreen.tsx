@@ -87,7 +87,7 @@ export default function SignInScreen({
         <AuthSplit
             aside={
                 <>
-                    <Logo withMark tone="cream" />
+                    <Logo tone="cream" />
                     <div className="flex flex-col gap-[26px]">
                         <Heading
                             size="cardHero"

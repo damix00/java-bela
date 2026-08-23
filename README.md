@@ -1,12 +1,18 @@
 # bela
 
-Belote (bela) card game — a Spring Boot API and a Next.js web client.
+A real-time, multiplayer [Belote](https://en.wikipedia.org/wiki/Belote) (bela)
+card game. The repository contains a Spring Boot API, a Next.js web client,
+and a shared TypeScript wire protocol.
+
+The current app supports guest and registered sessions, English and Croatian,
+invite-code lobbies, seat and team management, and a playable four-player game
+over WebSockets.
 
 ## Layout
 
 ```
 apps/
-  api/              Spring Boot, Java 25, Gradle. Redis-backed game state.
+  api/              Spring Boot, Java 25, Gradle. PostgreSQL + Redis.
   web/              Next.js 16 client (App Router, Tailwind 4, TypeScript).
   web-deprecated/   The previous Next.js client. Reference only, frozen.
 packages/
@@ -19,12 +25,36 @@ installed; it still runs standalone on npm from its own directory.
 
 ## Prerequisites
 
-- JDK 25 (Gradle auto-provisions it if missing)
-- Node.js 22+ and pnpm 10+
+- JDK 25 (Gradle can auto-provision it if missing)
+- Node.js 22+ and pnpm 11
 - Docker, for Redis
 - Postgres on `localhost:5432` (database `bela`)
 
 ## Getting started
+
+1. Create a PostgreSQL database named `bela`.
+2. Configure the API in `apps/api/.env`:
+
+   ```dotenv
+   DB_USERNAME=postgres
+   DB_PASSWORD=password
+   INTERNAL_API_KEY=replace-with-a-shared-secret
+   ```
+
+   `DB_URL`, JWT lifetimes and secrets, Redis, and frontend/backend origins also
+   have environment-variable overrides; their development defaults are in
+   `apps/api/src/main/resources/application.properties`.
+
+3. Configure the web client:
+
+   ```bash
+   cp apps/web/.env.example apps/web/.env.local
+   ```
+
+   Set `INTERNAL_API_KEY_SB` to the same value as the API's
+   `INTERNAL_API_KEY`.
+
+4. Install dependencies and start the stack:
 
 ```bash
 pnpm install
@@ -32,7 +62,8 @@ pnpm dev
 ```
 
 `pnpm dev` starts Redis in Docker, then runs the API and the web client
-together with prefixed logs.
+together with prefixed logs. Open http://localhost:3000. The API listens on
+http://localhost:8080 and its WebSocket endpoint is `ws://localhost:8080/ws`.
 
 | Command | What it does |
 |---|---|
@@ -45,6 +76,22 @@ together with prefixed logs.
 | `pnpm typecheck` | Type check every workspace package |
 | `pnpm protocol` | Regenerate `packages/protocol` from the Java DTOs |
 | `pnpm redis:up` / `redis:down` | Redis lifecycle |
+
+To run the frozen client independently, use npm from `apps/web-deprecated`.
+
+## Architecture
+
+- **Web:** Next.js App Router and React 19. Server actions and the refresh-token
+  route act as a small backend-for-frontend; authenticated API and WebSocket
+  traffic use short-lived access tokens in the browser.
+- **API:** Spring Boot 4 with Spring Security, JPA, PostgreSQL, Redis, and raw
+  WebSockets. PostgreSQL stores users and sessions; Redis stores live game
+  state and carries cross-instance messages.
+- **Protocol:** `@bela/protocol` gives the client generated DTOs plus typed
+  client/server event maps.
+
+Most lobby and game operations are WebSocket events. REST endpoints handle
+authentication and user lookup.
 
 ## The protocol package
 
@@ -70,21 +117,14 @@ Note the WebSocket envelopes are asymmetric: server frames are
 `{"event": name, "data": payload}`, client frames are
 `{"event": name, "body": payload}`.
 
-## The web rewrite
+## Web client
 
-`apps/web` is a bare `create-next-app` scaffold — TypeScript, App Router,
-Tailwind 4, ESLint, `src/`, `@/*` alias — matching the stack of the app it
-replaces. Nothing has been ported from `web-deprecated`; that is deliberate.
+Routes are locale-prefixed (`/en`, `/hr`). The public landing and legal pages,
+authentication flows, lobby table, and live game UI are implemented in
+`apps/web`. Translation dictionaries live in `apps/web/src/dictionaries`.
 
-Two differences from the old app worth knowing:
-
-- The React Compiler is **off**. The old app enabled it via
-  `babel-plugin-react-compiler`. Add `reactCompiler: true` to `next.config.ts`
-  if you want it back.
-- `sharp` and `unrs-resolver` are left unbuilt (`allowBuilds` in
-  `pnpm-workspace.yaml`), which is create-next-app's default. Lint and
-  production builds both pass without them. Flip to `true` if you hit image
-  optimization limits in production.
+The UI uses Tailwind 4 theme tokens defined in `apps/web/src/app/globals.css`.
+See `apps/web/README.md` for its design-system and component conventions.
 
 ## Java 25 note
 

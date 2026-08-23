@@ -64,11 +64,11 @@ export default async function RootLayout({
             lang={lang}
             className={`${bricolage.variable} ${publicSans.variable} h-full antialiased`}>
             <head>
-                <Script
+                {/* <Script
                     src="//unpkg.com/react-scan/dist/auto.global.js"
                     crossOrigin="anonymous"
                     strategy="beforeInteractive"
-                />
+                /> */}
             </head>
             <body className="flex min-h-full flex-col bg-cream has-[[data-felt]]:bg-baize font-sans text-ink selection:bg-rust selection:text-cream">
                 {children}

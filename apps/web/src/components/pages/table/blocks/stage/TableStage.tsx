@@ -32,7 +32,7 @@ type TableStageProps = {
  * narrower per seat than the phone layout it would be replacing.
  *
  * Placement lives here and sizing lives on the children, which is what lets the
- * same grid hold a full `SeatCard` at the near edge and a 60px `SideSeat` in
+ * same grid hold a full `SeatCard` at the near edge and a 48px `SideSeat` in
  * the columns without either knowing where it has been put.
  */
 export default function TableStage({
@@ -52,9 +52,9 @@ export default function TableStage({
     return (
         <div
             className={cn(
-                "mx-auto grid w-full max-w-[560px] grid-cols-[60px_minmax(0,1fr)_60px] items-stretch gap-3",
+                "mx-auto grid w-full max-w-[560px] grid-cols-[48px_minmax(0,1fr)_48px] items-stretch gap-2",
                 "sm:grid-cols-[104px_minmax(0,1fr)_104px] sm:gap-4",
-                "lg:max-w-[1000px] lg:grid-cols-[minmax(0,1fr)_minmax(240px,320px)_minmax(0,1fr)] lg:gap-6 xl:gap-8",
+                "lg:max-w-[1000px] lg:grid-cols-[minmax(0,1fr)_320px_minmax(0,1fr)] lg:gap-6 xl:gap-8",
                 className,
             )}
         >
@@ -62,21 +62,22 @@ export default function TableStage({
                 {across}
             </div>
 
-            <div className="col-start-1 row-start-2 flex aspect-square w-full self-center lg:mx-auto lg:max-w-[240px]">
+            <div className="col-start-1 row-start-2 flex aspect-square w-full self-center lg:mx-auto lg:max-w-[176px]">
                 {left}
             </div>
 
             <motion.div
+                data-game-table=""
                 animate={{ scale: settling && !reduceMotion ? 0.985 : 1 }}
                 transition={feltTransition}
-                className="col-start-2 row-start-2 w-full border-4 border-ink bg-baize-deep p-2 shadow-hard-lg lg:p-[10px]"
+                className="col-start-2 row-start-2 aspect-square w-full overflow-hidden border-4 border-ink bg-baize-deep p-1.5 shadow-hard-lg sm:p-2 lg:p-[10px]"
             >
-                <div className="flex h-full flex-col items-center justify-center gap-2 border-2 border-mint/15 bg-baize px-2 py-3 sm:gap-4 sm:px-5 sm:py-8">
+                <div className="flex size-full min-h-0 flex-col items-center justify-center gap-1.5 overflow-hidden border-2 border-mint/20 bg-baize p-1.5 sm:gap-3 sm:p-4">
                     {centre}
                 </div>
             </motion.div>
 
-            <div className="col-start-3 row-start-2 flex aspect-square w-full self-center lg:mx-auto lg:max-w-[240px]">
+            <div className="col-start-3 row-start-2 flex aspect-square w-full self-center lg:mx-auto lg:max-w-[176px]">
                 {right}
             </div>
 

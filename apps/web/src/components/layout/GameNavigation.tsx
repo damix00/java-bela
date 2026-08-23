@@ -60,7 +60,7 @@ export default function GameNavigation({
                         href={lobbyHref}
                         className="shrink-0 focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-rust"
                     >
-                        <Logo withMark dense tone="cream" />
+                        <Logo dense tone="cream" />
                     </Link>
 
                     <nav

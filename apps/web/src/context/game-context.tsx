@@ -170,6 +170,8 @@ function asSnapshotTeam(team: Team): TeamSnapshot {
             userId: player.userId,
             seatIndex: player.seatIndex,
             bot: player.bot,
+            username: player.username,
+            avatarUrl: player.avatarUrl,
             cardCount: 0,
             hand: [],
         })),

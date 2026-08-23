@@ -2,6 +2,7 @@ package pro.damjan.belabackend.lobby.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pro.damjan.belabackend.game.model.BeloteGame;
 import pro.damjan.belabackend.game.model.config.GameConfiguration;
 import pro.damjan.belabackend.game.service.BeloteGameService;
 import pro.damjan.belabackend.lobby.events.LobbyEventPublisher;
@@ -10,6 +11,7 @@ import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 import pro.damjan.belabackend.lobby.model.LobbyPlayerStatus;
 import pro.damjan.belabackend.lobby.repository.LobbyRepository;
+import pro.damjan.belabackend.user.User;
 import pro.damjan.belabackend.user.UserRepository;
 import pro.damjan.belabackend.user.UserService;
 import pro.damjan.belabackend.user.presence.UserPresence;
@@ -21,6 +23,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -32,6 +35,8 @@ class LobbyServiceTest {
     private UserPresenceService userPresenceService;
     private LobbyEventPublisher lobbyEventPublisher;
     private SessionService sessionService;
+    private BeloteGameService beloteGameService;
+    private UserService userService;
     private LobbyService lobbyService;
     private Lobby lobby;
 
@@ -41,13 +46,15 @@ class LobbyServiceTest {
         userPresenceService = mock(UserPresenceService.class);
         lobbyEventPublisher = mock(LobbyEventPublisher.class);
         sessionService = mock(SessionService.class);
+        beloteGameService = mock(BeloteGameService.class);
+        userService = mock(UserService.class);
         lobbyService = new LobbyService(
                 lobbyRepository,
                 userPresenceService,
                 lobbyEventPublisher,
                 sessionService,
-                mock(BeloteGameService.class),
-                mock(UserService.class),
+                beloteGameService,
+                userService,
                 mock(UserRepository.class)
         );
 
@@ -89,6 +96,87 @@ class LobbyServiceTest {
 
         verify(lobbyRepository, never()).save(lobby);
         verify(lobbyEventPublisher, never()).configChanged(lobby);
+    }
+
+    @Test
+    void stampsTheCreatorsIdentityOntoTheirSeat() {
+        givenKnownUser("host-id", "Marko", "https://cdn/marko.png");
+
+        Lobby createdLobby = lobbyService.createLobby("host-id", "session-id");
+
+        LobbyPlayer host = createdLobby.getPlayerSeats().get(0);
+        assertThat(host.getUsername()).isEqualTo("Marko");
+        assertThat(host.getAvatarUrl()).isEqualTo("https://cdn/marko.png");
+    }
+
+    @Test
+    void stampsAJoinersIdentityOntoTheirSeat() {
+        givenKnownUser("guest-id", "Ivana", "https://cdn/ivana.png");
+        Lobby empty = new Lobby();
+        empty.setId("other-lobby");
+
+        lobbyService.joinLobby("guest-id", "session-id", empty);
+
+        LobbyPlayer joiner = empty.findPlayerById("guest-id").orElseThrow();
+        assertThat(joiner.getUsername()).isEqualTo("Ivana");
+        assertThat(joiner.getAvatarUrl()).isEqualTo("https://cdn/ivana.png");
+    }
+
+    @Test
+    void seatsAUserItCannotResolveRatherThanFailing() {
+        // A nameless seat draws with a fallback; refusing to seat the player
+        // would be a far worse answer to a lookup that came back empty.
+        when(userService.getUserById("host-id")).thenReturn(null);
+
+        Lobby createdLobby = lobbyService.createLobby("host-id", "session-id");
+
+        LobbyPlayer host = createdLobby.getPlayerSeats().get(0);
+        assertThat(host.getUserId()).isEqualTo("host-id");
+        assertThat(host.getUsername()).isNull();
+        assertThat(host.getAvatarUrl()).isNull();
+    }
+
+    @Test
+    void namesEveryBotItFillsTheEmptySeatsWith() {
+        givenGameCanBeCreated();
+
+        lobbyService.startWithBots(lobby);
+
+        assertThat(lobby.getPlayersAsList().stream()
+                .filter(LobbyPlayer::isBot)
+                .map(LobbyPlayer::getUsername)
+                .toList())
+                .hasSize(2)
+                .doesNotContainNull()
+                .doesNotHaveDuplicates();
+    }
+
+    @Test
+    void namesBotsConsistentlyWithTheSeatTheyLandedIn() {
+        givenGameCanBeCreated();
+
+        lobbyService.startWithBots(lobby);
+
+        for (LobbyPlayer player : lobby.getPlayersAsList()) {
+            if (!player.isBot()) continue;
+
+            assertThat(player.getUsername())
+                    .isEqualTo(LobbyPlayer.botNameForSeat(player.getSeat()));
+        }
+    }
+
+    private void givenKnownUser(String userId, String username, String avatarUrl) {
+        User user = new User();
+        user.setId(userId);
+        user.setUsername(username);
+        user.setAvatarUrl(avatarUrl);
+        when(userService.getUserById(userId)).thenReturn(user);
+    }
+
+    private void givenGameCanBeCreated() {
+        lobby.setGameConfiguration(GameConfiguration.privateGame(501));
+        when(beloteGameService.createGame(any(Lobby.class)))
+                .thenReturn(BeloteGame.builder().id("game-id").build());
     }
 
     private void givenUserInLobby(String userId) {

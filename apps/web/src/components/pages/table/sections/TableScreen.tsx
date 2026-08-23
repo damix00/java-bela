@@ -1,5 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { LobbyStatus } from "@bela/protocol";
+import { useCallback, useEffect, useRef } from "react";
+
+import type { User } from "@/api/types/user";
 import ConnectionNotice from "@/components/pages/table/blocks/lobby/ConnectionNotice";
 import LobbyBand from "@/components/pages/table/blocks/lobby/LobbyBand";
 import LobbyBandSkeleton from "@/components/pages/table/blocks/lobby/LobbyBandSkeleton";
@@ -16,7 +21,6 @@ import {
     useSocketStatus,
     type SocketError,
 } from "@/context/socket-context";
-import { useCallback, useEffect, useRef } from "react";
 import type { Dictionary } from "@/dictionaries";
 import { cn } from "@/lib/cn";
 import type { Locale } from "@/lib/i18n";
@@ -25,8 +29,8 @@ import {
     isSessionLocked,
     localiseLobbyError,
 } from "@/lib/lobby-errors";
+import { playPath } from "@/lib/routes";
 import { appGutters } from "@/lib/styles";
-import type { User } from "@/api/types/user";
 
 /** How often to re-ask for a table while another window holds the lock. */
 const SESSION_LOCK_RETRY_MS = 3000;
@@ -82,6 +86,22 @@ export default function TableScreen({
     const { create, swapSeat } = useLobbyActions();
     const status = useSocketStatus();
     const { reconnect } = useSocketCommands();
+    const router = useRouter();
+
+    /**
+     * An in-progress table is not a lobby destination.
+     *
+     * The provider survives client-side navigation between the game and this
+     * page, so clicking the logo does not reconnect the socket and therefore
+     * does not produce another `lobby:initialState` frame. Read the snapshot we
+     * already hold when this screen mounts and send the player back to the game.
+     */
+    useEffect(() => {
+        if (lobby?.status !== LobbyStatus.IN_GAME || !lobby.gameId) return;
+
+        router.replace(playPath(locale, lobby.gameId));
+    }, [lobby, locale, router]);
+
     // One attempt per visit. A second `lobby:create` would only be answered
     // with "already in lobby", and a retry loop against that is a request every
     // frame for as long as the tab is open.

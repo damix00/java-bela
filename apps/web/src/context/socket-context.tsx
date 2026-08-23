@@ -42,7 +42,7 @@ const CLOSE_UNAUTHORIZED = 4401;
  * lobby. Five seconds leaves room for several missed pings before any of that
  * fires.
  */
-const KEEPALIVE_MS = 5_000;
+const KEEPALIVE_MS = 15_000;
 
 export type SocketStatus =
     | "connecting"
@@ -218,7 +218,12 @@ export function SocketProvider({ children }: { children: ReactNode }) {
         };
 
         socket.onmessage = (event) => {
-            let message: { event?: string; data?: unknown; message?: string; status?: number };
+            let message: {
+                event?: string;
+                data?: unknown;
+                message?: string;
+                status?: number;
+            };
 
             try {
                 message = JSON.parse(event.data);
@@ -382,7 +387,9 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 export function useSocketCommands() {
     const context = useContext(SocketCommandsContext);
     if (context === undefined) {
-        throw new Error("useSocketCommands must be used within a SocketProvider");
+        throw new Error(
+            "useSocketCommands must be used within a SocketProvider",
+        );
     }
     return context;
 }

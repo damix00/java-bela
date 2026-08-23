@@ -286,8 +286,6 @@
         "progressLabel": "Rank progress",
         "rankProgress": "118 to Bela · {rank} of 8,100",
         "ladderLabel": "Friends ladder",
-        "codeLabel": "Table code",
-        "codeNote": "Anyone with the code can take a seat.",
         "partner": "your partner",
         "dealer": "dealer",
         "you": "You",
@@ -298,6 +296,19 @@
         "friendFree": "free",
         "friendBusy": "in match",
         "copyInvite": "Copy invite link",
+        "invite": {
+            "action": "Invite",
+            "bandNote": "Send the link or pick a friend",
+            "heading": "Fill a seat",
+            "close": "Close invite panel",
+            "linkNote": "Anyone with the link can take a seat.",
+            "friends": "Friends",
+            "friendsNote": "Friends are coming soon. This list is a preview.",
+            "online": "Online",
+            "whoCanJoin": "Who can join",
+            "anyoneWithLink": "Anyone with the link",
+            "inviteOnly": "Invite only"
+        },
         "lastFive": "Last five",
         "lastFiveNote": "Won 1001–842 with {opponent} last night.",
         "win": "W",
@@ -313,8 +324,8 @@
             "waitingNote": "{count} of four seats taken. Send the link — anyone with it can sit down.",
             "allReadyNote": "Everyone’s ready. The hand deals itself the moment the fourth seat is set.",
             "takeSeat": "Take this seat",
-            "switchTeams": "Switch",
-            "switchTeamsWith": "Switch teams with {name}",
+            "moveHint": "Press any seat to move there",
+            "moveHereWith": "Move here, switching with {name}",
             "host": "host",
             "ready": "Ready",
             "opponent": "opponent",
@@ -326,8 +337,7 @@
                 "other": "Starting now fills the {count} open seats with bots."
             },
             "copied": "Copied",
-            "unknownPlayer": "Player",
-            "botNames": ["Bot Alpha", "Bot Beta", "Bot Gamma", "Bot Delta"]
+            "unknownPlayer": "Player"
         },
         "join": {
             "heading": "Join with a code",

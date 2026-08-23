@@ -2,6 +2,7 @@ import MockLabel from "@/components/pages/table/blocks/shared/MockLabel";
 import SuitBadge, {
     type BadgeTone,
 } from "@/components/pages/table/blocks/seats/SuitBadge";
+import SwapBadge from "@/components/pages/table/blocks/seats/SwapBadge";
 import { cn } from "@/lib/cn";
 import { focusRing, pressSm, swapRing } from "@/lib/styles";
 
@@ -49,13 +50,17 @@ export default function SideSeat({
         "relative flex flex-col items-center justify-center gap-2 border-4 border-ink bg-cream p-2 shadow-hard md:p-3",
         ready && "bg-forest",
         onClick && !disabled && ["cursor-pointer", pressSm, focusRing],
-        disabled && "cursor-wait",
         swapRing(swapStatus),
         className,
     );
 
     const body = (
         <>
+            {/* Cornered rather than stacked: the square is 52px on a phone and
+                the tile plus the name already fill it. */}
+            {onClick && (
+                <SwapBadge size="sm" className="absolute top-1 right-1" />
+            )}
             <SuitBadge suit={suit} tone={tone} size="sm" />
             <span
                 className={cn(

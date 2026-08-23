@@ -5,17 +5,9 @@ const tones = {
     cream: "text-cream",
 } as const;
 
-// The badge inverts against whatever it sits on, so the spade always reads.
-const markTones = {
-    ink: "bg-ink text-cream",
-    cream: "bg-cream text-ink",
-} as const;
-
 type LogoProps = {
-    /** The tilted spade badge only appears where there's room for it. */
-    withMark?: boolean;
     /**
-     * Step the whole lockup down on phones.
+     * Step the wordmark down on phones.
      *
      * For the bars that have to share a phone screen with the thing the page is
      * actually for — the game chrome, where the top bar is 60px and every pixel
@@ -28,7 +20,6 @@ type LogoProps = {
 };
 
 export default function Logo({
-    withMark = false,
     dense = false,
     tone = "ink",
     className,
@@ -36,33 +27,15 @@ export default function Logo({
     return (
         <span
             className={cn(
-                "flex items-center",
-                dense ? "gap-2 sm:gap-[11px]" : "gap-[11px]",
+                "inline-flex items-baseline font-display leading-none font-black select-none",
+                dense ? "text-[19px] sm:text-[23px]" : "text-[23px]",
+                tones[tone],
                 className,
             )}
         >
-            {withMark && (
-                <span
-                    aria-hidden
-                    className={cn(
-                        "grid -rotate-6 place-items-center",
-                        dense
-                            ? "size-7 text-[15px] sm:size-9 sm:text-[19px]"
-                            : "size-9 text-[19px]",
-                        markTones[tone],
-                    )}
-                >
-                    ♠
-                </span>
-            )}
-            <span
-                className={cn(
-                    "font-display font-extrabold tracking-[-.02em]",
-                    dense ? "text-[17px] sm:text-[21px]" : "text-[21px]",
-                    tones[tone],
-                )}
-            >
-                belote.gg
+            <span className="tracking-[-.065em]">belote</span>
+            <span className="relative -top-[.42em] ml-[.16em] text-[.56em] tracking-[-.025em]">
+                <span className="text-rust">.</span>gg
             </span>
         </span>
     );

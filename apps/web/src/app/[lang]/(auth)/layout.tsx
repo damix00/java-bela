@@ -30,7 +30,7 @@ export default async function AuthLayout({
                     href={landingPath(lang)}
                     className={`${focusRing} no-underline`}
                 >
-                    <Logo withMark />
+                    <Logo />
                 </Link>
                 {/* Hard navigation: these pages have intercepting twins under
                     `@modal`, and a routed language swap would reopen the very

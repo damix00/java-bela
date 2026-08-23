@@ -3,9 +3,9 @@
 The Next.js client for [bela](../../README.md). Next.js 16 (App Router),
 React 19, Tailwind 4, TypeScript.
 
-Right now it serves one thing: the `belote.gg` landing page. None of the game
-UI has been ported from `apps/web-deprecated` yet — see "The web rewrite" in
-the root README for what that means.
+It contains the localized landing and legal pages, authentication flows,
+invite-code lobbies, table and seat management, and the live game interface.
+The old implementation remains in `apps/web-deprecated` for reference only.
 
 ## Running it
 
@@ -59,8 +59,8 @@ Two conventions worth knowing:
 
 ## Protocol types
 
-`@bela/protocol` is a workspace dependency but nothing imports it yet. When the
-game UI lands, import the wire types from there — do not redeclare them:
+Use the `@bela/protocol` workspace package for WebSocket payloads and game
+models—do not redeclare wire types in the client:
 
 ```ts
 import { Suite, type CardThrownEvent } from "@bela/protocol";

@@ -110,7 +110,7 @@ export default function ProfileMenu({
                 aria-label={copy.trigger}
                 onClick={() => setOpen((wasOpen) => !wasOpen)}
                 className="flex min-w-0 cursor-pointer items-center gap-3 focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-rust">
-                <span className="max-w-24 truncate font-display text-[15px] font-extrabold tracking-[-.02em] text-cream sm:max-w-48 sm:text-[16px]">
+                <span className="hidden max-w-48 truncate font-display text-[16px] font-extrabold tracking-[-.02em] text-cream min-[1400px]:block">
                     {user.username}
                 </span>
                 <UserAvatar user={user} />
@@ -119,6 +119,7 @@ export default function ProfileMenu({
                     size="sm"
                     tone="ash"
                     className={cn(
+                        "hidden min-[1400px]:block",
                         "transition-transform duration-[80ms] ease-[steps(2)] motion-reduce:transition-none",
                         open && "rotate-180",
                     )}

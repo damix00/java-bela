@@ -71,13 +71,21 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
         private String userId;
         private int seatIndex;
         private boolean bot;
+        // Identity is not perspective-dependent the way the hand is: everybody at
+        // the table may see everybody's name, and both fields are already public
+        // on GET /users/{id}.
+        private String username;
+        private String avatarUrl;
         private List<Card> hand; // only set for the perspective player
         private int cardCount;
 
-        private PlayerSnapshot(String userId, int seatIndex, boolean bot, List<Card> hand, int cardCount) {
+        private PlayerSnapshot(String userId, int seatIndex, boolean bot, String username,
+                               String avatarUrl, List<Card> hand, int cardCount) {
             this.userId = userId;
             this.seatIndex = seatIndex;
             this.bot = bot;
+            this.username = username;
+            this.avatarUrl = avatarUrl;
             this.hand = hand;
             this.cardCount = cardCount;
         }
@@ -93,6 +101,8 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
                     player.getUserId(),
                     player.getSeatIndex(),
                     player.isBot(),
+                    player.getUsername(),
+                    player.getAvatarUrl(),
                     hand,
                     player.getHand().size()
             );

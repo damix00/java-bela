@@ -40,7 +40,7 @@ public class GameLifecycleService {
 
         List<GamePlayer> players = lobbyPlayers
                 .stream()
-                .map(p -> new GamePlayer(p.getUserId(), p.getSeat(), p.isBot()))
+                .map(p -> new GamePlayer(p.getUserId(), p.getSeat(), p.isBot(), p.getUsername(), p.getAvatarUrl()))
                 .toList();
 
         TeamPair teams = Team.pairFrom(players);

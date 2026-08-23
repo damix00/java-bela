@@ -48,7 +48,25 @@ public class LobbyService {
     private final SessionService sessionService;
     private final BeloteGameService beloteGameService;
     private final UserService userService;
-    private final UserRepository userRepository;
+
+    /**
+     * A seated player, with their identity copied onto the seat.
+     *
+     * Snapshotted rather than joined at publish time: lobby events fire on every
+     * ready toggle and seat swap, and a four-row lookup on each of those buys
+     * only a freshness nobody asked for.
+     */
+    private LobbyPlayer createPlayer(String userId, boolean isHost) {
+        LobbyPlayer player = new LobbyPlayer(userId, isHost, LobbyPlayerStatus.NOT_READY);
+
+        User user = userService.getUserById(userId);
+        if (user != null) {
+            player.setUsername(user.getUsername());
+            player.setAvatarUrl(user.getAvatarUrl());
+        }
+
+        return player;
+    }
 
     private String generateLobbyId() {
         String id;
@@ -104,7 +122,7 @@ public class LobbyService {
 
         // 1st player is the creator, set to not ready. Others are null.
         // No need to call lobby.setPlayers because this is a reference.
-        lobby.addPlayer(new LobbyPlayer(creatorId, true, LobbyPlayerStatus.NOT_READY));
+        lobby.addPlayer(createPlayer(creatorId, true));
 
         lobbyRepository.save(lobby);
         userPresenceService.setUserLobby(creatorId, lobby.getId());
@@ -142,11 +160,7 @@ public class LobbyService {
             throw new LobbyNotJoinableException();
         }
 
-        LobbyPlayer newPlayer = new LobbyPlayer(
-                userId,
-                false,
-                LobbyPlayerStatus.NOT_READY
-        );
+        LobbyPlayer newPlayer = createPlayer(userId, false);
 
         lobby.addPlayer(newPlayer);
 
@@ -302,9 +316,12 @@ public class LobbyService {
             throw new IllegalStateException("Can't have bots in a non-private match");
         }
 
-        // Fill empty seats with bots
+        // Fill empty seats with bots. Naming happens after addPlayer because the
+        // seat, which the name is derived from, is only assigned in there.
         while (!lobby.isFull()) {
-            lobby.addPlayer(LobbyPlayer.createBot());
+            LobbyPlayer bot = LobbyPlayer.createBot();
+            lobby.addPlayer(bot);
+            bot.setUsername(LobbyPlayer.botNameForSeat(bot.getSeat()));
         }
 
         lobbyRepository.save(lobby);

@@ -30,7 +30,7 @@ export default async function LegalLayout({
                     href={landingPath(lang)}
                     className={`${focusRing} mr-auto no-underline`}
                 >
-                    <Logo withMark />
+                    <Logo />
                 </Link>
             </header>
             <main lang="en">{children}</main>

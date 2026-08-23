@@ -33,20 +33,17 @@ import {
 } from "@/context/lobby-context";
 import { useSocketStatus } from "@/context/socket-context";
 import type { Dictionary } from "@/dictionaries";
-import { useSeatProfiles } from "@/hooks/use-seat-profiles";
 import { cn } from "@/lib/cn";
 import { canDeclareBela } from "@/lib/game-rules";
 import type { Locale } from "@/lib/i18n";
 import { homePath } from "@/lib/routes";
 import { appGutters } from "@/lib/styles";
-import { isBotId } from "@/lib/user-cache";
 
 import styles from "./GameScreen.module.css";
 
 type GameScreenProps = {
     copy: Dictionary["game"];
     /** Reused from the lobby rather than duplicated into the game's own copy. */
-    botNames: readonly string[];
     gameId: string;
     locale: Locale;
     /**
@@ -71,7 +68,6 @@ type GameScreenProps = {
  */
 export default function GameScreen({
     copy,
-    botNames,
     gameId,
     locale,
     user,
@@ -126,30 +122,27 @@ export default function GameScreen({
         return () => clearTimeout(id);
     }, [status, game, router, locale]);
 
-    const seats = seating ? [...seating.bySeat.values()] : [];
-    const profiles = useSeatProfiles(seats);
 
     if (!game || !seating) {
         return <Notice className={appGutters}>{copy.loading}</Notice>;
     }
 
+    // Both read straight off the seat: the snapshot carries who is sitting
+    // there, bots included, so there is nothing left to look up.
     const nameOf = (seat: number) => {
         const player = seating.bySeat.get(seat);
         if (!player) return copy.trick.waitingFor.replace("{name}", "");
         if (player.userId === user.id) return user.username;
-        if (isBotId(player.userId)) {
-            return botNames[seat % botNames.length];
-        }
 
-        return profiles[player.userId]?.username ?? "…";
+        return player.username ?? "…";
     };
 
     const avatarOf = (seat: number) => {
         const player = seating.bySeat.get(seat);
-        if (!player || isBotId(player.userId)) return null;
+        if (!player) return null;
         if (player.userId === user.id) return user.avatarUrl;
 
-        return profiles[player.userId]?.avatarUrl ?? null;
+        return player.avatarUrl ?? null;
     };
 
     const round = game.round;

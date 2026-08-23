@@ -1,10 +1,18 @@
-import { UserRound } from "lucide-react";
+import { ArrowLeftRight, UserRound } from "lucide-react";
 
 import MockLabel from "@/components/pages/table/blocks/shared/MockLabel";
 import { cn } from "@/lib/cn";
+import { focusRing, pressSm, swapRing } from "@/lib/styles";
 
 type EmptySeatProps = {
     label: string;
+    /** Makes the chair a control that moves the reader into it. */
+    onClick?: () => void;
+    /** What pressing this seat does, for anyone who cannot see the table. */
+    actionLabel?: string;
+    /** A move into this seat is in flight or has just landed. */
+    swapStatus?: "pending" | "complete";
+    disabled?: boolean;
     className?: string;
 };
 
@@ -20,29 +28,77 @@ type EmptySeatProps = {
  * wide enough for the tile, so the label goes to assistive tech alone rather
  * than wrapping into four lines of stacked letters.
  *
- * This is status rather than a control. The table link is the invitation
- * action, while pressing an empty chair used to move the current player and
- * made the “Invite / fill” label promise something the click could not do.
+ * Pressing one moves the reader into it. That used to be refused, because the
+ * chair's old "Invite / fill" label promised an invitation the click could not
+ * send — but inviting now belongs to the band's own button, which leaves the
+ * chair with one meaning and the label free to name it. The glyph changes with
+ * the role: a person outline for a seat that is only reporting a vacancy, a
+ * pair of arrows for one you can move into.
  */
-export default function EmptySeat({ label, className }: EmptySeatProps) {
+export default function EmptySeat({
+    label,
+    onClick,
+    actionLabel,
+    swapStatus,
+    disabled = false,
+    className,
+}: EmptySeatProps) {
     const shell = cn(
         "flex flex-col items-center justify-center gap-3 p-2",
-        "border-4 border-dashed border-mint/35 md:gap-4 md:p-4",
+        "border-4 border-dashed md:gap-4 md:p-4",
+        onClick && !disabled
+            ? [
+                  // A live chair is drawn warmer than an inert one — at 52px on
+                  // a phone the dash weight is the only thing there is room to
+                  // say it with.
+                  "cursor-pointer border-mint/60 hover:border-mint hover:bg-mint/5",
+                  pressSm,
+                  focusRing,
+              ]
+            : "border-mint/35",
+        swapRing(swapStatus),
         className,
     );
 
-    return (
-        <div className={shell} aria-label={label}>
-            {/* A person outline communicates vacancy without the “add” action
-                implied by the old plus sign. */}
-            <UserRound
-                aria-hidden
-                className="size-5 shrink-0 text-mint/65 md:size-6"
-                strokeWidth={2.5}
-            />
-            <MockLabel className="sr-only text-center text-mint/70 md:not-sr-only">
+    const body = (
+        <>
+            <Icon interactive={Boolean(onClick)} />
+            <MockLabel className="sr-only text-center text-[12px] tracking-normal text-mint/70 normal-case md:not-sr-only">
                 {label}
             </MockLabel>
-        </div>
+        </>
+    );
+
+    if (!onClick) {
+        return (
+            <div className={shell} aria-label={label}>
+                {body}
+            </div>
+        );
+    }
+
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            disabled={disabled}
+            aria-label={actionLabel ?? label}
+            aria-busy={swapStatus === "pending"}
+            className={shell}
+        >
+            {body}
+        </button>
+    );
+}
+
+function Icon({ interactive }: { interactive: boolean }) {
+    const Glyph = interactive ? ArrowLeftRight : UserRound;
+
+    return (
+        <Glyph
+            aria-hidden
+            className="size-5 shrink-0 text-mint/65 md:size-6"
+            strokeWidth={2.5}
+        />
     );
 }

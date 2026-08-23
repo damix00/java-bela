@@ -1,19 +1,16 @@
 "use client";
 
-import { Check, Copy } from "lucide-react";
-import { useEffect, useState } from "react";
+import { UserPlus } from "lucide-react";
+import { useState } from "react";
 
 import { LobbyPlayerStatus } from "@bela/protocol";
 
 import { Button } from "@/components/controls/Button";
 import FormError from "@/components/controls/FormError";
+import InvitePanel from "@/components/pages/table/blocks/lobby/InvitePanel";
 import TableRules from "@/components/pages/table/blocks/lobby/TableRules";
 import MockLabel from "@/components/pages/table/blocks/shared/MockLabel";
-import {
-    SEAT_COUNT,
-    useLobby,
-    useLobbyActions,
-} from "@/context/lobby-context";
+import { SEAT_COUNT, useLobby, useLobbyActions } from "@/context/lobby-context";
 import type { Dictionary } from "@/dictionaries";
 import { cn } from "@/lib/cn";
 import type { Locale } from "@/lib/i18n";
@@ -29,9 +26,6 @@ type LobbyBandProps = {
     guest: boolean;
 };
 
-/** How long the copy button admits to having worked. */
-const COPIED_MS = 2000;
-
 /**
  * The one thing to press, and the code that fills the seats around it.
  *
@@ -39,15 +33,13 @@ const COPIED_MS = 2000;
  * page loads, so there is nothing here to set up and nothing to decide — the
  * band's whole job is to hand over the link and then get out of the way.
  *
- * The invite code *is* the friends feature. There is no friends list on the
- * backend and no invite entity; a lobby has six characters and anyone holding
- * them can sit down. So the code takes half the band, and the button beside it
- * copies a whole URL rather than the six characters — pasting a link into a
- * chat is the actual gesture, and a bare code leaves the recipient hunting for
- * where to type it.
- *
- * The code and copy icon are one button. The whole block is the invitation,
- * rather than a read-only field with a much smaller action hidden inside it.
+ * The link *is* the friends feature. There is no friends list on the backend
+ * and no invite entity; a lobby has six characters and anyone holding them can
+ * sit down. The band used to print those characters at full size, which made
+ * the loudest text on the screen a value with nowhere to go — nothing in the
+ * app redeems a typed code, and the block's own press copied a URL rather than
+ * the code under the cursor. So the middle cell is a button that opens the
+ * panel where the invitation actually happens.
  */
 export default function LobbyBand({
     copy,
@@ -59,14 +51,7 @@ export default function LobbyBand({
     const { lobby, seats, playerCount, isHost, isReady, error } = useLobby();
     const { setReady } = useLobbyActions();
 
-    const [copied, setCopied] = useState(false);
-
-    useEffect(() => {
-        if (!copied) return;
-
-        const id = setTimeout(() => setCopied(false), COPIED_MS);
-        return () => clearTimeout(id);
-    }, [copied]);
+    const [inviteOpen, setInviteOpen] = useState(false);
 
     if (!lobby) return null;
 
@@ -105,22 +90,6 @@ export default function LobbyBand({
         openSeats === 1 ? t.botFillNote.one : t.botFillNote.other
     ).replace("{count}", String(openSeats));
 
-    async function copyInvite() {
-        if (!lobby) return;
-
-        try {
-            await navigator.clipboard.writeText(
-                joinUrl(locale, lobby.inviteCode),
-            );
-            setCopied(true);
-        } catch {
-            // Clipboard access can be refused outright — an insecure origin, a
-            // denied permission. The code is on screen either way, which is why
-            // this fails quietly rather than raising an error about a
-            // convenience.
-        }
-    }
-
     return (
         <section
             aria-label={t.heading}
@@ -128,36 +97,26 @@ export default function LobbyBand({
             <div className="grid gap-3 sm:grid-cols-[minmax(150px,0.9fr)_minmax(190px,1.2fr)_minmax(160px,auto)] sm:gap-4">
                 <TableRules copy={copy} signUpHref={signUpHref} guest={guest} />
 
+                {/* Same footprint and the same press physics the code block
+                    had, so the band keeps its three-cell rhythm. */}
                 <button
                     type="button"
-                    onClick={copyInvite}
-                    aria-label={copy.copyInvite}
-                    title={copied ? t.copied : copy.copyInvite}
+                    onClick={() => setInviteOpen(true)}
                     className={cn(
-                        "flex min-h-16 w-full cursor-pointer items-center gap-3 border-[3px] border-ink bg-baize py-2 pr-2 pl-4 text-left shadow-hard-sm",
+                        "flex min-h-16 w-full cursor-pointer items-center gap-3 border-[3px] border-ink bg-baize px-4 py-2 text-left shadow-hard-sm",
                         pressSm,
                         focusRing,
                     )}>
-                    <span className="min-w-0">
-                        <MockLabel className="block truncate text-[9px] tracking-[.12em] text-mint/75">
-                            {copy.codeLabel}
-                        </MockLabel>
-                        {/* Wide tracking, not a monospaced face: this is six
-                            characters to read out and retype, and the spacing
-                            is what separates them. */}
-                        <span className="mt-0.5 block font-display text-[20px] font-extrabold tracking-[.2em] text-cream">
-                            {lobby.inviteCode}
-                        </span>
+                    <span className="grid size-11 shrink-0 place-items-center border-[3px] border-ink bg-cream text-ink">
+                        <UserPlus aria-hidden size={18} strokeWidth={3} />
                     </span>
-
-                    {/* The icon is part of the button face, so any point in the
-                        code block performs the same copy action. */}
-                    <span className="ml-auto grid size-11 shrink-0 place-items-center border-[3px] border-ink bg-cream text-ink">
-                        {copied ? (
-                            <Check aria-hidden size={18} strokeWidth={3} />
-                        ) : (
-                            <Copy aria-hidden size={18} strokeWidth={3} />
-                        )}
+                    <span className="min-w-0">
+                        <span className="block truncate font-display text-[18px] font-extrabold tracking-[-.02em] text-cream">
+                            {copy.invite.action}
+                        </span>
+                        <MockLabel className="block truncate text-[12px] font-medium tracking-normal text-mint/75 normal-case">
+                            {copy.invite.bandNote}
+                        </MockLabel>
                     </span>
                 </button>
 
@@ -188,6 +147,14 @@ export default function LobbyBand({
                 <FormError>
                     {localiseLobbyError(error, copy.lobbyErrors)}
                 </FormError>
+            )}
+
+            {inviteOpen && (
+                <InvitePanel
+                    copy={copy}
+                    inviteUrl={joinUrl(locale, lobby.inviteCode)}
+                    onClose={() => setInviteOpen(false)}
+                />
             )}
         </section>
     );

@@ -14,13 +14,10 @@ import {
     partnerSeat,
     seatIdentity,
     seatsFromChair,
-    teamOf,
 } from "@/components/pages/table/seat-identity";
 import type { Seats } from "@/context/lobby-context";
 import type { Dictionary } from "@/dictionaries";
-import { useSeatProfiles } from "@/hooks/use-seat-profiles";
 import type { User } from "@/api/types/user";
-import { isBotId, type PublicUser } from "@/lib/user-cache";
 
 type TableCopy = Dictionary["table"];
 
@@ -43,57 +40,67 @@ type TableSeatProps = {
     variant: "row" | "side";
     hasTable: boolean;
     name: string;
-    /** A team switch involving this seat is in flight or has just landed. */
+    /** A move into this seat is in flight or has just landed. */
     status?: "pending" | "complete";
     disabled?: boolean;
-    onRequestSwap: (seat: number, userId: string) => void;
+    onRequestSwap: (seat: number) => void;
 };
+
+/**
+ * The settle bump: one small scale pulse once the glide has carried the two
+ * seats to their new chairs.
+ */
+const BUMP_START_MS = 420;
+const BUMP_END_MS = 820;
+
+/**
+ * How long a landed switch holds the seats before they take another press.
+ *
+ * Tied to the bump rather than picked for feel: clearing the request is what
+ * tears down the bump's own timers, so anything shorter than `BUMP_END_MS`
+ * strands `bump` at true with no timeout left to reset it.
+ */
+const SETTLED_HOLD_MS = BUMP_END_MS + 100;
 
 type SwapRequest = {
     fromChair: number;
-    targetUserId: string;
+    /**
+     * Keyed by chair rather than by whoever was sitting in it. An empty seat is
+     * a move target like any other and has no user to name, and the seat index
+     * is the one identifier both kinds of target share.
+     */
+    targetSeat: number;
 };
 
 type ResolvedTableSeatProps = Omit<TableSeatProps, "name"> & {
     user: User;
-    profiles: Record<string, PublicUser>;
 };
 
 function getPlayerName(
-    seat: number,
     player: LobbyPlayer | null,
     copy: TableCopy,
     user: User,
-    profiles: Record<string, PublicUser>,
 ): string {
     // The only empty seat that displays a name is the signed-in player's
     // stand-in while the lobby is opening.
     if (!player) return user.username;
 
-    if (player.bot || isBotId(player.userId)) {
-        return copy.lobby.botNames[seat % copy.lobby.botNames.length];
-    }
-
+    // Your own name comes from the session rather than the seat: the seat's
+    // copy was taken when you sat down, and a rename since then is yours to
+    // see immediately even if the rest of the table is still a beat behind.
     if (player.userId === user.id) return user.username;
 
-    return profiles[player.userId]?.username ?? copy.lobby.unknownPlayer;
+    // Bots are named by the server like everyone else, so there is nothing to
+    // special-case here. A missing name means a seat filled before this
+    // deployment; the fallback covers it until the lobby churns.
+    return player.username ?? copy.lobby.unknownPlayer;
 }
 
-function ResolvedTableSeat({
-    user,
-    profiles,
-    ...seatProps
-}: ResolvedTableSeatProps) {
+function ResolvedTableSeat({ user, ...seatProps }: ResolvedTableSeatProps) {
     return (
         <TableSeat
             {...seatProps}
-            name={getPlayerName(
-                seatProps.seat,
-                seatProps.player,
-                seatProps.copy,
-                user,
-                profiles,
-            )}
+            name={getPlayerName(seatProps.player, seatProps.copy, user)}
         />
     );
 }
@@ -112,19 +119,16 @@ function TableSeat({
     onRequestSwap,
 }: TableSeatProps) {
     const { suit, tone } = seatIdentity(seat);
-    // Moving across the table changes teams; moving to the opposite chair on
-    // the same team only rotates the drawing. Keep the meaningful action and
-    // leave empty seats as status, since invitations happen through the table
-    // link below the stage.
-    const canSwitchTeams =
-        hasTable && Boolean(player) && teamOf(seat) !== teamOf(chair);
+    // Every chair but your own, occupied or not. The backend has never been the
+    // constraint — `Lobby.swapSeats` takes any index and treats a vacant target
+    // as a plain move — and a seat that is dead for a reason the player cannot
+    // see is worse than one whose only effect is to rotate the drawing.
+    const canMoveHere = hasTable && seat !== chair;
     const handleSwap = useCallback(
-        () => {
-            if (player) onRequestSwap(seat, player.userId);
-        },
-        [onRequestSwap, player, seat],
+        () => onRequestSwap(seat),
+        [onRequestSwap, seat],
     );
-    const handleClick = canSwitchTeams ? handleSwap : undefined;
+    const handleClick = canMoveHere ? handleSwap : undefined;
 
     if (!player && isYou && !hasTable) {
         return (
@@ -143,12 +147,16 @@ function TableSeat({
         return (
             <EmptySeat
                 label={copy.openSeat}
+                onClick={handleClick}
+                actionLabel={copy.lobby.takeSeat}
+                swapStatus={status}
+                disabled={disabled}
                 className="mx-auto size-[52px] shrink-0 self-center sm:size-[80px] lg:size-[176px]"
             />
         );
     }
 
-    const actionLabel = copy.lobby.switchTeamsWith.replace("{name}", name);
+    const actionLabel = copy.lobby.moveHereWith.replace("{name}", name);
     const ready = player.status === LobbyPlayerStatus.READY;
 
     if (variant === "side") {
@@ -207,33 +215,32 @@ export default function LobbyTable({
     openSeatCount,
     onSwapSeat,
 }: LobbyTableProps) {
-    const profiles = useSeatProfiles(seats);
     const reduceMotion = useReducedMotion();
     const [swapRequest, setSwapRequest] = useState<SwapRequest | null>(null);
     const [bump, setBump] = useState(false);
     const [near, left, across, right] = seatsFromChair(chair);
-    const swapSettled = Boolean(
-        swapRequest && chair !== swapRequest.fromChair,
-    );
+    const swapSettled = Boolean(swapRequest && chair !== swapRequest.fromChair);
     const requestSwap = useCallback(
-        (seat: number, targetUserId: string) => {
+        (seat: number) => {
             if (swapRequest) return;
 
-            setSwapRequest({ fromChair: chair, targetUserId });
+            setSwapRequest({ fromChair: chair, targetSeat: seat });
             onSwapSeat(seat);
         },
         [chair, onSwapSeat, swapRequest],
     );
 
-    // The socket normally answers almost immediately. Keeping the message long
-    // enough to read makes the change legible; the longer pending fallback also
-    // returns the controls if a response is lost during a reconnect.
+    // The socket answers almost immediately, so the settled hold only has to
+    // outlast the bump below — long enough for the acknowledgement to play, and
+    // no longer, since until it clears the seats refuse the next press. The
+    // pending fallback is the other end: it returns the controls if a response
+    // is lost during a reconnect.
     useEffect(() => {
         if (!swapRequest) return;
 
         const timeout = setTimeout(
             () => setSwapRequest(null),
-            swapSettled ? 1800 : 4000,
+            swapSettled ? SETTLED_HOLD_MS : 2000,
         );
 
         return () => clearTimeout(timeout);
@@ -244,8 +251,8 @@ export default function LobbyTable({
     useEffect(() => {
         if (!swapSettled || reduceMotion) return;
 
-        const start = setTimeout(() => setBump(true), 420);
-        const clear = setTimeout(() => setBump(false), 820);
+        const start = setTimeout(() => setBump(true), BUMP_START_MS);
+        const clear = setTimeout(() => setBump(false), BUMP_END_MS);
 
         return () => {
             clearTimeout(start);
@@ -275,17 +282,17 @@ export default function LobbyTable({
         // side tile instead of snapping between the two.
         const identity = player ? `player-${player.userId}` : `empty-${seat}`;
         const status =
-            player && player.userId === swapRequest?.targetUserId
+            seat === swapRequest?.targetSeat
                 ? swapSettled
-                  ? ("complete" as const)
-                  : ("pending" as const)
+                    ? ("complete" as const)
+                    : ("pending" as const)
                 : undefined;
+        // The other half of the trade is whoever the vacated chair now holds —
+        // which is nobody at all when the target was empty, so the `player`
+        // guard leaves that move settling on its own.
         const bumping =
             bump &&
-            Boolean(
-                player &&
-                    (isYou || player.userId === swapRequest?.targetUserId),
-            );
+            Boolean(player && (isYou || seat === swapRequest?.fromChair));
 
         return (
             <motion.div
@@ -293,8 +300,7 @@ export default function LobbyTable({
                 layoutId={`lobby-${identity}`}
                 transition={transition}
                 animate={bumping ? { scale: [1, 1.04, 1] } : undefined}
-                className="flex size-full"
-            >
+                className="flex size-full">
                 <ResolvedTableSeat
                     copy={copy}
                     player={player}
@@ -304,7 +310,6 @@ export default function LobbyTable({
                     variant={variant}
                     hasTable={hasTable}
                     user={user}
-                    profiles={profiles}
                     status={status}
                     disabled={swapRequest !== null}
                     onRequestSwap={requestSwap}
@@ -325,11 +330,19 @@ export default function LobbyTable({
                     <>
                         <CardFan />
                         {openSeatCount !== null ? (
-                            <MockLabel className="text-center text-[10px] tracking-[.1em] text-mint/75 sm:text-[11px] sm:tracking-[.14em]">
+                            <MockLabel className="text-center text-[12px] tracking-normal text-mint/75 normal-case sm:text-[13px]">
                                 {copy.seatsOpen.replace(
                                     "{count}",
                                     String(openSeatCount),
                                 )}
+                            </MockLabel>
+                        ) : null}
+                        {/* The seats carry a swap badge each, but a badge is a
+                            hint and this is the sentence. The felt is the one
+                            place on the stage with room for it. */}
+                        {hasTable ? (
+                            <MockLabel className="text-center text-[11px] font-medium tracking-normal text-mint/50 normal-case sm:text-[12px]">
+                                {copy.lobby.moveHint}
                             </MockLabel>
                         ) : null}
                     </>

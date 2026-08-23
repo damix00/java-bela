@@ -286,8 +286,6 @@
         "progressLabel": "Napredak ranga",
         "rankProgress": "118 do Bele · {rank}. od 8.100",
         "ladderLabel": "Ljestvica prijatelja",
-        "codeLabel": "Kod stola",
-        "codeNote": "Svatko s kodom može sjesti za stol.",
         "partner": "tvoj partner",
         "dealer": "djelitelj",
         "you": "Ti",
@@ -298,6 +296,19 @@
         "friendFree": "slobodan",
         "friendBusy": "u partiji",
         "copyInvite": "Kopiraj poveznicu",
+        "invite": {
+            "action": "Pozovi",
+            "bandNote": "Pošalji poveznicu ili odaberi prijatelja",
+            "heading": "Popuni mjesto",
+            "close": "Zatvori pozivnicu",
+            "linkNote": "Svatko s poveznicom može sjesti za stol.",
+            "friends": "Prijatelji",
+            "friendsNote": "Prijatelji stižu uskoro. Ovaj je popis samo najava.",
+            "online": "Na vezi",
+            "whoCanJoin": "Tko se može pridružiti",
+            "anyoneWithLink": "Svatko s poveznicom",
+            "inviteOnly": "Samo uz pozivnicu"
+        },
         "lastFive": "Zadnjih pet",
         "lastFiveNote": "Sinoćnja pobjeda 1001–842 s igračem {opponent}.",
         "win": "P",
@@ -313,8 +324,8 @@
             "waitingNote": "Zauzeto {count} od četiri mjesta. Pošalji link — svatko tko ga ima može sjesti.",
             "allReadyNote": "Svi su spremni. Dijeljenje kreće čim se popuni četvrto mjesto.",
             "takeSeat": "Sjedni ovdje",
-            "switchTeams": "Zamijeni",
-            "switchTeamsWith": "Zamijeni tim s igračem {name}",
+            "moveHint": "Pritisni bilo koje mjesto da sjedneš ondje",
+            "moveHereWith": "Sjedni ovdje, zamijeni s igračem {name}",
             "host": "domaćin",
             "ready": "Spreman",
             "opponent": "protivnik",
@@ -326,8 +337,7 @@
                 "other": "Kreneš li sad, {count} prazna mjesta popunjavaju botovi."
             },
             "copied": "Kopirano",
-            "unknownPlayer": "Igrač",
-            "botNames": ["Bot Alfa", "Bot Beta", "Bot Gama", "Bot Delta"]
+            "unknownPlayer": "Igrač"
         },
         "join": {
             "heading": "Pridruži se kodom",

@@ -20,7 +20,7 @@ export default function SiteHeader({ copy, cta, locale }: SiteHeaderProps) {
 
     return (
         <header className="sticky top-0 z-20 flex items-center gap-[30px] border-b-4 border-ink bg-sage px-8 py-4 md:px-28 md:py-5 lg:px-48 xl:px-72">
-            <Logo withMark className="mr-auto" />
+            <Logo className="mr-auto" />
             {navLinks.map((link) => (
                 <TextLink
                     key={link.href}
