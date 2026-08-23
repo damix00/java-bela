@@ -1,7 +1,7 @@
 .hand {
     display: grid;
-    width: 100%;
-    max-width: 25.5rem;
+    width: calc(100% - 1rem);
+    max-width: 21rem;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     align-items: end;
     justify-content: center;
@@ -15,6 +15,7 @@
     .hand {
         display: flex;
         width: 100%;
+        max-width: 25.5rem;
         flex-wrap: nowrap;
         gap: 0;
         padding-inline: 0.5rem;
@@ -29,6 +30,7 @@
     .hand {
         display: flex;
         width: 100%;
+        max-width: 25.5rem;
         flex-wrap: nowrap;
         gap: 0;
         padding-inline: 0.5rem;

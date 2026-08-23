@@ -82,7 +82,7 @@ export default function PlayingCard({
             src={asset?.src ?? HUNGARIAN_CARD_BACK_ASSET}
             alt={hidden ? "" : asset!.alt}
             fill
-            sizes="(max-height: 560px) 56px, (min-width: 640px) 80px, calc((100vw - 3rem) / 4)"
+            sizes="(max-height: 560px) 56px, (min-width: 640px) 80px, calc((100vw - 4rem) / 4)"
             className="object-cover"
         />
     );

@@ -52,7 +52,7 @@
 .felt {
     top: 50%;
     left: 50%;
-    width: min(13.75rem, calc(100% - 9rem), calc(100cqh - 7rem));
+    width: min(17rem, calc(100% - 4.5rem), calc(100cqh - 4.5rem));
     aspect-ratio: 1;
     translate: -50% -50%;
 }
@@ -159,7 +159,7 @@
 @media (min-width: 1024px) and (min-height: 561px) {
     .stage {
         max-width: 62.5rem;
-        grid-template-columns: minmax(0, 1fr) 20rem minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr) 24rem minmax(0, 1fr);
         gap: 1.5rem;
     }
 
