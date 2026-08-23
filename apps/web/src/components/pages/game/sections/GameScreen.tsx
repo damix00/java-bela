@@ -211,7 +211,10 @@ export default function GameScreen({
         );
     }
 
-    const seatFor = (seat: number, variant: "wide" | "square") => (
+    const seatFor = (
+        seat: number,
+        variant: "wide" | "square" | "inline",
+    ) => (
         <GameSeat
             name={nameOf(seat)}
             avatarUrl={avatarOf(seat)}
@@ -257,6 +260,7 @@ export default function GameScreen({
 
             <div className={styles.playArea}>
                 <GameTableStage
+                    className={showMobileAction ? styles.compactStage : undefined}
                     near={seatFor(near, "wide")}
                     across={seatFor(across, "wide")}
                     left={seatFor(left, "square")}
@@ -281,7 +285,46 @@ export default function GameScreen({
                 />
             </div>
 
-            <div className="flex shrink-0 flex-col gap-1">
+            {showMobileAction && round ? (
+                <div className={styles.mobileAction}>
+                    <RoundAction
+                        copy={copy}
+                        phase={phase}
+                        round={round}
+                        isMyTurn={isMyTurn}
+                        canPass={canPass}
+                        chair={chair}
+                        myDeclarations={myDeclarations}
+                        theirDeclarations={theirDeclarations}
+                        onChooseTrump={chooseTrump}
+                        onPassTrump={passTrump}
+                        onDecline={declineDeclarations}
+                        variant="tray"
+                    />
+                </div>
+            ) : null}
+
+            <div className={styles.handArea}>
+                <HandFan
+                    hand={game.hand}
+                    trumpSuite={trumpSuite}
+                    trickCards={round?.trickCards ?? []}
+                    active={
+                        isMyTurn &&
+                        round?.roundStatus === RoundStatus.PLAYING &&
+                        pendingBreak === null
+                    }
+                    onPlay={play}
+                    hiddenLabel={copy.hiddenCard}
+                    hiddenCount={
+                        phase === "choosing-trump"
+                            ? Math.max(0, 8 - game.hand.length)
+                            : 0
+                    }
+                />
+            </div>
+
+            <div className={styles.timerArea}>
                 <TurnTimer
                     countdown={
                         phase === "choosing-trump" ? trumpCountdown : turnCountdown
@@ -302,43 +345,8 @@ export default function GameScreen({
                 )}
             </div>
 
-            {showMobileAction && round ? (
-                <div className={styles.mobileAction}>
-                    <RoundAction
-                        copy={copy}
-                        phase={phase}
-                        round={round}
-                        isMyTurn={isMyTurn}
-                        canPass={canPass}
-                        chair={chair}
-                        myDeclarations={myDeclarations}
-                        theirDeclarations={theirDeclarations}
-                        onChooseTrump={chooseTrump}
-                        onPassTrump={passTrump}
-                        onDecline={declineDeclarations}
-                        variant="tray"
-                    />
-                </div>
-            ) : null}
-
-            <div className="flex shrink-0 justify-center">
-                <HandFan
-                    hand={game.hand}
-                    trumpSuite={trumpSuite}
-                    trickCards={round?.trickCards ?? []}
-                    active={
-                        isMyTurn &&
-                        round?.roundStatus === RoundStatus.PLAYING &&
-                        pendingBreak === null
-                    }
-                    onPlay={play}
-                    hiddenLabel={copy.hiddenCard}
-                    hiddenCount={
-                        phase === "choosing-trump"
-                            ? Math.max(0, 8 - game.hand.length)
-                            : 0
-                    }
-                />
+            <div className={styles.mobilePlayer}>
+                {seatFor(near, "inline")}
             </div>
 
             {belaCard && (

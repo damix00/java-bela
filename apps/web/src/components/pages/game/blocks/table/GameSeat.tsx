@@ -9,8 +9,8 @@ type GameSeatProps = {
     active: boolean;
     /** They took the trick now sitting on the felt. */
     won: boolean;
-    /** Wide slots sit at the near and far edges, squares take the sides. */
-    variant: "wide" | "square";
+    /** Wide sits across/near, square on the sides, inline below the hand. */
+    variant: "wide" | "square" | "inline";
     /** Suffix for the seat that is you. */
     youLabel?: string;
     wonLabel: string;
@@ -31,17 +31,26 @@ export default function GameSeat({
             data-game-seat=""
             aria-label={won ? `${name} · ${wonLabel}` : name}
             className={cn(
-                "flex h-full w-full min-w-0 flex-col items-center justify-center gap-1 text-center",
-                variant === "wide" ? "py-0.5" : "px-0.5",
+                "flex h-full w-full min-w-0 items-center justify-center text-center",
+                variant === "inline"
+                    ? "flex-row gap-2 py-0.5"
+                    : "flex-col gap-1",
+                variant === "wide"
+                    ? "py-0.5"
+                    : variant === "square"
+                      ? "px-0.5"
+                      : null,
             )}
         >
             <span
                 aria-hidden="true"
                 className={cn(
                     "relative grid shrink-0 place-items-center overflow-hidden rounded-full border-[3px] border-mint/60 bg-cream font-display font-extrabold text-ink uppercase transition-[border-color,outline-color] duration-150 motion-reduce:transition-none",
-                    variant === "wide"
-                        ? "size-10 sm:size-12 [@media(max-height:560px)]:size-8"
-                        : "size-10 sm:size-14 [@media(max-height:560px)]:size-8",
+                    variant === "inline"
+                        ? "size-9 [@media(max-height:560px)]:size-8"
+                        : variant === "wide"
+                          ? "size-10 sm:size-12 [@media(max-height:560px)]:size-8"
+                          : "size-10 sm:size-14 [@media(max-height:560px)]:size-8",
                     active &&
                         "border-rust outline-[3px] outline-offset-2 outline-rust",
                     won &&
@@ -66,9 +75,11 @@ export default function GameSeat({
             <span
                 className={cn(
                     "max-w-full font-display font-extrabold tracking-[-.02em] text-cream",
-                    variant === "wide"
-                        ? "truncate text-[13px] sm:text-[15px] [@media(max-height:560px)]:text-[11px]"
-                        : "line-clamp-2 break-words text-[9px] leading-tight sm:text-[12px] [@media(max-height:560px)]:text-[8px]",
+                    variant === "inline"
+                        ? "min-w-0 truncate text-[13px] [@media(max-height:560px)]:text-[11px]"
+                        : variant === "wide"
+                          ? "truncate text-[13px] sm:text-[15px] [@media(max-height:560px)]:text-[11px]"
+                          : "line-clamp-2 break-words text-[9px] leading-tight sm:text-[12px] [@media(max-height:560px)]:text-[8px]",
                 )}
             >
                 {name}

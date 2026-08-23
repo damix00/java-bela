@@ -49,6 +49,34 @@
     justify-content: center;
 }
 
+.handArea {
+    display: flex;
+    flex: 0 0 auto;
+    justify-content: center;
+}
+
+.timerArea {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.mobilePlayer {
+    display: flex;
+    width: 100%;
+    min-height: 2.25rem;
+    flex: 0 0 auto;
+    justify-content: center;
+}
+
+@media (max-height: 700px) {
+    .compactStage {
+        --game-felt-max: 7rem;
+        --game-felt-floor: 7rem;
+    }
+}
+
 .mobileOnly {
     display: block;
 }
@@ -86,8 +114,17 @@
         margin-top: 1rem;
     }
 
+    .timerArea {
+        order: 1;
+    }
+
+    .handArea {
+        order: 2;
+    }
+
     .mobileAction,
-    .mobileOnly {
+    .mobileOnly,
+    .mobilePlayer {
         display: none;
     }
 
