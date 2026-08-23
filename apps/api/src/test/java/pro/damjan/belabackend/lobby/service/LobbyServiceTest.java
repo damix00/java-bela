@@ -12,7 +12,6 @@ import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 import pro.damjan.belabackend.lobby.model.LobbyPlayerStatus;
 import pro.damjan.belabackend.lobby.repository.LobbyRepository;
 import pro.damjan.belabackend.user.User;
-import pro.damjan.belabackend.user.UserRepository;
 import pro.damjan.belabackend.user.UserService;
 import pro.damjan.belabackend.user.presence.UserPresence;
 import pro.damjan.belabackend.user.presence.UserPresenceService;
@@ -54,8 +53,7 @@ class LobbyServiceTest {
                 lobbyEventPublisher,
                 sessionService,
                 beloteGameService,
-                userService,
-                mock(UserRepository.class)
+                userService
         );
 
         lobby = new Lobby();
