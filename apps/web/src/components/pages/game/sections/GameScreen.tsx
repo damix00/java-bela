@@ -7,7 +7,6 @@ import {
     type Card,
     type Declaration,
     type Suite,
-    type Type,
 } from "@bela/protocol";
 
 import type { User } from "@/api/types/user";
@@ -16,11 +15,12 @@ import DeclarationsPanel from "@/components/pages/game/blocks/controls/Declarati
 import TrumpChooser from "@/components/pages/game/blocks/controls/TrumpChooser";
 import HandFan from "@/components/pages/game/blocks/cards/HandFan";
 import GameSeat from "@/components/pages/game/blocks/table/GameSeat";
+import GameTableStage from "@/components/pages/game/blocks/table/GameTableStage";
 import TrickPile from "@/components/pages/game/blocks/table/TrickPile";
 import GameOverPanel from "@/components/pages/game/blocks/status/GameOverPanel";
+import DealCountdown from "@/components/pages/game/blocks/status/DealCountdown";
 import ScoreBoard from "@/components/pages/game/blocks/status/ScoreBoard";
 import TurnTimer from "@/components/pages/game/blocks/status/TurnTimer";
-import TableStage from "@/components/pages/table/blocks/stage/TableStage";
 import {
     useGame,
     useGameActions,
@@ -40,6 +40,8 @@ import type { Locale } from "@/lib/i18n";
 import { homePath } from "@/lib/routes";
 import { appGutters } from "@/lib/styles";
 import { isBotId } from "@/lib/user-cache";
+
+import styles from "./GameScreen.module.css";
 
 type GameScreenProps = {
     copy: Dictionary["game"];
@@ -63,9 +65,9 @@ type GameScreenProps = {
  * state is the bela question, which has to be answered before the card it is
  * about leaves the hand.
  *
- * Laid out on the lobby's `TableStage`, so the four chairs are in the same places
- * they were while the table was filling up and the shift from waiting to playing
- * does not move anybody.
+ * The chairs keep the lobby's near/left/across/right order. On phones the game
+ * opens that arrangement up to the viewport, because a hand of cards and the
+ * current decision are more important than preserving the lobby's fixed grid.
  */
 export default function GameScreen({
     copy,
@@ -142,6 +144,14 @@ export default function GameScreen({
         return profiles[player.userId]?.username ?? "…";
     };
 
+    const avatarOf = (seat: number) => {
+        const player = seating.bySeat.get(seat);
+        if (!player || isBotId(player.userId)) return null;
+        if (player.userId === user.id) return user.avatarUrl;
+
+        return profiles[player.userId]?.avatarUrl ?? null;
+    };
+
     const round = game.round;
     const trumpSuite = round?.trumpSuite ?? null;
     const [near, left, across, right] = seating.order;
@@ -204,66 +214,65 @@ export default function GameScreen({
     const seatFor = (seat: number, variant: "wide" | "square") => (
         <GameSeat
             name={nameOf(seat)}
-            cardCount={game.counts[seat] ?? 0}
+            avatarUrl={avatarOf(seat)}
             active={round?.currentTurnIndex === seat}
             won={pendingBreak?.winningPlayerIndex === seat}
-            partner={seat === across}
             variant={variant}
             youLabel={seat === chair ? copy.you : undefined}
             wonLabel={copy.trick.won}
         />
     );
+    const showMobileAction =
+        phase === "declarations" ||
+        (phase === "choosing-trump" && isMyTurn);
 
     return (
-        <main
-            className={cn(
-                "flex flex-1 flex-col justify-center gap-5 py-6",
-                appGutters,
-            )}
-        >
-            <ScoreBoard
-                usLabel={copy.score.us}
-                themLabel={copy.score.them}
-                usTotal={usTotal}
-                themTotal={themTotal}
-                usRound={usRound}
-                themRound={themRound}
-                target={game.maxPoints}
-                targetLabel={copy.score.target}
-                trumpSuite={trumpSuite}
-                trumpLabel={copy.trump.label}
-                trumpName={trumpSuite ? copy.suits[trumpSuite] : null}
-                roundLabel={copy.score.round}
-            />
+        <main className={styles.screen}>
+            <div className={styles.scoreDock}>
+                <ScoreBoard
+                    usLabel={copy.score.us}
+                    themLabel={copy.score.them}
+                    usTotal={usTotal}
+                    themTotal={themTotal}
+                    usRound={usRound}
+                    themRound={themRound}
+                    target={game.maxPoints}
+                    targetLabel={copy.score.target}
+                    trumpSuite={trumpSuite}
+                    trumpLabel={copy.trump.label}
+                    trumpName={trumpSuite ? copy.suits[trumpSuite] : null}
+                    roundLabel={copy.score.round}
+                />
+            </div>
+            <div className={styles.scoreSpacer} aria-hidden="true" />
 
-            <TableStage
-                near={seatFor(near, "wide")}
-                across={seatFor(across, "wide")}
-                left={seatFor(left, "square")}
-                right={seatFor(right, "square")}
-                centre={
-                    <Centre
-                        copy={copy}
-                        phase={phase}
-                        round={round}
-                        order={seating.order}
-                        isMyTurn={isMyTurn}
-                        canPass={canPass}
-                        chair={chair}
-                        nameOf={nameOf}
-                        myDeclarations={myDeclarations}
-                        theirDeclarations={theirDeclarations}
-                        onChooseTrump={chooseTrump}
-                        onPassTrump={passTrump}
-                        onDecline={declineDeclarations}
-                    />
-                }
-            />
+            <div className={styles.playArea}>
+                <GameTableStage
+                    near={seatFor(near, "wide")}
+                    across={seatFor(across, "wide")}
+                    left={seatFor(left, "square")}
+                    right={seatFor(right, "square")}
+                    centre={
+                        <Centre
+                            copy={copy}
+                            phase={phase}
+                            round={round}
+                            order={seating.order}
+                            isMyTurn={isMyTurn}
+                            canPass={canPass}
+                            chair={chair}
+                            nameOf={nameOf}
+                            myDeclarations={myDeclarations}
+                            theirDeclarations={theirDeclarations}
+                            onChooseTrump={chooseTrump}
+                            onPassTrump={passTrump}
+                            onDecline={declineDeclarations}
+                        />
+                    }
+                />
+            </div>
 
-            {/* Both clocks live under the table rather than in it: the felt is
-                only ~240px wide at `lg` and a countdown inside it pushed the
-                trick around every second. */}
-            <div className="flex flex-col gap-1">
+            <div className="flex shrink-0 flex-col gap-1">
                 <TurnTimer
                     countdown={
                         phase === "choosing-trump" ? trumpCountdown : turnCountdown
@@ -284,18 +293,44 @@ export default function GameScreen({
                 )}
             </div>
 
-            <HandFan
-                hand={game.hand}
-                trumpSuite={trumpSuite}
-                trickCards={round?.trickCards ?? []}
-                active={
-                    isMyTurn &&
-                    round?.roundStatus === RoundStatus.PLAYING &&
-                    pendingBreak === null
-                }
-                onPlay={play}
-                hiddenLabel={copy.hiddenCard}
-            />
+            {showMobileAction && round ? (
+                <div className={styles.mobileAction}>
+                    <RoundAction
+                        copy={copy}
+                        phase={phase}
+                        round={round}
+                        isMyTurn={isMyTurn}
+                        canPass={canPass}
+                        chair={chair}
+                        myDeclarations={myDeclarations}
+                        theirDeclarations={theirDeclarations}
+                        onChooseTrump={chooseTrump}
+                        onPassTrump={passTrump}
+                        onDecline={declineDeclarations}
+                        variant="tray"
+                    />
+                </div>
+            ) : null}
+
+            <div className="flex shrink-0 justify-center">
+                <HandFan
+                    hand={game.hand}
+                    trumpSuite={trumpSuite}
+                    trickCards={round?.trickCards ?? []}
+                    active={
+                        isMyTurn &&
+                        round?.roundStatus === RoundStatus.PLAYING &&
+                        pendingBreak === null
+                    }
+                    onPlay={play}
+                    hiddenLabel={copy.hiddenCard}
+                    hiddenCount={
+                        phase === "choosing-trump"
+                            ? Math.max(0, 8 - game.hand.length)
+                            : 0
+                    }
+                />
+            </div>
 
             {belaCard && (
                 <BelaPrompt
@@ -344,47 +379,70 @@ function Centre({
     onDecline: () => void;
 }) {
     if (phase === "waiting") return <Notice>{copy.waiting}</Notice>;
-    if (phase === "dealing" || !round) return <Notice>{copy.dealing}</Notice>;
+    if (phase === "dealing" || !round) {
+        return <DealCountdown label={copy.dealing} />;
+    }
 
     if (phase === "choosing-trump") {
-        return isMyTurn ? (
-            <TrumpChooser
-                suiteNames={copy.suits}
-                heading={copy.trump.heading}
-                passLabel={copy.trump.pass}
-                mustCallNote={copy.trump.mustCall}
-                canPass={canPass}
-                onChoose={onChooseTrump}
-                onPass={onPassTrump}
-            />
-        ) : (
-            <Notice>
-                {copy.trump.waiting.replace(
-                    "{name}",
-                    nameOf(round.currentTurnIndex),
-                )}
-            </Notice>
+        if (!isMyTurn) {
+            return (
+                <Notice>
+                    {copy.trump.waiting.replace(
+                        "{name}",
+                        nameOf(round.currentTurnIndex),
+                    )}
+                </Notice>
+            );
+        }
+
+        return (
+            <>
+                <Notice className={cn(styles.mobileOnly, "py-2")}>
+                    {copy.trick.yourTurn}
+                </Notice>
+                <div className={styles.desktopOnly}>
+                    <RoundAction
+                        copy={copy}
+                        phase={phase}
+                        round={round}
+                        isMyTurn={isMyTurn}
+                        canPass={canPass}
+                        chair={chair}
+                        myDeclarations={myDeclarations}
+                        theirDeclarations={theirDeclarations}
+                        onChooseTrump={onChooseTrump}
+                        onPassTrump={onPassTrump}
+                        onDecline={onDecline}
+                        variant="table"
+                    />
+                </div>
+            </>
         );
     }
 
     if (phase === "declarations") {
         return (
-            <DeclarationsPanel
-                mine={myDeclarations}
-                theirs={theirDeclarations}
-                names={copy.declarations.types as Record<Type, string>}
-                heading={copy.declarations.heading}
-                mineLabel={copy.declarations.mine}
-                theirsLabel={copy.declarations.theirs}
-                noneLabel={copy.declarations.none}
-                declineLabel={copy.declarations.decline}
-                canDecline={
-                    myDeclarations.some(
-                        (declaration) => declaration.playerIndex === chair,
-                    ) && !round.declinedDeclarationSeats.includes(chair)
-                }
-                onDecline={onDecline}
-            />
+            <>
+                <Notice className={cn(styles.mobileOnly, "py-2")}>
+                    {copy.declarations.heading}
+                </Notice>
+                <div className={styles.desktopOnly}>
+                    <RoundAction
+                        copy={copy}
+                        phase={phase}
+                        round={round}
+                        isMyTurn={isMyTurn}
+                        canPass={canPass}
+                        chair={chair}
+                        myDeclarations={myDeclarations}
+                        theirDeclarations={theirDeclarations}
+                        onChooseTrump={onChooseTrump}
+                        onPassTrump={onPassTrump}
+                        onDecline={onDecline}
+                        variant="table"
+                    />
+                </div>
+            </>
         );
     }
 
@@ -397,6 +455,86 @@ function Centre({
                 isMyTurn ? copy.trick.yourTurn : copy.trick.empty
             }
         />
+    );
+}
+
+type RoundActionProps = {
+    copy: Dictionary["game"];
+    phase: GamePhase;
+    round: RoundView;
+    isMyTurn: boolean;
+    canPass: boolean;
+    chair: number;
+    myDeclarations: Declaration[];
+    theirDeclarations: Declaration[];
+    onChooseTrump: (suite: Suite) => void;
+    onPassTrump: () => void;
+    onDecline: () => void;
+    variant: "table" | "tray";
+};
+
+/** The decision surface moves beside the hand on phones and onto the felt above. */
+function RoundAction({
+    copy,
+    phase,
+    round,
+    isMyTurn,
+    canPass,
+    chair,
+    myDeclarations,
+    theirDeclarations,
+    onChooseTrump,
+    onPassTrump,
+    onDecline,
+    variant,
+}: RoundActionProps) {
+    if (phase === "choosing-trump" && isMyTurn) {
+        return (
+            <TrumpChooser
+                suiteNames={copy.suits}
+                heading={copy.trump.heading}
+                passLabel={copy.trump.pass}
+                mustCallNote={copy.trump.mustCall}
+                canPass={canPass}
+                variant={variant}
+                onChoose={onChooseTrump}
+                onPass={onPassTrump}
+            />
+        );
+    }
+
+    if (phase !== "declarations") return null;
+
+    const panel = (
+        <DeclarationsPanel
+            key={`${round.roundNumber}-${variant}`}
+            mine={myDeclarations}
+            theirs={theirDeclarations}
+            heading={copy.declarations.heading}
+            promptHeading={copy.declarations.promptHeading}
+            promptBody={copy.declarations.promptBody}
+            mineLabel={copy.declarations.mine}
+            theirsLabel={copy.declarations.theirs}
+            noneLabel={copy.declarations.none}
+            declareLabel={copy.declarations.declare}
+            declineLabel={copy.declarations.decline}
+            updatingLabel={copy.declarations.updating}
+            totalLabel={copy.declarations.total}
+            canDecide={myDeclarations.some(
+                (declaration) => declaration.playerIndex === chair,
+            )}
+            declined={round.declinedDeclarationSeats.includes(chair)}
+            chair={chair}
+            onDecline={onDecline}
+        />
+    );
+
+    if (variant === "table") return panel;
+
+    return (
+        <div className="w-full border-4 border-ink bg-baize-deep px-3 py-2 shadow-hard-sm [@media(max-height:560px)]:py-1.5">
+            {panel}
+        </div>
     );
 }
 

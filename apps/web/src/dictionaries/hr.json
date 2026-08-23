@@ -377,10 +377,15 @@
         },
         "declarations": {
             "heading": "Zvanja",
+            "promptHeading": "Želiš li zvati?",
+            "promptBody": "U ruci imaš zvanja vrijedna {points} bodova. Ako zoveš, njihove će se karte pokazati stolu.",
             "mine": "Vaša strana",
             "theirs": "Njihova strana",
             "none": "Nema zvanja",
-            "decline": "Ne zovi moja",
+            "declare": "Zovi",
+            "decline": "Nemoj zvati",
+            "updating": "Brojim zvanja…",
+            "total": "Ukupno {points} bodova",
             "types": {
                 "BELOTE": "Belot",
                 "BELA": "Bela",

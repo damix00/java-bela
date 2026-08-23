@@ -46,18 +46,46 @@ export default function TurnTimer({
 }) {
     const remaining = useRemainingSeconds(countdown);
 
-    if (remaining === null) return null;
+    if (remaining === null || !countdown) return null;
+
+    const progress = Math.min(
+        100,
+        Math.max(0, (remaining / countdown.timeoutSeconds) * 100),
+    );
+    const critical = urgent && remaining <= 5;
 
     return (
-        <p
+        <div
+            role="timer"
             aria-live="off"
+            aria-label={label.replace("{seconds}", String(remaining))}
             className={cn(
-                "text-center text-[13px] font-semibold text-mint/75",
-                // Only once it is nearly out, and only when it is your clock.
-                urgent && remaining <= 5 && "text-rust",
+                "mx-auto flex w-full max-w-56 items-center gap-2",
+                "[@media(max-height:560px)]:max-w-44",
             )}
         >
-            {label.replace("{seconds}", String(remaining))}
-        </p>
+            <span
+                aria-hidden="true"
+                className={cn(
+                    "shrink-0 text-[12px] font-semibold text-mint/75 tabular-nums",
+                    critical && "text-rust",
+                )}
+            >
+                {label.replace("{seconds}", String(remaining))}
+            </span>
+            <span
+                aria-hidden="true"
+                className="h-2 min-w-0 flex-1 overflow-hidden border-2 border-ink bg-baize-deep"
+            >
+                <span
+                    className={cn(
+                        "block h-full origin-left bg-mint transition-[width,background-color] duration-200",
+                        urgent && "bg-rust",
+                        critical && "bg-rust",
+                    )}
+                    style={{ width: `${progress}%` }}
+                />
+            </span>
+        </div>
     );
 }

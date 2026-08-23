@@ -5,6 +5,8 @@ import { cardKey, isTrump, legalMoveKeys, sortHand } from "@/lib/game-rules";
 import { cn } from "@/lib/cn";
 import type { Card, PlayedCard, Suite } from "@bela/protocol";
 
+import styles from "./HandFan.module.css";
+
 type HandFanProps = {
     hand: Card[];
     trumpSuite: Suite | null;
@@ -14,15 +16,17 @@ type HandFanProps = {
     active: boolean;
     onPlay: (card: Card) => void;
     hiddenLabel: string;
+    /** Withheld seventh/eighth cards before trump is called. */
+    hiddenCount?: number;
 };
 
 /**
- * Your eight cards, in a row.
+ * Your eight cards, in a thumb-readable hand.
  *
- * Not a fan, despite the name it inherited from the lobby's ornament — an
- * overlapped arc is a lot of geometry for something that has to stay tappable at
- * 360px, and a plain wrapping row does the job. The cards overlap only far
- * enough to fit, and the one under the pointer lifts clear of its neighbours.
+ * Portrait phones get two rows of four, matching the way a physical hand is
+ * usually scanned without shrinking the art. Short landscape phones and wider
+ * screens keep one overlapped row, where the horizontal room is useful and the
+ * vertical room is scarce. The one under the pointer lifts clear of its peers.
  *
  * Legality is decided here so the answer is visible before the press. The
  * backend's `TrickValidator` is still the authority and will refuse anything
@@ -35,13 +39,20 @@ export default function HandFan({
     active,
     onPlay,
     hiddenLabel,
+    hiddenCount = 0,
 }: HandFanProps) {
     const sorted = sortHand(hand, trumpSuite);
     const legal = active ? legalMoveKeys(trickCards, trumpSuite, hand) : null;
+    const cardClass = cn(
+        styles.card,
+        "w-full sm:w-20 [@media(max-height:560px)]:w-14",
+    );
 
     return (
         <div
-            className="flex flex-wrap items-end justify-center gap-x-0 gap-y-2 px-2"
+            data-game-hand=""
+            data-active={active ? "true" : "false"}
+            className={styles.hand}
             role="group"
         >
             {sorted.map((card) => {
@@ -52,7 +63,7 @@ export default function HandFan({
                             key={cardKey(card)}
                             faceDown
                             label={hiddenLabel}
-                            className="-ml-3 first:ml-0 sm:-ml-2"
+                            className={cardClass}
                         />
                     );
                 }
@@ -65,16 +76,26 @@ export default function HandFan({
                         card={card}
                         trump={isTrump(card, trumpSuite)}
                         disabled={!playable}
+                        dimmed={legal !== null && !playable}
                         onClick={playable ? () => onPlay(card) : undefined}
                         className={cn(
-                            "-ml-3 first:ml-0 sm:-ml-2",
+                            cardClass,
                             // A liftable card needs to sit above the one after
                             // it, or the lift disappears under its neighbour.
-                            playable && "hover:z-10",
+                            playable && "hover:z-10 focus-visible:z-20",
                         )}
                     />
                 );
             })}
+
+            {Array.from({ length: hiddenCount }, (_, index) => (
+                <PlayingCard
+                    key={`undealt-${index}`}
+                    faceDown
+                    label={hiddenLabel}
+                    className={cardClass}
+                />
+            ))}
         </div>
     );
 }

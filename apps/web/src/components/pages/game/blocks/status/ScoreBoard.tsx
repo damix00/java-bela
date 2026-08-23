@@ -39,49 +39,59 @@ export default function ScoreBoard({
     trumpName,
     roundLabel,
 }: ScoreBoardProps) {
+    const sides = [
+        { label: usLabel, total: usTotal, round: usRound },
+        { label: themLabel, total: themTotal, round: themRound },
+    ];
+
     return (
         <section
             aria-label={targetLabel.replace("{target}", String(target))}
-            className="mx-auto flex w-full max-w-[560px] flex-wrap items-center justify-center gap-x-6 gap-y-2 border-4 border-ink bg-baize-deep px-4 py-3 shadow-hard-sm lg:max-w-[1000px]"
+            className="mx-auto grid w-full max-w-[560px] shrink-0 grid-cols-[1fr_auto_1fr] items-center border-4 border-ink bg-baize-deep px-3 py-2 shadow-hard-sm sm:px-5 sm:py-3 lg:max-w-[1000px] [@media(max-height:560px)]:py-1.5"
         >
-            {[
-                { label: usLabel, total: usTotal, round: usRound },
-                { label: themLabel, total: themTotal, round: themRound },
-            ].map((side) => (
-                <div key={side.label} className="flex items-baseline gap-2">
-                    <span className="text-[12px] font-bold tracking-wide text-mint/70 uppercase">
+            {sides.map((side, index) => (
+                <div
+                    key={side.label}
+                    className={
+                        index === 0
+                            ? "col-start-1 flex min-w-0 items-baseline gap-1.5 justify-self-start"
+                            : "col-start-3 row-start-1 flex min-w-0 items-baseline gap-1.5 justify-self-end"
+                    }
+                >
+                    <span className="text-[10px] font-bold tracking-wide text-mint/70 uppercase sm:text-[12px]">
                         {side.label}
                     </span>
-                    <span className="font-display text-[22px] font-extrabold tracking-[-.02em] text-cream">
+                    <span className="font-display text-[24px] leading-none font-extrabold tracking-[-.03em] text-cream tabular-nums sm:text-[28px] [@media(max-height:560px)]:text-[21px]">
                         {side.total}
                     </span>
-                    <span className="text-[13px] font-semibold text-mint/75">
+                    <span className="text-[10px] font-semibold text-mint/70 tabular-nums sm:text-[12px]">
                         {roundLabel.replace("{points}", String(side.round))}
                     </span>
                 </div>
             ))}
 
-            <span className="text-[12px] font-semibold text-mint/60">
-                {targetLabel.replace("{target}", String(target))}
-            </span>
-
-            {trumpSuite && (
-                <span className="flex items-center gap-2">
-                    <span className="text-[12px] font-bold tracking-wide text-mint/70 uppercase">
-                        {trumpLabel}
+            <div className="col-start-2 row-start-1 flex min-w-14 flex-col items-center justify-center gap-0.5 px-2 text-center">
+                {trumpSuite ? (
+                    <span
+                        className="flex items-center gap-1.5"
+                        aria-label={`${trumpLabel}: ${trumpName ?? ""}`}
+                    >
+                        <Image
+                            src={HUNGARIAN_SUIT_ASSETS[trumpSuite]}
+                            alt=""
+                            width={24}
+                            height={24}
+                            className="size-5 object-contain sm:size-6"
+                        />
+                        <span className="hidden font-display text-[13px] font-extrabold text-cream sm:inline">
+                            {trumpName}
+                        </span>
                     </span>
-                    <Image
-                        src={HUNGARIAN_SUIT_ASSETS[trumpSuite]}
-                        alt=""
-                        width={22}
-                        height={22}
-                        className="size-[22px] object-contain"
-                    />
-                    <span className="font-display text-[15px] font-extrabold text-cream">
-                        {trumpName}
-                    </span>
+                ) : null}
+                <span className="text-[9px] font-semibold whitespace-nowrap text-mint/60 sm:text-[11px]">
+                    {targetLabel.replace("{target}", String(target))}
                 </span>
-            )}
+            </div>
         </section>
     );
 }

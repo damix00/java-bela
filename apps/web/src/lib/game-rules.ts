@@ -209,7 +209,7 @@ export function legalMoveKeys(
     );
 }
 
-/** Suits in the deck's own order, so a hand always groups the same way. */
+/** Suits in the deck's own order, reversed below for the requested hand layout. */
 const SUITE_ORDER = [Suite.HEARTS, Suite.BELLS, Suite.ACORN, Suite.LEAF];
 
 /**
@@ -231,17 +231,17 @@ const DECLARATION_RANK_ORDER = [
 ];
 
 /**
- * A hand in a readable order: trump first, then the other suits in deck order,
- * each running from ace down to seven.
+ * A hand in a readable order: the reverse of the deck's declaration layout.
+ * Cards run seven up to ace, suits run leaf back to hearts, and trump finishes
+ * the hand rather than starting it.
  *
- * Sorted by declaration order rather than by playing strength, and deliberately.
- * Strength order is what wins tricks, but it splits a terca or a kvarta across
- * the hand — in trump it throws the jack and the nine to the front, so three
- * consecutive cards stop looking consecutive. Laying the hand out the way
- * `DeclarationResolver` walks it means a sequence you can declare is a run you
- * can see.
+ * This is declaration order reversed rather than playing strength, and
+ * deliberately. Strength order is what wins tricks, but it splits a terca or a
+ * kvarta across the hand — in trump it pulls the jack and nine away from the
+ * sequence. Reversing the resolver's whole run keeps every declaration visually
+ * consecutive while putting the low end first.
  *
- * The consequence is that the leftmost trump is not necessarily the strongest.
+ * The consequence is that the rightmost trump is not necessarily the strongest.
  * That is the trade, and it is the right way round: `legalMoveKeys` already
  * shows which cards can be played, so strength does not need to be read off the
  * ordering, whereas nothing else on screen reveals a zvanje.
@@ -251,15 +251,15 @@ export function sortHand(hand: Card[], trumpSuite: Suite | null): Card[] {
         const aTrump = isTrump(a, trumpSuite);
         const bTrump = isTrump(b, trumpSuite);
 
-        if (aTrump !== bTrump) return aTrump ? -1 : 1;
+        if (aTrump !== bTrump) return aTrump ? 1 : -1;
 
         if (a.suite !== b.suite) {
-            return SUITE_ORDER.indexOf(a.suite) - SUITE_ORDER.indexOf(b.suite);
+            return SUITE_ORDER.indexOf(b.suite) - SUITE_ORDER.indexOf(a.suite);
         }
 
         return (
-            DECLARATION_RANK_ORDER.indexOf(a.rank) -
-            DECLARATION_RANK_ORDER.indexOf(b.rank)
+            DECLARATION_RANK_ORDER.indexOf(b.rank) -
+            DECLARATION_RANK_ORDER.indexOf(a.rank)
         );
     });
 }

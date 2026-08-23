@@ -1,0 +1,40 @@
+.hand {
+    display: grid;
+    width: 100%;
+    max-width: 25.5rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: end;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.125rem 0;
+}
+
+/* A short landscape phone follows the reference's single-row hand: two rows
+   would spend almost half of the available height before the table appears. */
+@media (max-height: 560px) and (orientation: landscape) {
+    .hand {
+        display: flex;
+        width: 100%;
+        flex-wrap: nowrap;
+        gap: 0;
+        padding-inline: 0.5rem;
+    }
+
+    .card:not(:first-child) {
+        margin-left: -1.25rem;
+    }
+}
+
+@media (min-width: 640px) and (min-height: 561px) {
+    .hand {
+        display: flex;
+        width: 100%;
+        flex-wrap: nowrap;
+        gap: 0;
+        padding-inline: 0.5rem;
+    }
+
+    .card:not(:first-child) {
+        margin-left: -0.875rem;
+    }
+}

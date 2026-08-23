@@ -377,10 +377,15 @@
         },
         "declarations": {
             "heading": "Declarations",
+            "promptHeading": "Declare your hand?",
+            "promptBody": "You have {points} points available. Declaring reveals those cards to the table.",
             "mine": "Your side",
             "theirs": "Their side",
             "none": "Nothing declared",
-            "decline": "Keep mine hidden",
+            "declare": "Declare",
+            "decline": "Don’t declare",
+            "updating": "Counting declarations…",
+            "total": "{points} points total",
             "types": {
                 "BELOTE": "Belot",
                 "BELA": "Bela",

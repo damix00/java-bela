@@ -24,9 +24,9 @@ import type { Card, Rank, Suite } from "@bela/protocol";
 
 const WIDTHS = {
     /** On the felt, and in the three hands that are not yours. */
-    sm: "w-11 sm:w-14",
+    sm: "w-10 sm:w-14 [@media(max-height:560px)]:w-9",
     /** Your own hand. */
-    md: "w-16 sm:w-20",
+    md: "w-[clamp(3.625rem,17vw,4.25rem)] sm:w-20 [@media(max-height:560px)]:w-14",
 } as const;
 
 type PlayingCardProps = {
@@ -38,6 +38,8 @@ type PlayingCardProps = {
     trump?: boolean;
     /** Dimmed and inert: legal in the deck, not legal right now. */
     disabled?: boolean;
+    /** Visually recede an illegal card without washing out an idle hand. */
+    dimmed?: boolean;
     onClick?: () => void;
     label?: string;
     className?: string;
@@ -49,6 +51,7 @@ export default function PlayingCard({
     faceDown = false,
     trump = false,
     disabled = false,
+    dimmed = false,
     onClick,
     label,
     className,
@@ -70,7 +73,7 @@ export default function PlayingCard({
         "relative block aspect-[363/585] shrink-0 self-start overflow-hidden border-[3px] border-ink bg-cream shadow-hard-sm",
         WIDTHS[size],
         trump && "border-rust",
-        disabled && "opacity-40 saturate-50",
+        dimmed && "opacity-45 saturate-50",
         className,
     );
 
@@ -79,9 +82,7 @@ export default function PlayingCard({
             src={asset?.src ?? HUNGARIAN_CARD_BACK_ASSET}
             alt={hidden ? "" : asset!.alt}
             fill
-            // Two fixed steps rather than a viewport expression: these never
-            // reflow to a fraction of the screen, they step at the `sm` breakpoint.
-            sizes="(min-width: 640px) 80px, 64px"
+            sizes="(max-height: 560px) 56px, (min-width: 640px) 80px, calc((100vw - 3rem) / 4)"
             className="object-cover"
         />
     );
@@ -105,7 +106,7 @@ export default function PlayingCard({
                 focusRing,
                 // No press physics here. A card is not a block with a shadow to
                 // sink onto — it lifts, which is what a hand of cards does.
-                "cursor-pointer transition-transform duration-100 hover:-translate-y-2 disabled:cursor-not-allowed disabled:hover:translate-y-0 motion-reduce:transition-none motion-reduce:hover:translate-y-0",
+                "cursor-pointer touch-manipulation transition-transform duration-100 hover:-translate-y-2 active:-translate-y-2 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:active:translate-y-0 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:active:translate-y-0",
             )}
         >
             {art}

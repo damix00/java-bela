@@ -1,4 +1,5 @@
 import { getInitialSession } from "@/actions/auth";
+import AppNavigationFrame from "@/components/layout/AppNavigationFrame";
 import GameNavigation from "@/components/layout/GameNavigation";
 import { AuthProvider } from "@/context/auth-context";
 import { GameProvider } from "@/context/game-context";
@@ -55,14 +56,18 @@ export default async function AppLayout({
                             data-felt=""
                             className={cn(felt, "flex min-h-screen flex-col")}
                         >
-                            <GameNavigation
-                                copy={dict.table}
+                            <AppNavigationFrame
                                 locale={lang}
-                                user={user}
-                            />
-                            <div className="flex flex-1 flex-col pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:pb-0">
+                                navigation={
+                                    <GameNavigation
+                                        copy={dict.table}
+                                        locale={lang}
+                                        user={user}
+                                    />
+                                }
+                            >
                                 {children}
-                            </div>
+                            </AppNavigationFrame>
                         </div>
                     </GameProvider>
                 </LobbyProvider>
