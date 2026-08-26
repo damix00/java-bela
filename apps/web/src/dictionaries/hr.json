@@ -300,16 +300,10 @@
         "copyInvite": "Kopiraj poveznicu",
         "invite": {
             "action": "Pozovi",
-            "bandNote": "Pošalji poveznicu ili odaberi prijatelja",
+            "bandNote": "Pošalji poveznicu i sjest će za stol",
             "heading": "Popuni mjesto",
             "close": "Zatvori pozivnicu",
-            "linkNote": "Svatko s poveznicom može sjesti za stol.",
-            "friends": "Prijatelji",
-            "friendsNote": "Prijatelji stižu uskoro. Ovaj je popis samo najava.",
-            "online": "Na vezi",
-            "whoCanJoin": "Tko se može pridružiti",
-            "anyoneWithLink": "Svatko s poveznicom",
-            "inviteOnly": "Samo uz pozivnicu"
+            "linkNote": "Svatko s poveznicom može sjesti za stol."
         },
         "lastFive": "Zadnjih pet",
         "lastFiveNote": "Sinoćnja pobjeda 1001–842 s igračem {opponent}.",

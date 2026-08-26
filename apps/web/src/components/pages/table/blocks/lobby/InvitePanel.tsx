@@ -4,18 +4,11 @@ import { Check, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/controls/Button";
-import {
-    mockFriends,
-    type MockFriend,
-} from "@/components/pages/table/blocks/lobby/mock-friends";
-import MockLabel from "@/components/pages/table/blocks/shared/MockLabel";
 import Card from "@/components/ui/surfaces/Card";
-import LabeledRule from "@/components/ui/surfaces/LabeledRule";
 import Modal from "@/components/ui/surfaces/Modal";
 import Heading from "@/components/ui/typography/Heading";
 import Text from "@/components/ui/typography/Text";
 import type { Dictionary } from "@/dictionaries";
-import { cn } from "@/lib/cn";
 
 type InvitePanelProps = {
     copy: Dictionary["table"];
@@ -28,13 +21,21 @@ type InvitePanelProps = {
 const COPIED_MS = 2000;
 
 /**
- * Everything that fills a seat with somebody who isn't here yet.
+ * Everything that fills a seat with somebody who isn't here yet, which is one
+ * link.
  *
  * The table used to show its six-character code, which was the most prominent
  * text on the band and the one value in the app with nowhere to go: nothing can
  * redeem a typed code, and the block's own press copied a URL rather than the
- * characters under the cursor. So the code is gone and the link took its place,
- * with the friends list it will eventually sit above.
+ * characters under the cursor. So the code is gone and the link took its place.
+ *
+ * It stood above a preview of a friends list and a pair of visibility choices
+ * for a while, both inert — there is no friends entity on the backend, and a
+ * lobby has no visibility of any kind (`ChangeLobbyConfigCommand` carries a
+ * match type and a target score and nothing else). Drawn early they were meant
+ * to settle the panel's shape before the fields existed to back them; what they
+ * actually did was bury the one control that works under two that don't. They
+ * can come back when there is something behind them.
  *
  * A dialog rather than a dropdown, because `Modal` already owns the top layer,
  * the focus trap, `Esc`, the backdrop and the entrance — and its `onClose`
@@ -88,101 +89,7 @@ export default function InvitePanel({
                 </Button>
 
                 <Text size="xs">{t.linkNote}</Text>
-
-                <LabeledRule>{t.friends}</LabeledRule>
-
-                {/* One statement, not one per row. Five repetitions of the same
-                    label read as noise and bury the names they are attached
-                    to. */}
-                <Text size="xs" className="-mt-2">
-                    {t.friendsNote}
-                </Text>
-
-                <ul className="m-0 flex list-none flex-col gap-0 p-0">
-                    {mockFriends.map((friend) => (
-                        <FriendRow
-                            key={friend.id}
-                            friend={friend}
-                            online={t.online}
-                        />
-                    ))}
-                </ul>
-
-                <LabeledRule>{t.whoCanJoin}</LabeledRule>
-
-                {/* Inert, and not for want of wiring: a lobby has no visibility
-                    of any kind on the backend — `ChangeLobbyConfigCommand`
-                    carries a match type and a target score and nothing else. The
-                    choice is drawn so the panel's shape is settled before the
-                    field exists to back it. */}
-                <div
-                    role="group"
-                    aria-label={t.whoCanJoin}
-                    className="flex border-4 border-ink">
-                    <Choice selected>{t.anyoneWithLink}</Choice>
-                    <Choice>{t.inviteOnly}</Choice>
-                </div>
-                <MockLabel className="-mt-3 text-stone">
-                    {copy.profileMenu.soon}
-                </MockLabel>
             </Card>
         </Modal>
-    );
-}
-
-/**
- * One friend, and no invite control on it. There is nothing to press yet, and a
- * row of disabled buttons is a worse promise than a list that never claimed to
- * be one — the note above the list says so once, for all of them.
- */
-function FriendRow({
-    friend,
-    online,
-}: {
-    friend: MockFriend;
-    online: string;
-}) {
-    return (
-        <li className="flex items-center gap-3 border-b-[3px] border-ink/15 py-3 last:border-b-0">
-            <span
-                aria-hidden
-                className="grid size-9 shrink-0 place-items-center border-[3px] border-ink bg-sage font-display text-[15px] font-extrabold text-ink uppercase">
-                {friend.username.charAt(0)}
-            </span>
-
-            <span className="min-w-0 truncate font-display text-[15px] font-extrabold tracking-[-.02em] text-ink">
-                {friend.username}
-            </span>
-
-            {friend.online && (
-                <MockLabel className="ml-auto flex shrink-0 items-center gap-2 text-[10px] text-forest">
-                    <span
-                        aria-hidden
-                        className="size-2 shrink-0 rounded-full bg-forest"
-                    />
-                    {online}
-                </MockLabel>
-            )}
-        </li>
-    );
-}
-
-function Choice({
-    children,
-    selected = false,
-}: {
-    children: string;
-    selected?: boolean;
-}) {
-    return (
-        <span
-            aria-disabled="true"
-            className={cn(
-                "flex-1 px-3 py-3 text-center font-display text-[14px] font-extrabold tracking-[-.02em]",
-                "border-r-4 border-ink last:border-r-0",
-                selected ? "bg-forest text-cream" : "bg-cream text-stone",
-            )}>
-            {children}
-        </span>
     );
 }

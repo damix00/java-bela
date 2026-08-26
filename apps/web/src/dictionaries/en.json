@@ -300,16 +300,10 @@
         "copyInvite": "Copy invite link",
         "invite": {
             "action": "Invite",
-            "bandNote": "Send the link or pick a friend",
+            "bandNote": "Send the link and they sit down",
             "heading": "Fill a seat",
             "close": "Close invite panel",
-            "linkNote": "Anyone with the link can take a seat.",
-            "friends": "Friends",
-            "friendsNote": "Friends are coming soon. This list is a preview.",
-            "online": "Online",
-            "whoCanJoin": "Who can join",
-            "anyoneWithLink": "Anyone with the link",
-            "inviteOnly": "Invite only"
+            "linkNote": "Anyone with the link can take a seat."
         },
         "lastFive": "Last five",
         "lastFiveNote": "Won 1001–842 with {opponent} last night.",
