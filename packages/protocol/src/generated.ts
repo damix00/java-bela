@@ -37,6 +37,7 @@ export interface BeloteRound {
     team2: RoundTeam;
     team2RoundScore: number;
     tricks: Trick[];
+    trumpCallerIndex: number;
     trumpSuite: Suite;
 }
 
@@ -291,6 +292,7 @@ export interface RoundSnapshot {
     team2RoundPoints: number;
     timeoutSeconds: number;
     timerType: string;
+    trumpCallerIndex: number;
     trumpSuite: Suite;
 }
 
@@ -367,6 +369,7 @@ export interface TrumpChosenEvent extends PerspectiveOutgoingEvent {
     team2Declarations: Declaration[];
     team2RoundPoints: number;
     team2TotalScore: number;
+    timeoutSeconds: number;
     trumpSuite: Suite;
 }
 

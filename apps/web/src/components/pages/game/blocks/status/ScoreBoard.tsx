@@ -49,7 +49,7 @@ export default function ScoreBoard({
     return (
         <section
             aria-label={targetLabel.replace("{target}", String(target))}
-            className="mx-auto grid w-full max-w-[560px] shrink-0 grid-cols-[1fr_auto_1fr] items-center border-4 border-ink bg-baize-deep px-3 py-2 shadow-hard-sm sm:px-5 sm:py-3 lg:max-w-[1000px] [@media(max-height:560px)]:py-1.5"
+            className="mx-auto grid w-full max-w-[560px] shrink-0 grid-cols-[1fr_auto_1fr] items-center border-4 border-ink bg-baize-deep px-3 py-2 shadow-hard-sm sm:px-5 sm:py-3 lg:max-w-[1000px] flat:py-1.5"
         >
             {sides.map((side, index) => (
                 <div
@@ -63,7 +63,7 @@ export default function ScoreBoard({
                     <span className="text-[10px] font-bold tracking-wide text-mint/70 uppercase sm:text-[12px]">
                         {side.label}
                     </span>
-                    <span className="font-display text-[24px] leading-none font-extrabold tracking-[-.03em] text-cream tabular-nums sm:text-[28px] [@media(max-height:560px)]:text-[21px]">
+                    <span className="font-display text-[24px] leading-none font-extrabold tracking-[-.03em] text-cream tabular-nums sm:text-[28px] flat:text-[21px]">
                         {side.total}
                     </span>
                     <span className="text-[10px] font-semibold text-mint/70 tabular-nums sm:text-[12px]">
@@ -72,34 +72,27 @@ export default function ScoreBoard({
                 </div>
             ))}
 
-            <div className="col-start-2 row-start-1 flex min-w-14 flex-col items-center justify-center gap-0.5 px-2 text-center">
+            <div className="col-start-2 row-start-1 flex min-w-20 max-w-[46%] items-center justify-center gap-2.5 px-5 desk:gap-3 desk:px-10 flat:px-4">
                 {trumpSuite ? (
-                    <>
-                        <span
-                            className="flex items-center gap-1.5"
-                            aria-label={`${trumpLabel}: ${trumpName ?? ""}`}
-                        >
-                            <Image
-                                src={HUNGARIAN_SUIT_ASSETS[trumpSuite]}
-                                alt=""
-                                width={24}
-                                height={24}
-                                className="size-5 object-contain sm:size-6"
-                            />
-                            <span className="hidden font-display text-[13px] font-extrabold text-cream sm:inline">
-                                {trumpName}
-                            </span>
-                        </span>
-                        {trumpCallerLabel ? (
-                            <span className="max-w-32 truncate text-[8px] leading-none font-bold whitespace-nowrap text-mint/80 sm:max-w-40 sm:text-[10px]">
-                                {trumpCallerLabel}
-                            </span>
-                        ) : null}
-                    </>
+                    <Image
+                        src={HUNGARIAN_SUIT_ASSETS[trumpSuite]}
+                        alt=""
+                        width={40}
+                        height={40}
+                        aria-label={`${trumpLabel}: ${trumpName ?? ""}`}
+                        className="size-8 shrink-0 object-contain desk:size-10 flat:size-6"
+                    />
                 ) : null}
-                <span className="text-[9px] font-semibold whitespace-nowrap text-mint/60 sm:text-[11px]">
-                    {targetLabel.replace("{target}", String(target))}
-                </span>
+                <div className="flex min-w-0 flex-col items-start text-left">
+                    {trumpCallerLabel ? (
+                        <span className="w-full truncate text-[12px] font-bold whitespace-nowrap text-mint/80 desk:text-[14px] flat:text-[10px]">
+                            {trumpCallerLabel}
+                        </span>
+                    ) : null}
+                    <span className="text-[12px] font-semibold whitespace-nowrap text-mint/60 desk:text-[14px] flat:text-[10px]">
+                        {targetLabel.replace("{target}", String(target))}
+                    </span>
+                </div>
             </div>
         </section>
     );

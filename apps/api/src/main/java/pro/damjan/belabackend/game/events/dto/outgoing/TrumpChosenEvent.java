@@ -25,6 +25,7 @@ public class TrumpChosenEvent extends PerspectiveOutgoingEvent {
     private int team2TotalScore;
     private List<Declaration> team1Declarations;
     private List<Declaration> team2Declarations;
+    private long timeoutSeconds;
 
     public TrumpChosenEvent(
             String perspectiveUserId,
@@ -40,7 +41,8 @@ public class TrumpChosenEvent extends PerspectiveOutgoingEvent {
             int team1TotalScore,
             int team2TotalScore,
             List<Declaration> team1Declarations,
-            List<Declaration> team2Declarations
+            List<Declaration> team2Declarations,
+            long timeoutSeconds
     ) {
         super("game:trumpChosen", perspectiveUserId);
         this.roundNumber = roundNumber;
@@ -56,5 +58,6 @@ public class TrumpChosenEvent extends PerspectiveOutgoingEvent {
         this.team2TotalScore = team2TotalScore;
         this.team1Declarations = team1Declarations;
         this.team2Declarations = team2Declarations;
+        this.timeoutSeconds = timeoutSeconds;
     }
 }

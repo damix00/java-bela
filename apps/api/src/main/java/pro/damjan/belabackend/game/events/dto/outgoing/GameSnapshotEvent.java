@@ -114,6 +114,8 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
         private final int roundNumber;
         private final RoundStatus roundStatus;
         private final Suite trumpSuite;
+        // seat that called trump this round, or null while nobody has
+        private final Integer trumpCallerIndex;
         private final int currentTurnIndex;
         private final int currentTrickNumber;
         private final List<PlayedCard> currentTrickCards;
@@ -134,6 +136,7 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
                 int roundNumber,
                 RoundStatus roundStatus,
                 Suite trumpSuite,
+                Integer trumpCallerIndex,
                 int currentTurnIndex,
                 int currentTrickNumber,
                 List<PlayedCard> currentTrickCards,
@@ -149,6 +152,7 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
             this.roundNumber = roundNumber;
             this.roundStatus = roundStatus;
             this.trumpSuite = trumpSuite;
+            this.trumpCallerIndex = trumpCallerIndex;
             this.currentTurnIndex = currentTurnIndex;
             this.currentTrickNumber = currentTrickNumber;
             this.currentTrickCards = currentTrickCards;
@@ -177,6 +181,7 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
                     round.getRoundNumber(),
                     round.getRoundStatus(),
                     round.getTrumpSuite(),
+                    round.getTrumpCallerIndex(),
                     round.getCurrentTurnIndex(),
                     round.getCurrentTrickNumber(),
                     currentTrick == null ? List.of() : currentTrick.getPlayedCards(),

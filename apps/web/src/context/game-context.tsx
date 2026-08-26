@@ -35,6 +35,7 @@ import { seatingFor, type GameSeating } from "@/lib/game-seats";
 const TIMER = {
     trumpChoice: "CHOOSING_TRUMP_TIMEOUT_TASK",
     cardThrow: "CARD_THROW_TIMEOUT_TASK",
+    declarations: "DECLARATIONS_COMPLETE_TASK",
     nextTrick: "NEXT_TRICK_START_TASK",
     nextRound: "ROUND_START_TASK",
 } as const;
@@ -127,6 +128,8 @@ type GameState = {
     /** Whose turn it is to act, and whether that is me. */
     isMyTurn: boolean;
     trumpCountdown: Countdown | null;
+    /** The window in which zvanja may be declined, before the server resolves them. */
+    declarationCountdown: Countdown | null;
     turnCountdown: Countdown | null;
     pendingBreak: PendingBreak | null;
     /**
@@ -220,6 +223,8 @@ export function GameProvider({
 
     const [game, setGame] = useState<GameView | null>(null);
     const [trumpCountdown, setTrumpCountdown] = useState<Countdown | null>(null);
+    const [declarationCountdown, setDeclarationCountdown] =
+        useState<Countdown | null>(null);
     const [turnCountdown, setTurnCountdown] = useState<Countdown | null>(null);
     const [pendingBreak, setPendingBreak] = useState<PendingBreak | null>(null);
     const [passCount, setPassCount] = useState(0);
@@ -227,6 +232,7 @@ export function GameProvider({
 
     const clearCountdowns = useCallback(() => {
         setTrumpCountdown(null);
+        setDeclarationCountdown(null);
         setTurnCountdown(null);
         setPendingBreak(null);
     }, []);
@@ -282,7 +288,7 @@ export function GameProvider({
                   roundNumber: snapshot.roundNumber,
                   roundStatus: snapshot.roundStatus,
                   trumpSuite: snapshot.trumpSuite ?? null,
-                  trumpCallerIndex: null,
+                  trumpCallerIndex: optionalIndex(snapshot.trumpCallerIndex),
                   currentTurnIndex: snapshot.currentTurnIndex,
                   currentTrickNumber: snapshot.currentTrickNumber,
                   trickCards: snapshot.currentTrickCards ?? [],
@@ -325,6 +331,12 @@ export function GameProvider({
         setTrumpCountdown(
             round?.roundStatus === RoundStatus.CHOOSING_TRUMP
                 ? { timeoutSeconds: remaining ?? 0, startedAt }
+                : null,
+        );
+
+        setDeclarationCountdown(
+            timerType === TIMER.declarations && remaining !== null
+                ? { timeoutSeconds: remaining, startedAt }
                 : null,
         );
 
@@ -393,6 +405,7 @@ export function GameProvider({
 
     useSocketEvent("game:trumpChoosingStarted", (data) => {
         setTurnCountdown(null);
+        setDeclarationCountdown(null);
         setPendingBreak(null);
         setTrumpCountdown({
             timeoutSeconds: data.timeoutSeconds,
@@ -435,6 +448,15 @@ export function GameProvider({
 
     useSocketEvent("game:trumpChosen", (data) => {
         clearCountdowns();
+
+        // Zvanja are shown for a fixed window the server owns; it carries the
+        // length here so the tray can count the same seconds down.
+        if (data.roundStatus === RoundStatus.DECLARATIONS) {
+            setDeclarationCountdown({
+                timeoutSeconds: data.timeoutSeconds,
+                startedAt: Date.now(),
+            });
+        }
 
         setGame((prev) => {
             if (!prev || prev.round?.roundNumber !== data.roundNumber) {
@@ -494,6 +516,7 @@ export function GameProvider({
 
     useSocketEvent("game:cardTurnStarted", (data) => {
         setPendingBreak(null);
+        setDeclarationCountdown(null);
         setTurnCountdown({
             timeoutSeconds: data.timeoutSeconds,
             startedAt: Date.now(),
@@ -691,6 +714,7 @@ export function GameProvider({
             isMyTurn:
                 chair !== -1 && game?.round?.currentTurnIndex === chair,
             trumpCountdown,
+            declarationCountdown,
             turnCountdown,
             pendingBreak,
             canPass: passCount < 3,
@@ -701,6 +725,7 @@ export function GameProvider({
         phase,
         seating,
         trumpCountdown,
+        declarationCountdown,
         turnCountdown,
         pendingBreak,
         passCount,

@@ -424,7 +424,8 @@
         "timer": {
             "turn": "{seconds}s left",
             "nextTrick": "Next trick in {seconds}s",
-            "nextRound": "Next round in {seconds}s"
+            "nextRound": "Next round in {seconds}s",
+            "declarations": "Declarations close in {seconds}s"
         },
         "score": {
             "us": "You",

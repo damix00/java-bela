@@ -37,6 +37,11 @@ public class BeloteRound implements Serializable {
     @Setter
     private Suite trumpSuite;
 
+    // Seat that called trump (0-3), or null while nobody has. The round otherwise
+    // only remembers the calling *team*, which is enough for scoring but cannot
+    // name the caller to a client rebuilding the board after a reconnect.
+    private Integer trumpCallerIndex;
+
     private int currentTurnIndex; // index of the player whose turn it is to play (0-3)
 
     private int startingPlayerIndex = 0; // index of the player who started the current round (0-3)
@@ -113,6 +118,7 @@ public class BeloteRound implements Serializable {
         }
 
         this.trumpSuite = suite;
+        this.trumpCallerIndex = currentTurnIndex;
         getRoundTeamForPlayerIndex(currentTurnIndex).setCalledTrump(true);
         this.roundStatus = RoundStatus.DECLARATIONS;
     }

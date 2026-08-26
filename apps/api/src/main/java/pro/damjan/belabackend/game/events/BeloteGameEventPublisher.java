@@ -155,7 +155,8 @@ public class BeloteGameEventPublisher {
             int chosenByTurnIndex,
             Suite trumpSuite,
             RoundStatus roundStatus,
-            Map<String, List<Card>> revealedCardsByUserId
+            Map<String, List<Card>> revealedCardsByUserId,
+            long timeoutSeconds
     ) {
         BeloteRound round = game.getCurrentRound();
 
@@ -178,7 +179,8 @@ public class BeloteGameEventPublisher {
                             game.getTeam1().getTotalScore(),
                             game.getTeam2().getTotalScore(),
                             round.getDeclarations(0),
-                            round.getDeclarations(1)
+                            round.getDeclarations(1),
+                            timeoutSeconds
                     )
             );
         }

@@ -133,6 +133,7 @@ export default function GameScreen({
         chair,
         isMyTurn,
         trumpCountdown,
+        declarationCountdown,
         turnCountdown,
         pendingBreak,
         canPass,
@@ -374,10 +375,18 @@ export default function GameScreen({
             <div className={timerAreaClass}>
                 <TurnTimer
                     countdown={
-                        phase === "choosing-trump" ? trumpCountdown : turnCountdown
+                        phase === "choosing-trump"
+                            ? trumpCountdown
+                            : phase === "declarations"
+                              ? declarationCountdown
+                              : turnCountdown
                     }
-                    label={copy.timer.turn}
-                    urgent={isMyTurn}
+                    label={
+                        phase === "declarations"
+                            ? copy.timer.declarations
+                            : copy.timer.turn
+                    }
+                    urgent={isMyTurn && phase !== "declarations"}
                 />
 
                 {pendingBreak && (

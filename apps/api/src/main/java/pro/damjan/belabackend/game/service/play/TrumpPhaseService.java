@@ -182,7 +182,7 @@ public class TrumpPhaseService {
             game.finishCurrentRoundScoring();
 
             gameAccessService.save(game);
-            gamePublisher.trumpChosen(game, chosenByTurnIndex, suite, RoundStatus.FINISHED, revealedCardsByUserId);
+            gamePublisher.trumpChosen(game, chosenByTurnIndex, suite, RoundStatus.FINISHED, revealedCardsByUserId, 0);
             gameFlowService.endGameOrScheduleNextRound(game, round.getRoundNumber());
             return;
         }
@@ -191,13 +191,20 @@ public class TrumpPhaseService {
             round.setRoundStatus(RoundStatus.DECLARATIONS);
 
             gameAccessService.save(game);
-            gamePublisher.trumpChosen(game, chosenByTurnIndex, suite, RoundStatus.DECLARATIONS, revealedCardsByUserId);
+            gamePublisher.trumpChosen(
+                    game,
+                    chosenByTurnIndex,
+                    suite,
+                    RoundStatus.DECLARATIONS,
+                    revealedCardsByUserId,
+                    DECLARATION_REVEAL_DELAY.toSeconds()
+            );
             scheduleDeclarationsComplete(game);
             return;
         }
 
         startCardPlay(game);
-        gamePublisher.trumpChosen(game, chosenByTurnIndex, suite, RoundStatus.PLAYING, revealedCardsByUserId);
+        gamePublisher.trumpChosen(game, chosenByTurnIndex, suite, RoundStatus.PLAYING, revealedCardsByUserId, 0);
         publishFirstCardTurnOrSchedule(game);
     }
 

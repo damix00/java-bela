@@ -424,7 +424,8 @@
         "timer": {
             "turn": "još {seconds}s",
             "nextTrick": "Sljedeći štih za {seconds}s",
-            "nextRound": "Sljedeća runda za {seconds}s"
+            "nextRound": "Sljedeća runda za {seconds}s",
+            "declarations": "Zvanja se zatvaraju za {seconds}s"
         },
         "score": {
             "us": "Mi",

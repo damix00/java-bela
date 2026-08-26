@@ -25,6 +25,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -71,7 +72,7 @@ class TrumpPhaseServiceTest {
                 }));
 
         verify(gameAccessService).save(game);
-        verify(gamePublisher).trumpChosen(eq(game), eq(0), eq(Suite.HEARTS), eq(RoundStatus.PLAYING), any(Map.class));
+        verify(gamePublisher).trumpChosen(eq(game), eq(0), eq(Suite.HEARTS), eq(RoundStatus.PLAYING), any(Map.class), anyLong());
         verify(gamePublisher).cardTurnStarted(game, 30L);
         verify(cardPlayService).playBotTurnOrSchedule(game);
     }
@@ -89,7 +90,7 @@ class TrumpPhaseServiceTest {
         assertThat(round.getRoundStatus()).isEqualTo(RoundStatus.PLAYING);
         assertThat(round.getCurrentTurnIndex()).isEqualTo(0);
         assertThat(round.getCurrentTrickNumber()).isEqualTo(0);
-        verify(gamePublisher).trumpChosen(eq(game), eq(2), eq(Suite.ACORN), eq(RoundStatus.PLAYING), any(Map.class));
+        verify(gamePublisher).trumpChosen(eq(game), eq(2), eq(Suite.ACORN), eq(RoundStatus.PLAYING), any(Map.class), anyLong());
     }
 
     @Test
@@ -159,7 +160,7 @@ class TrumpPhaseServiceTest {
                         && task.getRequiredIntParameter("roundNumber") == 0
                         && task.getRequiredIntParameter("turnIndex") == 3
         ));
-        verify(gamePublisher, never()).trumpChosen(any(), any(Integer.class), any(Suite.class), any(RoundStatus.class), any(Map.class));
+        verify(gamePublisher, never()).trumpChosen(any(), any(Integer.class), any(Suite.class), any(RoundStatus.class), any(Map.class), anyLong());
     }
 
     @Test
@@ -173,7 +174,7 @@ class TrumpPhaseServiceTest {
         trumpPhaseService.handleBotTrumpChoice("game-1", 0, 3);
 
         assertThat(game.getCurrentRound().getRoundStatus()).isEqualTo(RoundStatus.PLAYING);
-        verify(gamePublisher).trumpChosen(eq(game), eq(3), any(Suite.class), eq(RoundStatus.PLAYING), any(Map.class));
+        verify(gamePublisher).trumpChosen(eq(game), eq(3), any(Suite.class), eq(RoundStatus.PLAYING), any(Map.class), anyLong());
         verify(cardPlayService).playBotTurnOrSchedule(game);
         verify(scheduledTaskRegistry, never()).registerTask(any(ScheduledGameTask.class));
     }
@@ -198,7 +199,7 @@ class TrumpPhaseServiceTest {
         assertThat(game.getCurrentRound().getTeam1RoundScore()).isEqualTo(200);
 
         verify(gameAccessService).save(game);
-        verify(gamePublisher).trumpChosen(eq(game), eq(0), eq(Suite.HEARTS), eq(RoundStatus.DECLARATIONS), any(Map.class));
+        verify(gamePublisher).trumpChosen(eq(game), eq(0), eq(Suite.HEARTS), eq(RoundStatus.DECLARATIONS), any(Map.class), eq(10L));
         verify(gamePublisher, never()).cardTurnStarted(any(), any(Long.class));
         verify(cardPlayService, never()).playBotTurnOrSchedule(game);
         verify(scheduledTaskRegistry).registerTask(org.mockito.ArgumentMatchers.argThat(task ->
@@ -236,7 +237,7 @@ class TrumpPhaseServiceTest {
                 .isEqualTo(pro.damjan.belabackend.game.model.card.Declaration.Type.BELOTE);
 
         verify(gameAccessService).save(game);
-        verify(gamePublisher).trumpChosen(eq(game), eq(0), eq(Suite.BELLS), eq(RoundStatus.FINISHED), any(Map.class));
+        verify(gamePublisher).trumpChosen(eq(game), eq(0), eq(Suite.BELLS), eq(RoundStatus.FINISHED), any(Map.class), anyLong());
         verify(gamePublisher, never()).statusChanged(game);
         verify(gamePublisher, never()).cardTurnStarted(any(), any(Long.class));
         verify(cardPlayService, never()).playBotTurnOrSchedule(game);
