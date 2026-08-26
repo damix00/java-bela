@@ -39,7 +39,61 @@ import type { Locale } from "@/lib/i18n";
 import { homePath } from "@/lib/routes";
 import { appGutters } from "@/lib/styles";
 
-import styles from "./GameScreen.module.css";
+/* The screen's own frame. On a phone it is the viewport, safe areas included,
+   and nothing is allowed to scroll out of it; once both dimensions can hold the
+   desktop table it becomes an ordinary centred page on the app's gutters. */
+const screenClass = [
+    "flex h-full min-h-0 flex-auto flex-col gap-2 overflow-hidden",
+    "pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]",
+    "pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))]",
+    // A shorter phone gives the fixed furniture less and the table more.
+    "portrait-sm:gap-1.5",
+    "flat:gap-1 flat:pt-[max(0.375rem,env(safe-area-inset-top))] flat:pb-[max(0.375rem,env(safe-area-inset-bottom))]",
+    "desk:h-auto desk:min-h-full desk:justify-center desk:gap-4 desk:overflow-visible desk:px-8 desk:py-6",
+    "desk-md:px-28 desk-lg:px-48 desk-xl:px-72",
+].join(" ");
+
+/* The score sits over the screen rather than in its flow, so the table keeps
+   the height. `scoreSpacerClass` is what reserves the row it covers. */
+const scoreDockClass = [
+    "pointer-events-none fixed z-30 flex justify-center",
+    "top-[max(0.75rem,env(safe-area-inset-top))]",
+    "left-[max(0.75rem,env(safe-area-inset-left))] right-[max(0.75rem,env(safe-area-inset-right))]",
+    "flat:top-[max(0.375rem,env(safe-area-inset-top))]",
+    "desk:top-6 desk:left-8 desk:right-8",
+    "desk-md:left-28 desk-md:right-28",
+    "desk-lg:left-48 desk-lg:right-48",
+    "desk-xl:left-72 desk-xl:right-72",
+].join(" ");
+
+/* Laid flat, the table is the only thing with no room to spare, so every row
+   that is not the table gives up what it can — this one included. */
+const scoreSpacerClass = [
+    "w-full h-16 flex-[0_0_4rem]",
+    "portrait-sm:h-14 portrait-sm:flex-[0_0_3.5rem]",
+    "flat:h-12 flat:flex-[0_0_3rem]",
+    "desk:h-19 desk:flex-[0_0_4.75rem]",
+].join(" ");
+
+const playAreaClass = [
+    "flex w-full min-h-0 flex-auto items-stretch mt-2",
+    "portrait-sm:mt-1",
+    "flat:mt-0",
+    "desk:min-h-[auto] desk:flex-none desk:items-center desk:mt-4",
+].join(" ");
+
+/* On the desktop table the timer sits above the hand; on a phone it sits under
+   it, where the thumb is not covering it. */
+const timerAreaClass = "flex flex-none flex-col gap-1 desk:order-1";
+const handAreaClass = "flex flex-none justify-center desk:order-2";
+
+/* The decision surface, and the near seat's own label, are phone furniture:
+   above `desk` the felt and the table's fourth chair carry both. */
+const mobileActionClass = "flex w-full flex-none justify-center desk:hidden";
+const mobilePlayerClass =
+    "flex w-full min-h-9 flex-none justify-center desk:hidden";
+const mobileOnlyClass = "block desk:hidden";
+const desktopOnlyClass = "hidden desk:block";
 
 type GameScreenProps = {
     copy: Dictionary["game"];
@@ -223,8 +277,8 @@ export default function GameScreen({
         (phase === "choosing-trump" && isMyTurn);
 
     return (
-        <main className={styles.screen}>
-            <div className={styles.scoreDock}>
+        <main className={screenClass}>
+            <div className={scoreDockClass}>
                 <ScoreBoard
                     usLabel={copy.score.us}
                     themLabel={copy.score.them}
@@ -249,11 +303,11 @@ export default function GameScreen({
                     roundLabel={copy.score.round}
                 />
             </div>
-            <div className={styles.scoreSpacer} aria-hidden="true" />
+            <div className={scoreSpacerClass} aria-hidden="true" />
 
-            <div className={styles.playArea}>
+            <div className={playAreaClass}>
                 <GameTableStage
-                    className={showMobileAction ? styles.compactStage : undefined}
+                    compact={showMobileAction}
                     near={seatFor(near, "wide")}
                     across={seatFor(across, "wide")}
                     left={seatFor(left, "square")}
@@ -279,7 +333,7 @@ export default function GameScreen({
             </div>
 
             {showMobileAction && round ? (
-                <div className={styles.mobileAction}>
+                <div className={mobileActionClass}>
                     <RoundAction
                         copy={copy}
                         phase={phase}
@@ -297,7 +351,7 @@ export default function GameScreen({
                 </div>
             ) : null}
 
-            <div className={styles.handArea}>
+            <div className={handAreaClass}>
                 <HandFan
                     hand={game.hand}
                     trumpSuite={trumpSuite}
@@ -317,7 +371,7 @@ export default function GameScreen({
                 />
             </div>
 
-            <div className={styles.timerArea}>
+            <div className={timerAreaClass}>
                 <TurnTimer
                     countdown={
                         phase === "choosing-trump" ? trumpCountdown : turnCountdown
@@ -338,7 +392,7 @@ export default function GameScreen({
                 )}
             </div>
 
-            <div className={styles.mobilePlayer}>
+            <div className={mobilePlayerClass}>
                 {seatFor(near, "inline")}
             </div>
 
@@ -407,10 +461,10 @@ function Centre({
 
         return (
             <>
-                <Notice className={cn(styles.mobileOnly, "py-2")}>
+                <Notice className={cn(mobileOnlyClass, "py-2")}>
                     {copy.trick.yourTurn}
                 </Notice>
-                <div className={styles.desktopOnly}>
+                <div className={desktopOnlyClass}>
                     <RoundAction
                         copy={copy}
                         phase={phase}
@@ -433,10 +487,10 @@ function Centre({
     if (phase === "declarations") {
         return (
             <>
-                <Notice className={cn(styles.mobileOnly, "py-2")}>
+                <Notice className={cn(mobileOnlyClass, "py-2")}>
                     {copy.declarations.heading}
                 </Notice>
-                <div className={styles.desktopOnly}>
+                <div className={desktopOnlyClass}>
                     <RoundAction
                         copy={copy}
                         phase={phase}

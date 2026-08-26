@@ -44,3 +44,34 @@
   --shadow-hard-xl: 12px 12px 0 #d1603d;
   --shadow-hard-rust: 8px 8px 0 #d1603d;
 }
+
+/* The game screen's breakpoints, which are not the marketing pages'.
+ *
+ * A table has to fit in both directions at once: a wide phone held sideways has
+ * plenty of width and no height at all, and giving it the desktop table would
+ * print the across seat straight through the felt. So every "roomy" breakpoint
+ * pairs its width with a minimum height, and `sm:`/`md:`/`lg:`/`xl:` — which ask
+ * about width alone — are the wrong tool for anything the table's geometry
+ * depends on.
+ *
+ * Order is load-bearing: Tailwind sorts these by the order they are declared
+ * here, so each step has to be able to override the one above it. */
+
+/* Portrait phones, by how little height is left. Two rows of cards are the
+   biggest single claim on it, so these mostly step the hand down. */
+@custom-variant portrait-md (@media (orientation: portrait) and (max-height: 800px));
+@custom-variant portrait-sm (@media (orientation: portrait) and (max-height: 720px));
+@custom-variant portrait-xs (@media (orientation: portrait) and (max-height: 660px));
+
+/* Any screen short enough that an open decision tray leaves the felt short of
+   room. Declared before `flat` and `desk` so both still win over it. */
+@custom-variant tray-room (@media (max-height: 780px));
+
+/* A phone laid flat: width to spare, no height whatsoever. */
+@custom-variant flat (@media (max-height: 560px) and (orientation: landscape));
+
+/* Both dimensions can hold the desktop table geometry. */
+@custom-variant desk (@media (min-width: 640px) and (min-height: 561px));
+@custom-variant desk-md (@media (min-width: 768px) and (min-height: 561px));
+@custom-variant desk-lg (@media (min-width: 1024px) and (min-height: 561px));
+@custom-variant desk-xl (@media (min-width: 1280px) and (min-height: 561px));

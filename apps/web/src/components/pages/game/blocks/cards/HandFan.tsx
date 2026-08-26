@@ -5,8 +5,6 @@ import { cardKey, isTrump, legalMoveKeys, sortHand } from "@/lib/game-rules";
 import { cn } from "@/lib/cn";
 import type { Card, PlayedCard, Suite } from "@bela/protocol";
 
-import styles from "./HandFan.module.css";
-
 type HandFanProps = {
     hand: Card[];
     trumpSuite: Suite | null;
@@ -19,6 +17,29 @@ type HandFanProps = {
     /** Withheld seventh/eighth cards before trump is called. */
     hiddenCount?: number;
 };
+
+/**
+ * Two rows of four is the portrait design, but it is also the biggest single
+ * claim on the height, and on a shorter phone that claim is what squeezes the
+ * table down to nothing. The cards are sized from this width, so stepping it
+ * down hands the room back to the felt.
+ *
+ * A short landscape phone and a roomy screen both drop to a single overlapped
+ * row: laid flat, two rows would spend almost half the available height before
+ * the table appeared.
+ */
+const handClass = [
+    "grid w-[calc(100%-1rem)] max-w-84 grid-cols-4 items-end justify-center gap-2 px-0.5 pt-1",
+    "portrait-md:max-w-[18.5rem]",
+    "portrait-sm:max-w-64 portrait-sm:gap-1.5",
+    "portrait-xs:max-w-56",
+    "flat:flex flat:w-full flat:max-w-[25.5rem] flat:flex-nowrap flat:gap-0 flat:px-2",
+    "desk:flex desk:w-full desk:max-w-[25.5rem] desk:flex-nowrap desk:gap-0 desk:px-2",
+].join(" ");
+
+/** How far each card tucks under the one before it, once the hand is one row. */
+const overlapClass =
+    "flat:not-first:-ml-5 desk:not-first:-ml-3.5";
 
 /**
  * Your eight cards, in a thumb-readable hand.
@@ -44,7 +65,7 @@ export default function HandFan({
     const sorted = sortHand(hand, trumpSuite);
     const legal = active ? legalMoveKeys(trickCards, trumpSuite, hand) : null;
     const cardClass = cn(
-        styles.card,
+        overlapClass,
         "w-full sm:w-20 [@media(max-height:560px)]:w-14",
     );
 
@@ -52,7 +73,7 @@ export default function HandFan({
         <div
             data-game-hand=""
             data-active={active ? "true" : "false"}
-            className={styles.hand}
+            className={handClass}
             role="group"
         >
             {sorted.map((card) => {
