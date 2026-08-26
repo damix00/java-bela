@@ -8,6 +8,8 @@ Code quality:
 - Handle exceptions gracefully. Don't let uncaught exceptions crash the application. Use try-catch blocks where appropriate and provide informative error messages.
 - Regularly review and refactor your code to improve readability, maintainability, and performance. Don't be afraid to revisit old code and make improvements as you learn more about the problem domain and best practices.
 
+ALWAYS run tests before committing.
+
 ## Build & Run
 
 ```bash

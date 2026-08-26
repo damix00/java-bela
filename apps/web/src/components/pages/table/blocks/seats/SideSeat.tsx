@@ -1,15 +1,13 @@
 import MockLabel from "@/components/pages/table/blocks/shared/MockLabel";
-import SuitBadge, {
-    type BadgeTone,
-} from "@/components/pages/table/blocks/seats/SuitBadge";
 import SwapBadge from "@/components/pages/table/blocks/seats/SwapBadge";
 import { cn } from "@/lib/cn";
 import { focusRing, pressSm, swapRing } from "@/lib/styles";
+import UserAvatar from "@/components/layout/UserAvatar";
 
 type SideSeatProps = {
     name: string;
-    suit: string;
-    tone?: BadgeTone;
+    /** Null for guests and accounts with no image — the tile falls back to an initial. */
+    avatarUrl: string | null;
     /** Marked as ready — a filled corner rather than a word, at this size. */
     ready?: boolean;
     /** Short mark under the name where there is room for one: host, bot, you. */
@@ -36,8 +34,7 @@ type SideSeatProps = {
  */
 export default function SideSeat({
     name,
-    suit,
-    tone,
+    avatarUrl,
     ready = false,
     note,
     onClick,
@@ -61,13 +58,16 @@ export default function SideSeat({
             {onClick && (
                 <SwapBadge size="sm" className="absolute top-1 right-1" />
             )}
-            <SuitBadge suit={suit} tone={tone} size="sm" />
+            <UserAvatar
+                username={name}
+                avatarUrl={avatarUrl}
+                className={ready ? "border-cream" : "border-ink"}
+            />
             <span
                 className={cn(
                     "hidden w-full truncate text-center font-display text-[13px] font-extrabold tracking-[-.02em] sm:block",
                     ready ? "text-cream" : "text-ink",
-                )}
-            >
+                )}>
                 {name}
             </span>
             {note && (
@@ -75,8 +75,7 @@ export default function SideSeat({
                     className={cn(
                         "hidden text-center text-[9px] tracking-[.1em] lg:block",
                         ready ? "text-cream/80" : "text-stone",
-                    )}
-                >
+                    )}>
                     {note}
                 </MockLabel>
             )}
@@ -98,8 +97,7 @@ export default function SideSeat({
             disabled={disabled}
             aria-label={actionLabel ?? name}
             aria-busy={swapStatus === "pending"}
-            className={shell}
-        >
+            className={shell}>
             {body}
         </button>
     );

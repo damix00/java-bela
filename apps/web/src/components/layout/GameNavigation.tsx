@@ -48,8 +48,7 @@ export default function GameNavigation({
                 className={cn(
                     "sticky top-0 z-20 border-b-4 border-ink bg-ink py-2 sm:py-3",
                     appGutters,
-                )}
-            >
+                )}>
                 {/* The band is full-bleed; only its contents take the gutters, which is
             what puts the logo on the same edge as the table below it. */}
                 {/* The row is only as tall as the avatar on a phone, where the bar is
@@ -58,15 +57,13 @@ export default function GameNavigation({
                 <div className="flex min-h-10 items-center gap-5 sm:min-h-13 sm:gap-9">
                     <Link
                         href={lobbyHref}
-                        className="shrink-0 focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-rust"
-                    >
+                        className="shrink-0 focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-rust">
                         <Logo dense tone="cream" />
                     </Link>
 
                     <nav
                         aria-label={copy.navigationLabel}
-                        className="hidden shrink-0 items-center gap-6 sm:flex lg:gap-7"
-                    >
+                        className="hidden shrink-0 items-center gap-6 sm:flex lg:gap-7">
                         {destinations.map((destination) => {
                             const label = copy.nav[destination.key];
                             const className = cn(
@@ -84,16 +81,14 @@ export default function GameNavigation({
                                     className={cn(
                                         className,
                                         "focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-rust",
-                                    )}
-                                >
+                                    )}>
                                     {label}
                                 </Link>
                             ) : (
                                 <span
                                     key={destination.key}
                                     aria-disabled="true"
-                                    className={className}
-                                >
+                                    className={className}>
                                     {label}
                                 </span>
                             );
@@ -154,8 +149,7 @@ export default function GameNavigation({
                 className={cn(
                     "fixed inset-x-0 bottom-0 z-30 grid border-t-4 border-ink bg-ink pb-[env(safe-area-inset-bottom)] sm:hidden",
                     user ? "grid-cols-5" : "grid-cols-4",
-                )}
-            >
+                )}>
                 {destinations.map((destination) => {
                     const label = copy.nav[destination.key];
                     const content = (
@@ -183,16 +177,14 @@ export default function GameNavigation({
                             className={cn(
                                 className,
                                 "focus-visible:outline-4 focus-visible:outline-inset focus-visible:outline-rust",
-                            )}
-                        >
+                            )}>
                             {content}
                         </Link>
                     ) : (
                         <span
                             key={destination.key}
                             aria-disabled="true"
-                            className={className}
-                        >
+                            className={className}>
                             {content}
                         </span>
                     );
@@ -208,10 +200,10 @@ export default function GameNavigation({
                         className={cn(
                             barItem,
                             "border-t-4 border-transparent text-ash/70",
-                        )}
-                    >
+                        )}>
                         <UserAvatar
-                            user={user}
+                            username={user.username}
+                            avatarUrl={user.avatarUrl}
                             size="sm"
                             className="border-ash/70 opacity-80"
                         />

@@ -1,67 +1,69 @@
+/* Phones lay the table out as three rows of a grid rather than as absolutely
+   placed chairs. The chairs used to float over the felt, which held together
+   only while the play area happened to be tall enough — below that the across
+   seat printed its name straight through the middle of the table. Rows cannot
+   collide, and the felt simply takes whatever height is left over. */
 .stage {
     position: relative;
-    container-type: size;
+    display: grid;
     width: 100%;
     height: 100%;
     min-height: 0;
     max-width: 45rem;
+    align-items: center;
+    justify-items: center;
     margin-inline: auto;
-}
-
-.across,
-.near,
-.left,
-.right,
-.felt {
-    position: absolute;
-}
-
-.across,
-.near {
-    left: 50%;
-    z-index: 3;
-    width: min(72%, 18rem);
-    translate: -50% 0;
+    gap: 0.25rem;
+    grid-template-columns: minmax(2.75rem, 4rem) minmax(0, 1fr) minmax(
+            2.75rem,
+            4rem
+        );
+    grid-template-rows: auto minmax(0, 1fr);
 }
 
 .across {
-    top: 0;
-}
-
-.near {
-    bottom: 0;
+    z-index: 3;
+    width: min(100%, 18rem);
+    grid-column: 1 / -1;
+    grid-row: 1;
 }
 
 .left,
 .right {
-    top: 50%;
     z-index: 3;
-    width: 4rem;
-    aspect-ratio: 1;
-    translate: 0 -50%;
+    width: 100%;
+    grid-row: 2;
 }
 
 .left {
-    left: -0.375rem;
+    grid-column: 1;
 }
 
 .right {
-    right: -0.375rem;
+    grid-column: 3;
 }
 
+.feltCell {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    align-items: center;
+    justify-content: center;
+    container-type: size;
+    grid-column: 2;
+    grid-row: 2;
+}
+
+/* A square that fits whichever side is shorter — a letterbox table reads as a
+   bug, and a table taller than the room leaves the trick clipped. */
 .felt {
-    top: 50%;
-    left: 50%;
     z-index: 1;
-    width: min(
-        var(--game-felt-max, 26rem),
-        calc(100% - 3.5rem),
-        max(var(--game-felt-floor, 10rem), calc(100cqh - 2.5rem))
-    );
+    width: max(5.5rem, min(100%, 100cqh));
     aspect-ratio: 1;
-    translate: -50% -50%;
 }
 
+/* Below the hand on phones, so it is not a chair at this size. */
 .near {
     display: none;
 }
@@ -78,54 +80,45 @@
     overflow: hidden;
 }
 
+/* With a decision tray under the table there is less to go round, so the felt
+   is allowed to give up more of it. */
+@media (max-height: 780px) {
+    .compactStage .felt {
+        width: max(4rem, min(100%, 100cqh));
+    }
+}
+
 @media (max-height: 560px) and (orientation: landscape) {
     .stage {
-        min-height: 0;
-    }
-
-    .near {
-        display: none;
+        gap: 0.125rem;
+        grid-template-columns: 3rem minmax(0, 1fr) 3rem;
     }
 
     .across {
-        width: min(34%, 13rem);
-    }
-
-    .left,
-    .right {
-        width: 3rem;
+        width: min(100%, 13rem);
     }
 
     .felt {
-        width: min(10rem, calc(100% - 8rem), calc(100cqh - 1.75rem));
+        width: max(3.5rem, min(100%, 100cqh));
     }
 }
 
 @media (min-width: 640px) and (min-height: 561px) {
     .stage {
-        display: grid;
-        container-type: normal;
         height: auto;
         min-height: 0;
         max-width: 40rem;
-        grid-template-columns: 5rem minmax(0, 1fr) 5rem;
         align-items: stretch;
+        justify-items: stretch;
         gap: 1rem;
-    }
-
-    .across,
-    .near,
-    .left,
-    .right,
-    .felt {
-        position: static;
-        width: auto;
-        translate: none;
+        grid-template-columns: 5rem minmax(0, 1fr) 5rem;
+        grid-template-rows: auto minmax(0, 1fr) auto;
     }
 
     .across,
     .near {
         display: flex;
+        width: auto;
         grid-column: 1 / 4;
     }
 
@@ -140,26 +133,19 @@
     .left,
     .right {
         display: flex;
-        width: 100%;
         align-self: center;
     }
 
-    .left {
-        left: auto;
-        grid-column: 1;
-        grid-row: 2;
-    }
-
-    .right {
-        right: auto;
-        grid-column: 3;
+    .feltCell {
+        display: block;
+        height: auto;
+        container-type: normal;
         grid-row: 2;
     }
 
     .felt {
         width: 100%;
-        grid-column: 2;
-        grid-row: 2;
+        aspect-ratio: 1;
     }
 
     .feltInner {
@@ -170,8 +156,8 @@
 @media (min-width: 1024px) and (min-height: 561px) {
     .stage {
         max-width: 62.5rem;
-        grid-template-columns: minmax(0, 1fr) 24rem minmax(0, 1fr);
         gap: 1.5rem;
+        grid-template-columns: minmax(0, 1fr) 24rem minmax(0, 1fr);
     }
 
     .across,

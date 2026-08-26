@@ -38,20 +38,25 @@ export default function GameTableStage({
             <div className={styles.across}>{across}</div>
             <div className={styles.left}>{left}</div>
 
-            <div
-                data-game-table=""
-                className={cn(
-                    styles.felt,
-                    "overflow-hidden border-4 border-ink bg-baize-deep p-1.5 shadow-hard-lg sm:p-2 lg:p-[10px]",
-                )}
-            >
+            {/* The cell is what the felt measures itself against: a square that
+                fits the shorter of the two sides needs to know the height, and
+                a grid track cannot be asked for it. */}
+            <div className={styles.feltCell}>
                 <div
+                    data-game-table=""
                     className={cn(
-                        styles.feltInner,
-                        "border-2 border-mint/20 bg-baize p-1.5 sm:p-4",
+                        styles.felt,
+                        "overflow-hidden border-4 border-ink bg-baize-deep p-1.5 shadow-hard-lg sm:p-2 lg:p-[10px]",
                     )}
                 >
-                    {centre}
+                    <div
+                        className={cn(
+                            styles.feltInner,
+                            "border-2 border-mint/20 bg-baize p-1.5 sm:p-4",
+                        )}
+                    >
+                        {centre}
+                    </div>
                 </div>
             </div>
 

@@ -332,6 +332,7 @@
             "readyAction": "I’m ready",
             "unreadyAction": "Not ready",
             "startWithBots": "Play with bots",
+            "play": "Play",
             "botFillNote": {
                 "one": "Starting now fills the last open seat with a bot.",
                 "other": "Starting now fills the {count} open seats with bots."

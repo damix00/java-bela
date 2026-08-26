@@ -12,7 +12,6 @@ import CardFan from "@/components/pages/table/blocks/stage/CardFan";
 import TableStage from "@/components/pages/table/blocks/stage/TableStage";
 import {
     partnerSeat,
-    seatIdentity,
     seatsFromChair,
 } from "@/components/pages/table/seat-identity";
 import type { Seats } from "@/context/lobby-context";
@@ -40,6 +39,7 @@ type TableSeatProps = {
     variant: "row" | "side";
     hasTable: boolean;
     name: string;
+    avatarUrl: string | null;
     /** A move into this seat is in flight or has just landed. */
     status?: "pending" | "complete";
     disabled?: boolean;
@@ -72,7 +72,7 @@ type SwapRequest = {
     targetSeat: number;
 };
 
-type ResolvedTableSeatProps = Omit<TableSeatProps, "name"> & {
+type ResolvedTableSeatProps = Omit<TableSeatProps, "name" | "avatarUrl"> & {
     user: User;
 };
 
@@ -96,11 +96,28 @@ function getPlayerName(
     return player.username ?? copy.lobby.unknownPlayer;
 }
 
+/**
+ * The image beside the name, resolved from the same place the name is.
+ *
+ * Your own comes from the session for the same reason your name does: the seat
+ * copy was taken when you sat down, so a picture changed since then is yours to
+ * see straight away. Everyone else's rides along on the seat.
+ */
+function getPlayerAvatar(
+    player: LobbyPlayer | null,
+    user: User,
+): string | null {
+    if (!player || player.userId === user.id) return user.avatarUrl;
+
+    return player.avatarUrl ?? null;
+}
+
 function ResolvedTableSeat({ user, ...seatProps }: ResolvedTableSeatProps) {
     return (
         <TableSeat
             {...seatProps}
             name={getPlayerName(seatProps.player, seatProps.copy, user)}
+            avatarUrl={getPlayerAvatar(seatProps.player, user)}
         />
     );
 }
@@ -114,11 +131,11 @@ function TableSeat({
     variant,
     hasTable,
     name,
+    avatarUrl,
     status,
     disabled = false,
     onRequestSwap,
 }: TableSeatProps) {
-    const { suit, tone } = seatIdentity(seat);
     // Every chair but your own, occupied or not. The backend has never been the
     // constraint — `Lobby.swapSeats` takes any index and treats a vacant target
     // as a plain move — and a seat that is dead for a reason the player cannot
@@ -133,10 +150,9 @@ function TableSeat({
     if (!player && isYou && !hasTable) {
         return (
             <SeatCard
+                avatarUrl={avatarUrl}
                 name={name}
                 meta=""
-                suit={suit}
-                tone={tone}
                 tags={[{ label: copy.you }]}
                 className="w-full"
             />
@@ -163,8 +179,7 @@ function TableSeat({
         return (
             <SideSeat
                 name={name}
-                suit={suit}
-                tone={tone}
+                avatarUrl={avatarUrl}
                 ready={ready}
                 note={player.host ? copy.lobby.host : copy.lobby.opponent}
                 onClick={handleClick}
@@ -192,10 +207,9 @@ function TableSeat({
 
     return (
         <SeatCard
+            avatarUrl={avatarUrl}
             name={name}
             meta={meta}
-            suit={suit}
-            tone={tone}
             tags={tags}
             onClick={handleClick}
             actionLabel={actionLabel}

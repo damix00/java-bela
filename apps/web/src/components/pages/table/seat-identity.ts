@@ -1,25 +1,3 @@
-import type { BadgeTone } from "@/components/pages/table/blocks/seats/SuitBadge";
-
-/**
- * The tile a seat wears.
- *
- * Derived from the seat, not the player. Accounts have an `avatarUrl` field and
- * nothing yet fills it, so the tile is standing in — and a tile picked per seat
- * is guaranteed to give four different ones at a full table, which picking per
- * player is not. It also means the tile marks the chair: someone who moves seats
- * visibly moves, rather than carrying their colour across the table.
- */
-const seatIdentities: readonly { suit: string; tone: BadgeTone }[] = [
-    { suit: "♠", tone: "ink" },
-    { suit: "♥", tone: "rust" },
-    { suit: "♦", tone: "forest" },
-    { suit: "♣", tone: "ink" },
-];
-
-export function seatIdentity(seat: number) {
-    return seatIdentities[seat] ?? seatIdentities[0];
-}
-
 /**
  * Who partners whom.
  *
@@ -54,7 +32,9 @@ export function partnerSeat(seat: number): number {
  * With no chair of your own — the idle screen, before a lobby exists — it falls
  * back to seat order, so seat 0 sits at the near edge.
  */
-export function seatsFromChair(chair: number): [number, number, number, number] {
+export function seatsFromChair(
+    chair: number,
+): [number, number, number, number] {
     const near = chair;
     const across = partnerSeat(near);
     // The opposing pair, in seat order, taking the sides.

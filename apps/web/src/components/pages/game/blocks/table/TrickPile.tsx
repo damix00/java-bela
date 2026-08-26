@@ -45,8 +45,12 @@ export default function TrickPile({
         );
     }
 
+    // The tracks are sized rather than left to their contents: an empty seat's
+    // cell would otherwise collapse and slide the whole trick off the middle of
+    // the felt as each card arrived. The row heights are the card's own, so the
+    // pile is exactly three cards tall however many have been played.
     return (
-        <div className="grid grid-cols-3 grid-rows-3 place-items-center gap-1">
+        <div className="grid grid-cols-[repeat(3,2.25rem)] grid-rows-[repeat(3,3.75rem)] place-items-center gap-1 min-[380px]:grid-cols-[repeat(3,2.5rem)] min-[380px]:grid-rows-[repeat(3,4.125rem)] sm:grid-cols-[repeat(3,3.5rem)] sm:grid-rows-[repeat(3,5.75rem)]">
             {playedCards.map((played) => (
                 <div
                     key={`${played.playerIndex}-${cardKey(played.card)}`}

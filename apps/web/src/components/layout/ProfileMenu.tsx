@@ -113,7 +113,10 @@ export default function ProfileMenu({
                 <span className="hidden max-w-48 truncate font-display text-[16px] font-extrabold tracking-[-.02em] text-cream min-[1400px]:block">
                     {user.username}
                 </span>
-                <UserAvatar user={user} />
+                <UserAvatar
+                    username={user.username}
+                    avatarUrl={user.avatarUrl}
+                />
                 <Icon
                     glyph={ChevronDown}
                     size="sm"
@@ -135,7 +138,11 @@ export default function ProfileMenu({
                         at menu scale so the panel reads as belonging to the corner it
                         dropped out of. */}
                     <div className="flex min-w-0 items-center gap-3 border-b-4 border-ink p-4">
-                        <UserAvatar user={user} className="border-ink" />
+                        <UserAvatar
+                            username={user.username}
+                            avatarUrl={user.avatarUrl}
+                            className="border-ink"
+                        />
                         <div className="min-w-0">
                             <p className="truncate font-display text-[16px] font-extrabold tracking-[-.02em] text-ink">
                                 {user.username}

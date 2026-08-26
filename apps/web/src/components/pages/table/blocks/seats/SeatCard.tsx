@@ -1,8 +1,6 @@
 import MockLabel from "@/components/pages/table/blocks/shared/MockLabel";
-import SuitBadge, {
-    type BadgeTone,
-} from "@/components/pages/table/blocks/seats/SuitBadge";
 import SwapBadge from "@/components/pages/table/blocks/seats/SwapBadge";
+import UserAvatar from "@/components/layout/UserAvatar";
 import Card from "@/components/ui/surfaces/Card";
 import { cn } from "@/lib/cn";
 import { pressSm, swapRing } from "@/lib/styles";
@@ -16,10 +14,10 @@ export type SeatTag = {
 
 type SeatCardProps = {
     name: string;
+    /** Null for guests and accounts with no image — the tile falls back to an initial. */
+    avatarUrl: string | null;
     /** Everything under the name — partnership, rating, whose deal it is. */
     meta: string;
-    suit: string;
-    tone?: BadgeTone;
     /** Marks on the seat, right-aligned in the order given. */
     tags?: SeatTag[];
     /**
@@ -43,10 +41,9 @@ const tagTones: Record<NonNullable<SeatTag["tone"]>, string> = {
 
 /** A taken seat: who is in it, and what the table knows about them. */
 export default function SeatCard({
+    avatarUrl,
     name,
     meta,
-    suit,
-    tone,
     tags,
     onClick,
     actionLabel,
@@ -56,7 +53,12 @@ export default function SeatCard({
 }: SeatCardProps) {
     const body = (
         <>
-            <SuitBadge suit={suit} tone={tone} />
+            <UserAvatar
+                username={name}
+                avatarUrl={avatarUrl}
+                size="lg"
+                className="border-ink"
+            />
             <span className="mr-auto flex min-w-0 flex-col text-left">
                 <span className="truncate font-display text-[17px] font-extrabold tracking-[-.02em] text-ink">
                     {name}
@@ -73,8 +75,7 @@ export default function SeatCard({
                     className={cn(
                         "border-[3px] px-2 py-[6px] sm:px-3",
                         tagTones[tag.tone ?? "paper"],
-                    )}
-                >
+                    )}>
                     {tag.label}
                 </MockLabel>
             ))}
@@ -105,8 +106,7 @@ export default function SeatCard({
             disabled={disabled}
             aria-label={actionLabel}
             aria-busy={status === "pending"}
-            className={cn(shell, "cursor-pointer text-left", pressSm)}
-        >
+            className={cn(shell, "cursor-pointer text-left", pressSm)}>
             {body}
         </Card>
     );

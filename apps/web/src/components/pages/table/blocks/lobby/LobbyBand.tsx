@@ -3,7 +3,7 @@
 import { UserPlus } from "lucide-react";
 import { useState } from "react";
 
-import { LobbyPlayerStatus } from "@bela/protocol";
+import { LobbyPlayerStatus, MatchType } from "@bela/protocol";
 
 import { Button } from "@/components/controls/Button";
 import FormError from "@/components/controls/FormError";
@@ -126,7 +126,9 @@ export default function LobbyBand({
                     onClick={() => setReady(!isReady)}
                     className="min-h-16 w-full py-4 text-center text-[18px] tracking-[-.02em] sm:text-[19px]">
                     {starts
-                        ? t.startWithBots
+                        ? lobby.gameConfiguration.matchType == MatchType.PRIVATE
+                            ? t.startWithBots
+                            : t.play
                         : isReady
                           ? t.unreadyAction
                           : t.readyAction}

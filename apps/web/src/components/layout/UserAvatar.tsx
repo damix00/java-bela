@@ -1,6 +1,5 @@
 import Image from "next/image";
 
-import type { User } from "@/api/types/user";
 import { cn } from "@/lib/cn";
 
 const sizes = {
@@ -8,26 +7,30 @@ const sizes = {
     sm: { box: "size-6 border-2", text: "text-[11px]", px: 24 },
     /** Top-bar scale. */
     md: { box: "size-10 border-[3px]", text: "text-[17px]", px: 40 },
+    /** Seat scale: the tile a player wears at the table. */
+    lg: { box: "size-11 border-[3px]", text: "text-[19px]", px: 44 },
 } as const;
 
 type UserAvatarProps = {
-    user: User;
+    username: string;
+    avatarUrl: string | null;
     size?: keyof typeof sizes;
     className?: string;
 };
 
 /** The real account image, with an initial for guests and image-less accounts. */
 export default function UserAvatar({
-    user,
+    username,
+    avatarUrl,
     size = "md",
     className,
 }: UserAvatarProps) {
     const scale = sizes[size];
 
-    if (user.avatarUrl) {
+    if (avatarUrl) {
         return (
             <Image
-                src={user.avatarUrl}
+                src={avatarUrl}
                 alt=""
                 width={scale.px}
                 height={scale.px}
@@ -49,9 +52,8 @@ export default function UserAvatar({
                 scale.box,
                 scale.text,
                 className,
-            )}
-        >
-            {user.username.charAt(0)}
+            )}>
+            {username.charAt(0)}
         </span>
     );
 }

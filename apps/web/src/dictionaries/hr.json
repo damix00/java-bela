@@ -332,6 +332,7 @@
             "readyAction": "Spreman sam",
             "unreadyAction": "Nisam spreman",
             "startWithBots": "Igraj s botovima",
+            "play": "Igraj",
             "botFillNote": {
                 "one": "Kreneš li sad, zadnje prazno mjesto popunjava bot.",
                 "other": "Kreneš li sad, {count} prazna mjesta popunjavaju botovi."

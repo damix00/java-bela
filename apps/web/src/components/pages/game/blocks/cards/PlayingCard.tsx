@@ -24,7 +24,7 @@ import type { Card, Rank, Suite } from "@bela/protocol";
 
 const WIDTHS = {
     /** On the felt, and in the three hands that are not yours. */
-    sm: "w-10 sm:w-14 [@media(max-height:560px)]:w-9",
+    sm: "w-9 min-[380px]:w-10 sm:w-14 [@media(max-height:560px)]:w-9",
     /** Your own hand. */
     md: "w-[clamp(3.625rem,17vw,4.25rem)] sm:w-20 [@media(max-height:560px)]:w-14",
 } as const;
