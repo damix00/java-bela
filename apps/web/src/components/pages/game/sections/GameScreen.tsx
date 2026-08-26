@@ -296,10 +296,14 @@ export default function GameScreen({
                         round?.trumpCallerIndex === null ||
                         round?.trumpCallerIndex === undefined
                             ? null
-                            : copy.trump.calledBy.replace(
-                                  "{name}",
-                                  nameOf(round.trumpCallerIndex),
-                              )
+                            : // Which side called is what the scoreboard is
+                              // about — a name is longer than the slot and gets
+                              // truncated, and it is the team that owes the
+                              // contract anyway.
+                              round.trumpCallerIndex === chair ||
+                                round.trumpCallerIndex === across
+                              ? copy.trump.calledByUs
+                              : copy.trump.calledByThem
                     }
                     roundLabel={copy.score.round}
                 />

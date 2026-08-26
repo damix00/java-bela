@@ -85,7 +85,7 @@ export default function ScoreBoard({
                 ) : null}
                 <div className="flex min-w-0 flex-col items-start text-left">
                     {trumpCallerLabel ? (
-                        <span className="w-full truncate text-[12px] font-bold whitespace-nowrap text-mint/80 desk:text-[14px] flat:text-[10px]">
+                        <span className="text-[12px] font-bold whitespace-nowrap text-mint/80 desk:text-[14px] flat:text-[10px]">
                             {trumpCallerLabel}
                         </span>
                     ) : null}

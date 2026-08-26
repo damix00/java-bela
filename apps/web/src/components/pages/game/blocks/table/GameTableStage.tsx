@@ -67,8 +67,11 @@ const feltClass = [
     "overflow-hidden border-4 border-ink bg-baize-deep p-1.5 shadow-hard-lg sm:p-2 lg:p-[10px]",
 ].join(" ");
 
+/* A size container: the trick pile sizes its cards against the felt itself, so
+   they grow with the table instead of against a rem ladder that can outrun a
+   small square and spill over the border. */
 const feltInnerClass =
-    "flex h-full min-h-0 w-full flex-col items-center justify-center gap-1.5 overflow-hidden desk:gap-3 border-2 border-mint/20 bg-baize p-1.5 sm:p-4";
+    "flex h-full min-h-0 w-full flex-col items-center justify-center gap-1.5 overflow-hidden [container-type:size] desk:gap-3 border-2 border-mint/20 bg-baize p-1.5 sm:p-4";
 
 /**
  * The in-game table.

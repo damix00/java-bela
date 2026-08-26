@@ -385,7 +385,8 @@
             "mustCall": "Everyone passed — you have to call.",
             "waiting": "{name} is calling trump…",
             "label": "Trump",
-            "calledBy": "Called by {name}"
+            "calledByUs": "Called by us",
+            "calledByThem": "Called by them"
         },
         "declarations": {
             "heading": "Declarations",

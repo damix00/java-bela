@@ -385,7 +385,8 @@
             "mustCall": "Svi su rekli dalje — moraš zvati.",
             "waiting": "{name} zove aduta…",
             "label": "Adut",
-            "calledBy": "Zvao/la {name}"
+            "calledByUs": "Zvali smo mi",
+            "calledByThem": "Zvali su oni"
         },
         "declarations": {
             "heading": "Zvanja",

@@ -4,6 +4,13 @@ import { cn } from "@/lib/cn";
 import type { PlayedCard } from "@bela/protocol";
 import type { SeatOrder } from "@/lib/game-seats";
 
+const pileClass = [
+    "grid place-items-center",
+    "[--trick-card:min(5.25rem,42cqw,28cqh)]",
+    "grid-cols-[repeat(3,calc(var(--trick-card)*0.65))]",
+    "grid-rows-[repeat(3,calc(var(--trick-card)*0.9))]",
+].join(" ");
+
 type TrickPileProps = {
     playedCards: PlayedCard[];
     /** Near, left, across, right — where each seat's card belongs on the felt. */
@@ -47,18 +54,29 @@ export default function TrickPile({
 
     // The tracks are sized rather than left to their contents: an empty seat's
     // cell would otherwise collapse and slide the whole trick off the middle of
-    // the felt as each card arrived. The row heights are the card's own, so the
-    // pile is exactly three cards tall however many have been played.
+    // the felt as each card arrived.
+    //
+    // `--trick-card` is the card width, and it is measured against the felt (a
+    // size container) rather than off a rem ladder — a fixed width big enough to
+    // read on a phone is wider than the felt square on a short one, and spills
+    // over the border. The tracks are then deliberately smaller than the card
+    // they hold, so the four cards lap over each other the way they would on a
+    // real table; that buys every card about a third more width for the same
+    // patch of felt.
     return (
-        <div className="grid grid-cols-[repeat(3,2.25rem)] grid-rows-[repeat(3,3.75rem)] place-items-center gap-1 min-[380px]:grid-cols-[repeat(3,2.5rem)] min-[380px]:grid-rows-[repeat(3,4.125rem)] sm:grid-cols-[repeat(3,3.5rem)] sm:grid-rows-[repeat(3,5.75rem)]">
+        <div className={pileClass}>
             {playedCards.map((played) => (
                 <div
                     key={`${played.playerIndex}-${cardKey(played.card)}`}
                     className={cn(
+                        // Overlapping cards need a stacking order, and the
+                        // trick's winner is the one that must not end up under
+                        // somebody else's corner.
+                        "relative",
                         placement[played.playerIndex] ??
                             "col-start-2 row-start-2",
                         winningPlayerIndex === played.playerIndex &&
-                            "outline-4 outline-offset-2 outline-mint",
+                            "z-10 outline-4 outline-offset-2 outline-mint",
                     )}
                 >
                     <PlayingCard card={played.card} size="sm" />
