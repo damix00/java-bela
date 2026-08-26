@@ -276,7 +276,9 @@
             },
             "private": {
                 "title": "Private",
-                "note": "invite only · your rules"
+                "note": "to {score} · invite only · your rules",
+                "score": "to {score}",
+                "pointsLabel": "Play to"
             }
         },
         "gameModeLabel": "Choose a game mode",

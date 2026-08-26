@@ -6,7 +6,12 @@ import { MatchType } from "@bela/protocol";
 
 import RankedGate from "@/components/pages/table/blocks/lobby/RankedGate";
 import MockLabel from "@/components/pages/table/blocks/shared/MockLabel";
-import { useLobby, useLobbyActions } from "@/context/lobby-context";
+import {
+    PRIVATE_TARGET_SCORE,
+    PRIVATE_TARGET_SCORES,
+    useLobby,
+    useLobbyActions,
+} from "@/context/lobby-context";
 import type { Dictionary } from "@/dictionaries";
 import { cn } from "@/lib/cn";
 import { focusRing, pressSm } from "@/lib/styles";
@@ -26,6 +31,67 @@ type TableRulesProps = {
      */
     guest: boolean;
 };
+
+/**
+ * How long a private table plays for, as four lengths side by side.
+ *
+ * It lives inside the Private row of the rules menu rather than beside it: the
+ * score is not a second setting, it is the rest of the sentence that row starts
+ * — and a table only has a length to choose once it is private.
+ *
+ * Flat, unlike nearly every other button on this screen. The menu it sits in is
+ * already a raised block, and four more shadowed blocks inside it read as a
+ * second layer stacked on the first; the fill carries the state instead.
+ *
+ * Both handlers stop propagation. The row underneath is a listbox option that
+ * commits on click, and the list itself commits on Enter and Space — without
+ * this, choosing 701 would also re-select the row it is standing on.
+ */
+function TargetScorePicker({
+    label,
+    target,
+    onSelect,
+}: {
+    label: string;
+    target: number;
+    onSelect: (points: number) => void;
+}) {
+    return (
+        <span role="group" aria-label={label} className="mt-2.5 flex gap-2">
+            {PRIVATE_TARGET_SCORES.map((points) => {
+                const current = points === target;
+
+                return (
+                    <button
+                        key={points}
+                        type="button"
+                        aria-pressed={current}
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            onSelect(points);
+                        }}
+                        onKeyDown={(event) => event.stopPropagation()}
+                        className={cn(
+                            "min-w-14 cursor-pointer border-[3px] border-ink px-2.5 py-1.5 text-center font-display text-[13px] font-extrabold tracking-[-.01em]",
+                            // Not the shared `focusRing`: that one is rust, and
+                            // these are the only controls on the screen sitting
+                            // *on* rust — the selected row they belong to. It
+                            // would be a ring the same colour as the ground
+                            // behind it, which for a keyboard-only control is
+                            // the whole of the affordance.
+                            "focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-cream",
+                            current
+                                ? "bg-ink text-cream"
+                                : "bg-cream text-ink hover:bg-paper",
+                        )}
+                    >
+                        {points}
+                    </button>
+                );
+            })}
+        </span>
+    );
+}
 
 /**
  * What this table is playing for.
@@ -69,6 +135,16 @@ export default function TableRules({
     const trigger = useRef<HTMLButtonElement>(null);
     const listbox = useRef<HTMLDivElement>(null);
 
+    /**
+     * What the table is playing to, straight from the lobby.
+     *
+     * Ranked and casual carry their own fixed score in the same field, so this
+     * is only ever shown for a private table; the fallback covers the frames
+     * before the first snapshot lands.
+     */
+    const targetScore =
+        lobby?.gameConfiguration?.targetScore ?? PRIVATE_TARGET_SCORE;
+
     const rules = useMemo(
         () => [
             {
@@ -86,11 +162,14 @@ export default function TableRules({
             {
                 type: MatchType.PRIVATE,
                 title: copy.rules.private.title,
-                note: copy.rules.private.note,
+                note: copy.rules.private.note.replace(
+                    "{score}",
+                    String(targetScore),
+                ),
                 guest: true,
             },
         ],
-        [copy],
+        [copy, targetScore],
     );
 
     // The lobby is the source of truth, not a local copy of it: the host's own
@@ -103,6 +182,13 @@ export default function TableRules({
         0,
     );
     const selected = rules[selectedIndex]!;
+    const isPrivate = selected.type === MatchType.PRIVATE;
+
+    /** Just the length, for the closed control. The menu says the rest. */
+    const scoreLabel = copy.rules.private.score.replace(
+        "{score}",
+        String(targetScore),
+    );
 
     useEffect(() => {
         if (!open) return;
@@ -151,7 +237,22 @@ export default function TableRules({
             return;
         }
 
-        setMatchType(rule.type);
+        // Re-picking Private keeps the score the host already set — the row is
+        // still selectable while it is the current rule, and a re-pick that
+        // quietly reset 1001 to the default would be a change nobody asked for.
+        // Arriving at Private from another rule starts at the default.
+        setMatchType(
+            rule.type,
+            rule.type === MatchType.PRIVATE && isPrivate
+                ? targetScore
+                : undefined,
+        );
+        closeListbox();
+    }
+
+    /** Choosing a length for a private table. Same command, points and all. */
+    function selectPoints(points: number) {
+        setMatchType(MatchType.PRIVATE, points);
         closeListbox();
     }
 
@@ -182,6 +283,13 @@ export default function TableRules({
             closeListbox();
             return;
         } else if (event.key === "Tab") {
+            // Forwards into a private table's score buttons, which are the next
+            // focusable things inside the open list — closing here would
+            // unmount the control on the way to it. Everything else tabs out,
+            // and whatever focus lands on next, the blur handler on the
+            // wrapper closes the list behind it.
+            if (showPoints && !event.shiftKey) return;
+
             closeListbox({ restoreFocus: false });
             return;
         } else {
@@ -197,13 +305,31 @@ export default function TableRules({
     // stands in — that is what the trigger and the first arrow key start from.
     const activeOption = activeIndex ?? selectedIndex;
 
+    // The scores live in the open menu, on the row they belong to, and only
+    // while that row is the table's current rule. A private table is the only
+    // one whose length is the host's to set, and offering the buttons before
+    // Private is chosen would be offering a setting for a table that isn't.
+    const showPoints = open && isPrivate;
+
     const face = (
         <span className="min-w-0 text-left">
             <MockLabel className="block truncate text-[9px] tracking-[.12em] text-mint/75">
                 {copy.rulesLabel}
             </MockLabel>
+            {/* On the same line as the rule, in the same face, because it is
+                the same fact: what this table is. It was a subtitle first, and
+                a subtitle is where it went to hide — small, dimmed, and cut off
+                by the width of the block before it reached the end of its own
+                sentence. The score is the only part of that sentence anyone
+                needs from the closed control, so it is the only part kept.
+
+                Ranked and casual don't get it. Theirs is fixed, named in the
+                menu, and would be a line that never changes. */}
             <span className="mt-0.5 block truncate font-display text-[16px] font-extrabold tracking-[-.02em] text-cream">
                 {selected.title}
+                {isPrivate && (
+                    <span className="text-mint"> · {scoreLabel}</span>
+                )}
             </span>
         </span>
     );
@@ -219,7 +345,31 @@ export default function TableRules({
     }
 
     return (
-        <div ref={selector} className="relative">
+        <div
+            ref={selector}
+            className="relative"
+            /**
+             * Focus leaving the control closes it.
+             *
+             * The listbox used to be the only focusable thing inside it, so
+             * handling Tab there was enough. A private table's score buttons
+             * are focusable too, and tabbing off the last of them would
+             * otherwise leave the menu standing open behind whatever the player
+             * moved on to. React's `onBlur` is `focusout`, so it reaches here
+             * from any of them; `relatedTarget` says where focus went, and a
+             * move *within* the control — into a button, or back to the trigger
+             * as `closeListbox` restores it — is not a departure.
+             */
+            onBlur={(event) => {
+                if (!open) return;
+
+                const next = event.relatedTarget as Node | null;
+                if (next && selector.current?.contains(next)) return;
+
+                setOpen(false);
+                setActiveIndex(null);
+            }}
+        >
             <button
                 ref={trigger}
                 type="button"
@@ -291,6 +441,18 @@ export default function TableRules({
                                     >
                                         {rule.note}
                                     </span>
+
+                                    {showPoints &&
+                                        rule.type === MatchType.PRIVATE && (
+                                            <TargetScorePicker
+                                                label={
+                                                    copy.rules.private
+                                                        .pointsLabel
+                                                }
+                                                target={targetScore}
+                                                onSelect={selectPoints}
+                                            />
+                                        )}
                                 </span>
                                 <Check
                                     aria-hidden

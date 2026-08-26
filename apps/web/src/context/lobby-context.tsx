@@ -69,18 +69,31 @@ type LobbyActions = {
     leave: () => void;
     setReady: (ready: boolean) => void;
     swapSeat: (seat: number) => void;
-    setMatchType: (matchType: MatchType) => void;
+    /**
+     * The target score is read by the backend for `PRIVATE` and ignored for the
+     * other two, so ranked and casual call sites pass nothing.
+     */
+    setMatchType: (matchType: MatchType, points?: number) => void;
 };
 
 /**
- * The target score a private table plays to.
+ * The target score a private table starts on.
  *
  * `GameConfiguration.forMatchType` reads this only for `PRIVATE` — ranked is
- * always 1001 and casual always 501, both fixed on the backend. 501 is what
- * `LobbyService` gives a new lobby, so sending it keeps the default the default
- * until there is a control for it.
+ * always 1001 and casual always 501, both fixed on the backend. 501 is also
+ * what `LobbyService` gives a new lobby, so a table that arrives at Private
+ * without anyone touching the score keeps the value it already had.
  */
-const PRIVATE_TARGET_SCORE = 501;
+export const PRIVATE_TARGET_SCORE = 501;
+
+/**
+ * What a private table can play to.
+ *
+ * The backend accepts any `targetScore > 0`, so this is a client-side offer
+ * rather than a constraint — the four lengths a belote night is actually played
+ * at, from a quick 301 to the full 1001 that ranked uses.
+ */
+export const PRIVATE_TARGET_SCORES = [301, 501, 701, 1001] as const;
 
 /**
  * Split for the same reason the socket's is: the two halves change on different
@@ -354,14 +367,11 @@ export function LobbyProvider({
     );
 
     const setMatchType = useCallback(
-        (matchType: MatchType) =>
+        (matchType: MatchType, points: number = PRIVATE_TARGET_SCORE) =>
             // The command takes the match type as a loose string — the handler
             // upper-cases and parses it — and the points are only read for a
             // private table.
-            send("lobby:changeConfig", {
-                matchType,
-                points: PRIVATE_TARGET_SCORE,
-            }),
+            send("lobby:changeConfig", { matchType, points }),
         [send],
     );
 

@@ -276,7 +276,9 @@
             },
             "private": {
                 "title": "Privatno",
-                "note": "samo uz poziv · tvoja pravila"
+                "note": "do {score} · samo uz poziv · tvoja pravila",
+                "score": "do {score}",
+                "pointsLabel": "Igra se do"
             }
         },
         "gameModeLabel": "Odaberi način igre",
