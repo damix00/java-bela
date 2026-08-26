@@ -5,7 +5,9 @@ import {
     createContext,
     useCallback,
     useContext,
+    useEffect,
     useMemo,
+    useRef,
     useState,
     type ReactNode,
 } from "react";
@@ -20,6 +22,7 @@ import {
 import { useAuth } from "@/context/auth-context";
 import {
     useSocketCommands,
+    useSocketSession,
     type SocketError,
 } from "@/context/socket-context";
 import { useSocketErrors, useSocketEvent } from "@/hooks/use-socket-event";
@@ -138,6 +141,10 @@ export function LobbyProvider({
     // Commands only. Taking the status here would re-render this provider — and
     // so every table under it — on each step of a reconnect backoff.
     const { send } = useSocketCommands();
+    // Only the moment the line was remade, which is when what we hold has to be
+    // reconsidered. The status itself moves on every backoff step and would
+    // re-render this provider — and so the whole table — for each of them.
+    const openedAt = useSocketSession();
     const router = useRouter();
 
     const [lobby, setLobby] = useState<Lobby | null>(null);
@@ -145,7 +152,11 @@ export function LobbyProvider({
 
     const userId = user?.id ?? null;
 
+    /** When the last snapshot landed, so a session can tell if one was for it. */
+    const snapshotAt = useRef(0);
+
     useSocketEvent("lobby:initialState", ({ lobby }) => {
+        snapshotAt.current = Date.now();
         setError(null);
         setLobby(lobby);
 
@@ -261,6 +272,33 @@ export function LobbyProvider({
 
         setError(incoming);
     });
+
+    /**
+     * A reconnect that brings no snapshot means the table is gone.
+     *
+     * `LobbyReconnectService` re-sends `lobby:initialState` for a player whose
+     * presence still names a lobby, so silence here is an answer: the keepalive
+     * lapsed while the tab was in the background, the backend's session TTL ran
+     * out, and `LobbyEvictionService` took the seat back. Holding the last
+     * snapshot at that point draws four chairs with people in them who are not
+     * there — and, worse, stops `TableScreen` opening a new table, because it
+     * stands down for as long as it believes there is one.
+     *
+     * The wait is the same grace the create-on-arrival path uses, and for the
+     * same reason: the snapshot travels a round trip behind the handshake.
+     * Comparing against `openedAt` rather than the moment this effect runs is
+     * what makes it safe — a snapshot that beats React's render still counts as
+     * belonging to this session.
+     */
+    useEffect(() => {
+        if (!openedAt) return;
+
+        const id = setTimeout(() => {
+            if (snapshotAt.current < openedAt) setLobby(null);
+        }, SNAPSHOT_GRACE_MS);
+
+        return () => clearTimeout(id);
+    }, [openedAt]);
 
     // Keyed on `playerSeats`, not on `lobby`. The two are not the same trigger:
     // `lobby:configChanged` rebuilds the lobby object and leaves `playerSeats`

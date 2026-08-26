@@ -44,6 +44,22 @@ const CLOSE_UNAUTHORIZED = 4401;
  */
 const KEEPALIVE_MS = 15_000;
 
+/**
+ * How long a tab may sit in the background before its socket is treated as
+ * dead on return, whatever `readyState` claims.
+ *
+ * Background tabs have their timers throttled — Safari is the strictest about
+ * it, but every browser does some of this — so the keepalive above stops
+ * landing within seconds of the tab being hidden. Once it lapses the backend's
+ * 30s `UserSession` TTL runs out, the session is dropped and
+ * `LobbyEvictionService` takes the seat back. The socket is then finished even
+ * though Safari commonly reports it `OPEN` until the tab is looked at again,
+ * and never fires `onclose` while suspended. So the hidden duration, not the
+ * readyState, is what decides: 20s is inside the 30s TTL, which keeps a quick
+ * glance at another tab from costing a reconnect.
+ */
+const STALE_HIDDEN_MS = 20_000;
+
 export type SocketStatus =
     | "connecting"
     | "connected"
@@ -104,6 +120,22 @@ const SocketCommandsContext = createContext<SocketCommands | undefined>(
 
 const SocketStatusContext = createContext<SocketStatus | undefined>(undefined);
 
+/**
+ * When the socket session currently in hand opened, as a timestamp. 0 before
+ * the first one does.
+ *
+ * A third context, and for the same reason as the split above: this changes
+ * only on a *successful* open, so the providers that have to reconsider what
+ * they know each time the line is remade are not also dragged through every
+ * step of a backoff.
+ *
+ * A timestamp rather than a counter because it is read as one: a consumer
+ * comparing it against the last frame it received can tell whether that frame
+ * belongs to this session or to the one before it, and does so without
+ * depending on which of the two React renders first.
+ */
+const SocketSessionContext = createContext<number | undefined>(undefined);
+
 /** The channel `error:*` frames are fanned out to. Not a real server event. */
 const ERROR_CHANNEL = "\0error";
 
@@ -128,6 +160,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     // lost line, and starting at "disconnected" flashes the reconnect banner
     // across the first paint of every page load.
     const [status, setStatus] = useState<SocketStatus>("connecting");
+    const [openedAt, setOpenedAt] = useState(0);
 
     // The callbacks below run outside React's render cycle and still need to
     // read the current status; `status` itself would be captured stale.
@@ -202,6 +235,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
                 return;
             }
             setStatus("connected");
+            setOpenedAt(Date.now());
             attemptRef.current = 0;
         };
 
@@ -361,6 +395,90 @@ export function SocketProvider({ children }: { children: ReactNode }) {
         return () => clearInterval(id);
     }, [status, send]);
 
+    /**
+     * Coming back to the tab remakes the line, rather than waiting to be told
+     * it was lost.
+     *
+     * A backgrounded tab is not a connected one. The keepalive is throttled to
+     * a crawl, the backend drops the session it stopped hearing from, and the
+     * socket dies — but Safari commonly hands back an `OPEN` socket and no
+     * `onclose` at all until the tab is looked at again, so nothing here ever
+     * learns the connection ended. Worse, the reconnect backoff is throttled by
+     * exactly the same rule: even when the close *is* seen, the retry that
+     * would fix it is a background timer, and by the thirtieth attempt that is
+     * a wait of half a minute served at background speed.
+     *
+     * So returning to the tab is treated as its own signal. Anything that
+     * suggests the tab has just come back — the visibility flip, a bfcache
+     * restore, the network returning, the window being focused — checks the
+     * line and, if it has been away long enough to have gone stale, replaces it
+     * on the spot. Which is also what recovers the table: a fresh socket is
+     * what makes the backend re-send `lobby:initialState`, or say nothing at
+     * all if the seat is gone.
+     */
+    const hiddenSinceRef = useRef<number | null>(null);
+
+    useEffect(() => {
+        const wake = () => {
+            if (document.visibilityState !== "visible") return;
+
+            const hiddenFor = hiddenSinceRef.current
+                ? Date.now() - hiddenSinceRef.current
+                : 0;
+
+            hiddenSinceRef.current = null;
+
+            // Terminal. A new socket would be closed with the same 4401.
+            if (statusRef.current === "auth-failed") return;
+
+            if (
+                socketRef.current?.readyState === WebSocket.OPEN &&
+                hiddenFor < STALE_HIDDEN_MS
+            ) {
+                // Short glance elsewhere: the socket is still good, but its
+                // keepalive has been running slow. Send one now rather than at
+                // the top of the next interval.
+                send("session:keepAlive");
+                return;
+            }
+
+            reconnect();
+        };
+
+        const onVisibilityChange = () => {
+            if (document.visibilityState === "hidden") {
+                hiddenSinceRef.current = Date.now();
+                return;
+            }
+
+            wake();
+        };
+
+        const onPageHide = () => {
+            hiddenSinceRef.current = Date.now();
+        };
+
+        document.addEventListener("visibilitychange", onVisibilityChange);
+        window.addEventListener("pagehide", onPageHide);
+        window.addEventListener("pageshow", wake);
+        window.addEventListener("online", wake);
+        // Switching applications does not reliably flip visibility on macOS,
+        // and a socket can go stale while the tab is on screen behind another
+        // window just as easily as while it is hidden.
+        window.addEventListener("focus", wake);
+
+        return () => {
+            document.removeEventListener(
+                "visibilitychange",
+                onVisibilityChange,
+            );
+            window.removeEventListener("pagehide", onPageHide);
+            window.removeEventListener("pageshow", wake);
+            window.removeEventListener("online", wake);
+            window.removeEventListener("focus", wake);
+        };
+    }, [reconnect, send]);
+
     // Built from stable callbacks, so this object outlives every status change
     // under it.
     const commands = useMemo<SocketCommands>(
@@ -370,9 +488,11 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 
     return (
         <SocketCommandsContext.Provider value={commands}>
-            <SocketStatusContext.Provider value={status}>
-                {children}
-            </SocketStatusContext.Provider>
+            <SocketSessionContext.Provider value={openedAt}>
+                <SocketStatusContext.Provider value={status}>
+                    {children}
+                </SocketStatusContext.Provider>
+            </SocketSessionContext.Provider>
         </SocketCommandsContext.Provider>
     );
 }
@@ -389,6 +509,25 @@ export function useSocketCommands() {
     if (context === undefined) {
         throw new Error(
             "useSocketCommands must be used within a SocketProvider",
+        );
+    }
+    return context;
+}
+
+/**
+ * When the current socket session opened, or 0 before the first one has.
+ *
+ * Take this to be told that the line was *remade* — a reconnect hands the
+ * backend a new `UserSession`, and everything the previous one had established
+ * either arrives again in the next few frames or is gone. Unlike the status it
+ * does not move during a backoff, so watching it costs one render per
+ * successful connection and none per failed attempt.
+ */
+export function useSocketSession() {
+    const context = useContext(SocketSessionContext);
+    if (context === undefined) {
+        throw new Error(
+            "useSocketSession must be used within a SocketProvider",
         );
     }
     return context;

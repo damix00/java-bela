@@ -18,6 +18,7 @@ import {
 } from "@/context/lobby-context";
 import {
     useSocketCommands,
+    useSocketSession,
     useSocketStatus,
     type SocketError,
 } from "@/context/socket-context";
@@ -85,6 +86,7 @@ export default function TableScreen({
     const { lobby, seats, me, playerCount, error } = useLobby();
     const { create, swapSeat } = useLobbyActions();
     const status = useSocketStatus();
+    const openedAt = useSocketSession();
     const { reconnect } = useSocketCommands();
     const router = useRouter();
 
@@ -102,14 +104,32 @@ export default function TableScreen({
         router.replace(playPath(locale, lobby.gameId));
     }, [lobby, locale, router]);
 
-    // One attempt per visit. A second `lobby:create` would only be answered
-    // with "already in lobby", and a retry loop against that is a request every
-    // frame for as long as the tab is open.
+    // One attempt per socket session. A second `lobby:create` on the same
+    // connection would only be answered with "already in lobby", and a retry
+    // loop against that is a request every frame for as long as the tab is
+    // open. A *new* connection is a different matter: it is the one moment the
+    // answer can have changed.
     const requested = useRef(false);
     const requestLobby = useCallback(() => {
         requested.current = true;
         create();
     }, [create]);
+
+    /**
+     * A remade line gets a fresh attempt.
+     *
+     * Tab away long enough and the backend drops the session and evicts the
+     * seat; coming back opens a new socket that is told about no table at all.
+     * Without this the screen sits on its one spent attempt and waits forever
+     * for a snapshot that is never coming, under the opening skeleton.
+     *
+     * Cleared in an effect rather than beside the create so the ordering is not
+     * in question: this commits before the effect below re-runs for the same
+     * session.
+     */
+    useEffect(() => {
+        requested.current = false;
+    }, [openedAt]);
 
     /**
      * The table opens itself.
