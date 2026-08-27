@@ -49,6 +49,10 @@ const overlapClass =
  * screens keep one overlapped row, where the horizontal room is useful and the
  * vertical room is scarce. The one under the pointer lifts clear of its peers.
  *
+ * A playable card is thrown either by a tap or by dragging it up off the hand
+ * — the tap is the quick one, the drag is the one that reads as playing a card
+ * and is the easier target under a thumb. Both end in the same `onPlay`.
+ *
  * Legality is decided here so the answer is visible before the press. The
  * backend's `TrickValidator` is still the authority and will refuse anything
  * this gets wrong.
@@ -99,6 +103,7 @@ export default function HandFan({
                         disabled={!playable}
                         dimmed={legal !== null && !playable}
                         onClick={playable ? () => onPlay(card) : undefined}
+                        onDragPlay={playable ? () => onPlay(card) : undefined}
                         className={cn(
                             cardClass,
                             // A liftable card needs to sit above the one after
