@@ -1,7 +1,7 @@
 import { Check } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/ui/cn";
 
 type CheckboxProps = Omit<ComponentProps<"input">, "type" | "children"> & {
     children: ReactNode;

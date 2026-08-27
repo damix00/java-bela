@@ -27,17 +27,14 @@ import {
     type GamePhase,
     type RoundView,
 } from "@/context/game-context";
-import {
-    SNAPSHOT_GRACE_MS,
-    useLobbyActions,
-} from "@/context/lobby-context";
+import { SNAPSHOT_GRACE_MS, useLobbyActions } from "@/context/lobby-context";
 import { useSocketStatus } from "@/context/socket-context";
 import type { Dictionary } from "@/dictionaries";
-import { cn } from "@/lib/cn";
-import { canDeclareBela } from "@/lib/game-rules";
-import type { Locale } from "@/lib/i18n";
-import { homePath } from "@/lib/routes";
-import { appGutters } from "@/lib/styles";
+import { cn } from "@/lib/ui/cn";
+import { canDeclareBela } from "@/lib/game/rules";
+import type { Locale } from "@/lib/i18n/config";
+import { homePath } from "@/lib/navigation/routes";
+import { appGutters } from "@/lib/ui/styles";
 
 /* The screen's own frame. On a phone it is the viewport, safe areas included,
    and nothing is allowed to scroll out of it; once both dimensions can hold the
@@ -177,7 +174,6 @@ export default function GameScreen({
         return () => clearTimeout(id);
     }, [status, game, router, locale]);
 
-
     if (!game || !seating) {
         return <Notice className={appGutters}>{copy.loading}</Notice>;
     }
@@ -259,10 +255,7 @@ export default function GameScreen({
         );
     }
 
-    const seatFor = (
-        seat: number,
-        variant: "wide" | "square" | "inline",
-    ) => (
+    const seatFor = (seat: number, variant: "wide" | "square" | "inline") => (
         <GameSeat
             name={nameOf(seat)}
             avatarUrl={avatarOf(seat)}
@@ -274,8 +267,7 @@ export default function GameScreen({
         />
     );
     const showMobileAction =
-        phase === "declarations" ||
-        (phase === "choosing-trump" && isMyTurn);
+        phase === "declarations" || (phase === "choosing-trump" && isMyTurn);
 
     return (
         <main className={screenClass}>
@@ -405,9 +397,7 @@ export default function GameScreen({
                 )}
             </div>
 
-            <div className={mobilePlayerClass}>
-                {seatFor(near, "inline")}
-            </div>
+            <div className={mobilePlayerClass}>{seatFor(near, "inline")}</div>
 
             {belaCard && (
                 <BelaPrompt
@@ -528,9 +518,7 @@ function Centre({
             playedCards={round.trickCards}
             order={order}
             winningPlayerIndex={round.trickWinningPlayerIndex}
-            emptyLabel={
-                isMyTurn ? copy.trick.yourTurn : copy.trick.empty
-            }
+            emptyLabel={isMyTurn ? copy.trick.yourTurn : copy.trick.empty}
         />
     );
 }

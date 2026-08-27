@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-import { HUNGARIAN_SUIT_ASSETS } from "@/lib/card-assets";
+import { HUNGARIAN_SUIT_ASSETS } from "@/lib/game/card-assets";
 import type { Suite } from "@bela/protocol";
 
 type ScoreBoardProps = {

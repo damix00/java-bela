@@ -15,6 +15,10 @@ export type User = {
     /** Null for anonymous accounts, which are created without one. */
     email: string | null;
     avatarUrl: string | null;
+    /** Free text from the profile form; null until the player writes one. */
+    bio: string | null;
+    /** ISO 3166-1 alpha-2, uppercase. Null until the player picks a country. */
+    countryCode: string | null;
     role: string;
     /** ISO-8601 — `Instant` on the wire, never revived into a Date. */
     createdAt: string;

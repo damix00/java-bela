@@ -42,3 +42,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Flag SVGs, copied out of `@twemoji/svg` by `scripts/sync-flags.mjs` on
+# postinstall. The package is the source of truth; these are its output.
+/public/flags/

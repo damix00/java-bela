@@ -38,7 +38,8 @@
             "signUpFailed": "Nismo uspjeli izraditi tvoj račun. Pokušaj ponovno.",
             "emailTaken": "Ta e-mail adresa već ima račun.",
             "usernameTaken": "To korisničko ime je zauzeto.",
-            "networkError": "Nismo uspjeli doći do servera. Provjeri vezu i pokušaj ponovno."
+            "networkError": "Nismo uspjeli doći do servera. Provjeri vezu i pokušaj ponovno.",
+            "bioLong": "Najviše 160 znakova."
         }
     },
     "auth": {
@@ -243,7 +244,8 @@
             "ladder": "Ljestvica",
             "friends": "Prijatelji",
             "hands": "Partije",
-            "profile": "Profil"
+            "profile": "Profil",
+            "settings": "Postavke"
         },
         "profileMenu": {
             "trigger": "Izbornik računa",
@@ -251,8 +253,7 @@
             "createAccount": "Otvori račun",
             "viewProfile": "Pogledaj profil",
             "settings": "Postavke",
-            "signOut": "Odjava",
-            "soon": "Uskoro"
+            "signOut": "Odjava"
         },
         "guestUpgrade": {
             "label": "Bez rejtinga",
@@ -282,11 +283,10 @@
             }
         },
         "gameModeLabel": "Odaberi način igre",
+        "unranked": "Neplasiran",
+        "unrated": "Bez ocjene",
         "selectedLabel": "Odabrano",
         "matchmakingNote": "Partner i protivnici po rangu · do 1001 · rejting se broji",
-        "seasonLabel": "Sezona 2 · još 31 dan",
-        "progressLabel": "Napredak ranga",
-        "rankProgress": "118 do Bele · {rank}. od 8.100",
         "ladderLabel": "Ljestvica prijatelja",
         "partner": "tvoj partner",
         "dealer": "djelitelj",
@@ -435,6 +435,68 @@
             "lost": "Izgubili ste",
             "score": "{us} — {them}",
             "back": "Natrag u predsoblje"
+        }
+    },
+    "profile": {
+        "title": "Tvoj profil",
+        "memberSince": "Igra od",
+        "emailLabel": "E-mail",
+        "bioEmpty": "Još nema retka ispod imena.",
+        "editHeading": "Uredi profil",
+        "settingsLink": "Postavke",
+        "usernameLabel": "Korisničko ime",
+        "usernameHint": "3–16 znakova. Slova, brojke, točka, crtica i podvlaka.",
+        "bioLabel": "O tebi",
+        "bioHint": "Redak ili dva, najviše 160 znakova.",
+        "bioPlaceholder": "Igra na četvorke. Nikad ih ne broji.",
+        "bioRemaining": "znakova preostalo",
+        "countryLabel": "Država",
+        "countryNone": "Radije ne bih rekao",
+        "countrySearch": "Traži države",
+        "countryNoMatch": "Nema države pod tim imenom.",
+        "submit": "Spremi profil",
+        "saved": "Profil je spremljen.",
+        "sessionExpired": "Sesija je istekla. Pritisni spremi još jednom.",
+        "failed": "Nismo uspjeli spremiti profil. Pokušaj ponovno."
+    },
+    "settings": {
+        "title": "Postavke",
+        "heading": "Postavke",
+        "intro": "Kako se ovaj preglednik ponaša. Ime i država su na tvom profilu.",
+        "profileLink": "Tvoj profil",
+        "soon": "Uskoro",
+        "language": {
+            "heading": "Jezik",
+            "body": "Mijenja stranicu. Karte su iste na oba.",
+            "label": "Jezik"
+        },
+        "account": {
+            "heading": "Račun",
+            "body": "E-mail adresa uz koju je račun vezan.",
+            "guestBody": "Igraš kao gost. Gostujuća sesija traje jedan dan, a račun je ono što čuva tvoje ime.",
+            "guestAction": "Otvori račun"
+        },
+        "signOut": {
+            "heading": "Odjava",
+            "body": "Prekida ovu sesiju na ovom uređaju.",
+            "action": "Odjavi me"
+        },
+        "signOutAll": {
+            "heading": "Odjava sa svih uređaja",
+            "body": "Prekida svaku sesiju na svakom uređaju — i ovu.",
+            "action": "Odjavi me svugdje",
+            "confirm": "Ovo te odjavljuje i ovdje. Jesi siguran?",
+            "confirmAction": "Da, odjavi me svugdje",
+            "cancel": "Odustani",
+            "failed": "Nismo te uspjeli odjaviti svugdje. Pokušaj ponovno."
+        },
+        "changePassword": {
+            "heading": "Promjena lozinke",
+            "body": "Zasad se ne može promijeniti odavde."
+        },
+        "deleteAccount": {
+            "heading": "Brisanje računa",
+            "body": "Račun se odavde još ne može obrisati."
         }
     }
 }

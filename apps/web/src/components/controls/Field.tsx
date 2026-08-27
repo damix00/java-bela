@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import FieldError from "@/components/controls/FieldError";
 import Eyebrow from "@/components/ui/typography/Eyebrow";
 import Text from "@/components/ui/typography/Text";
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/ui/cn";
 
 type FieldProps = {
     /** Must match the `id` of the control passed as `children`. */

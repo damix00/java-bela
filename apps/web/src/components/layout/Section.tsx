@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react";
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/ui/cn";
 
 // Every band paints its own surface — sage included, even though it matches the
 // body. A band that inherits its background can't be reordered without changing

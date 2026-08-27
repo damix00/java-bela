@@ -14,11 +14,11 @@ import {
 } from "@/context/lobby-context";
 import { useSocketStatus } from "@/context/socket-context";
 import type { Dictionary } from "@/dictionaries";
-import type { Locale } from "@/lib/i18n";
-import { localiseLobbyError } from "@/lib/lobby-errors";
-import { homePath } from "@/lib/routes";
-import { appGutters } from "@/lib/styles";
-import { cn } from "@/lib/cn";
+import type { Locale } from "@/lib/i18n/config";
+import { localiseLobbyError } from "@/lib/game/lobby-errors";
+import { homePath } from "@/lib/navigation/routes";
+import { appGutters } from "@/lib/ui/styles";
+import { cn } from "@/lib/ui/cn";
 
 type JoinScreenProps = {
     copy: Dictionary["table"];

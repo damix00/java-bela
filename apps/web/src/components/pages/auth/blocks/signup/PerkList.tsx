@@ -1,5 +1,5 @@
 import Text from "@/components/ui/typography/Text";
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/ui/cn";
 
 // One square per perk, cycling through the palette in order. The colour says
 // nothing — it keeps three stacked lines from reading as one grey block.

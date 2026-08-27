@@ -1,4 +1,4 @@
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/ui/cn";
 
 type StrengthMeterProps = {
     /** Segments filled, out of `segments`. */

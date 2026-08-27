@@ -1,7 +1,7 @@
 import MockLabel from "@/components/pages/table/blocks/shared/MockLabel";
 import SwapBadge from "@/components/pages/table/blocks/seats/SwapBadge";
-import { cn } from "@/lib/cn";
-import { focusRing, pressSm, swapRing } from "@/lib/styles";
+import { cn } from "@/lib/ui/cn";
+import { focusRing, pressSm, swapRing } from "@/lib/ui/styles";
 import UserAvatar from "@/components/layout/UserAvatar";
 
 type SideSeatProps = {
@@ -67,7 +67,8 @@ export default function SideSeat({
                 className={cn(
                     "hidden w-full truncate text-center font-display text-[13px] font-extrabold tracking-[-.02em] sm:block",
                     ready ? "text-cream" : "text-ink",
-                )}>
+                )}
+            >
                 {name}
             </span>
             {note && (
@@ -75,7 +76,8 @@ export default function SideSeat({
                     className={cn(
                         "hidden text-center text-[9px] tracking-[.1em] lg:block",
                         ready ? "text-cream/80" : "text-stone",
-                    )}>
+                    )}
+                >
                     {note}
                 </MockLabel>
             )}
@@ -97,7 +99,8 @@ export default function SideSeat({
             disabled={disabled}
             aria-label={actionLabel ?? name}
             aria-busy={swapStatus === "pending"}
-            className={shell}>
+            className={shell}
+        >
             {body}
         </button>
     );

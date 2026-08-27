@@ -1,8 +1,8 @@
 import SignInScreen from "@/components/pages/auth/sections/SignInScreen";
 import Modal from "@/components/ui/surfaces/Modal";
 import { localePage } from "@/dictionaries";
-import { readGuestOffer, readReturnTo } from "@/lib/routes";
-import { guardCredentialScreen } from "@/lib/session-guards";
+import { readGuestOffer, readReturnTo } from "@/lib/navigation/routes";
+import { guardCredentialScreen } from "@/lib/auth/session-guards";
 
 /**
  * `/[lang]/sign-in` reached by a click from inside the app: the same screen the

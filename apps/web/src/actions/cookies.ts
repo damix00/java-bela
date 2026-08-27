@@ -11,6 +11,7 @@ export {
     accessTokenExpiryMs,
     clearSessionCookies,
     setSessionCookies,
+    setUserCookie,
     type CookieOptions,
     type CookieWriter,
-} from "@/lib/session-cookies";
+} from "@/lib/auth/session-cookies";

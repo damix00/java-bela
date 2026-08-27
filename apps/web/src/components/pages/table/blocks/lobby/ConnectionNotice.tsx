@@ -3,8 +3,8 @@
 import { ButtonLink } from "@/components/controls/Button";
 import { useSocketStatus } from "@/context/socket-context";
 import type { Dictionary } from "@/dictionaries";
-import type { Locale } from "@/lib/i18n";
-import { authPath } from "@/lib/routes";
+import type { Locale } from "@/lib/i18n/config";
+import { authPath } from "@/lib/navigation/routes";
 
 /**
  * What the table says when it has lost the line to the backend.

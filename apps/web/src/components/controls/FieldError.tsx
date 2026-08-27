@@ -1,4 +1,4 @@
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/ui/cn";
 
 type FieldErrorProps = {
     /** The id the offending control points at with `aria-describedby`. */

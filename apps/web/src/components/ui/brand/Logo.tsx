@@ -1,4 +1,4 @@
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/ui/cn";
 
 const tones = {
     ink: "text-ink",

@@ -2,8 +2,8 @@ import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/actions/auth";
 import { isGuest, type User } from "@/api/types/user";
-import type { Locale } from "@/lib/i18n";
-import { homePath } from "@/lib/routes";
+import type { Locale } from "@/lib/i18n/config";
+import { homePath } from "@/lib/navigation/routes";
 
 /**
  * The guard every credential screen runs before it renders.

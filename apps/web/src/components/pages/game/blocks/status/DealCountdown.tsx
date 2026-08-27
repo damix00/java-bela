@@ -20,10 +20,7 @@ export default function DealCountdown({ label }: { label: string }) {
     }, []);
 
     const elapsedSeconds = Math.floor((now - startedAt) / 1000);
-    const remaining = Math.max(
-        1,
-        DEAL_COUNTDOWN_SECONDS - elapsedSeconds,
-    );
+    const remaining = Math.max(1, DEAL_COUNTDOWN_SECONDS - elapsedSeconds);
     const transition = reduceMotion
         ? { duration: 0 }
         : { duration: 0.32, ease: [0.16, 1, 0.3, 1] as const };
@@ -40,9 +37,7 @@ export default function DealCountdown({ label }: { label: string }) {
                     key={`pulse-${remaining}`}
                     aria-hidden="true"
                     initial={
-                        reduceMotion
-                            ? false
-                            : { opacity: 0.6, scale: 0.55 }
+                        reduceMotion ? false : { opacity: 0.6, scale: 0.55 }
                     }
                     animate={{ opacity: 0, scale: reduceMotion ? 1 : 1.45 }}
                     transition={

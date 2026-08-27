@@ -1,6 +1,6 @@
 import { cache } from "react";
 
-import type { LegalPage } from "@/lib/routes";
+import type { LegalPage } from "@/lib/navigation/routes";
 
 import type { LegalDocument } from "./types";
 

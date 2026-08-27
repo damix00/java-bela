@@ -6,9 +6,9 @@ import { motion, useReducedMotion, type PanInfo } from "motion/react";
 import {
     HUNGARIAN_CARD_BACK_ASSET,
     getHungarianCardAsset,
-} from "@/lib/card-assets";
-import { cn } from "@/lib/cn";
-import { focusRing } from "@/lib/styles";
+} from "@/lib/game/card-assets";
+import { cn } from "@/lib/ui/cn";
+import { focusRing } from "@/lib/ui/styles";
 import type { Card, Rank, Suite } from "@bela/protocol";
 
 /**
@@ -125,7 +125,11 @@ export default function PlayingCard({
 
     if (!onClick) {
         return (
-            <span className={frame} aria-label={label} role={label ? "img" : undefined}>
+            <span
+                className={frame}
+                aria-label={label}
+                role={label ? "img" : undefined}
+            >
                 {art}
             </span>
         );
@@ -142,7 +146,14 @@ export default function PlayingCard({
             // The wrapper is the one the hand lays out: it keeps the caller's
             // width, overlap margin and stacking, and hovers the card upward,
             // while the button below it is free to be moved by the drag.
-            <span className={cn("relative block shrink-0 self-start", WIDTHS[size], className, liftClass)}>
+            <span
+                className={cn(
+                    "relative block shrink-0 self-start",
+                    WIDTHS[size],
+                    className,
+                    liftClass,
+                )}
+            >
                 <motion.button
                     type="button"
                     onClick={onClick}
@@ -163,9 +174,7 @@ export default function PlayingCard({
                     whileDrag={
                         // The zIndex matters most on a phone, where the top row
                         // of the hand is dragged straight over the bottom one.
-                        reduced
-                            ? { zIndex: 50 }
-                            : { scale: 1.08, zIndex: 50 }
+                        reduced ? { zIndex: 50 } : { scale: 1.08, zIndex: 50 }
                     }
                     onDragEnd={onDragEnd}
                 >

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Bricolage_Grotesque, Public_Sans } from "next/font/google";
 
 import { localePage } from "@/dictionaries";
-import { locales } from "@/lib/i18n";
+import { locales } from "@/lib/i18n/config";
 import "../globals.css";
 import Script from "next/script";
 

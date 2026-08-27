@@ -23,15 +23,15 @@ import {
     type SocketError,
 } from "@/context/socket-context";
 import type { Dictionary } from "@/dictionaries";
-import { cn } from "@/lib/cn";
-import type { Locale } from "@/lib/i18n";
+import { cn } from "@/lib/ui/cn";
+import type { Locale } from "@/lib/i18n/config";
 import {
     isAlreadyInLobby,
     isSessionLocked,
     localiseLobbyError,
-} from "@/lib/lobby-errors";
-import { playPath } from "@/lib/routes";
-import { appGutters } from "@/lib/styles";
+} from "@/lib/game/lobby-errors";
+import { playPath } from "@/lib/navigation/routes";
+import { appGutters } from "@/lib/ui/styles";
 
 /** How often to re-ask for a table while another window holds the lock. */
 const SESSION_LOCK_RETRY_MS = 3000;

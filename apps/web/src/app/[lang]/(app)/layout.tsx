@@ -6,8 +6,8 @@ import { GameProvider } from "@/context/game-context";
 import { LobbyProvider } from "@/context/lobby-context";
 import { SocketProvider } from "@/context/socket-context";
 import { localePage } from "@/dictionaries";
-import { cn } from "@/lib/cn";
-import { felt } from "@/lib/styles";
+import { cn } from "@/lib/ui/cn";
+import { felt } from "@/lib/ui/styles";
 
 /**
  * Wraps the signed-in surfaces — the lobby and the tables — and nothing else.

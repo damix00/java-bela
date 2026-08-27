@@ -1,4 +1,4 @@
-import type { Locale } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n/config";
 
 /**
  * The auth flow's URLs in one place — the screens link to each other in a
@@ -54,6 +54,20 @@ export function homePath(locale: Locale) {
  */
 export function landingPath(locale: Locale) {
     return `/${locale}/landing`;
+}
+
+/**
+ * The account's own two pages. Split rather than tabbed: one is about the face
+ * other players see, the other about how this browser behaves, and they are
+ * reached from different places — the avatar menu opens on both, the phone's
+ * bottom bar only has room for the first.
+ */
+export function profilePath(locale: Locale) {
+    return `/${locale}/profile`;
+}
+
+export function settingsPath(locale: Locale) {
+    return `/${locale}/settings`;
 }
 
 export function playPath(locale: Locale, gameId: string) {

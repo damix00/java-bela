@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react";
 
-import { cn } from "@/lib/cn";
-import { pressLg } from "@/lib/styles";
+import { cn } from "@/lib/ui/cn";
+import { pressLg } from "@/lib/ui/styles";
 
 const tones = {
     cream: "bg-cream",

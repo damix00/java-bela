@@ -5,8 +5,8 @@ import { motion, useAnimate, useReducedMotion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, type ReactNode } from "react";
 
-import { cn } from "@/lib/cn";
-import { focusRing } from "@/lib/styles";
+import { cn } from "@/lib/ui/cn";
+import { focusRing } from "@/lib/ui/styles";
 
 type ModalProps = {
     children: ReactNode;

@@ -16,9 +16,9 @@ import { clearAuth } from "@/api/token-store";
 import type { User } from "@/api/types/user";
 import { isGuest } from "@/api/types/user";
 import type { Dictionary } from "@/dictionaries";
-import { cn } from "@/lib/cn";
-import type { Locale } from "@/lib/i18n";
-import { authPath } from "@/lib/routes";
+import { cn } from "@/lib/ui/cn";
+import type { Locale } from "@/lib/i18n/config";
+import { authPath, profilePath, settingsPath } from "@/lib/navigation/routes";
 import Icon from "@/components/ui/graphics/Icon";
 import UserAvatar from "@/components/layout/UserAvatar";
 
@@ -37,13 +37,11 @@ type ProfileMenuProps = {
  * tables with no way out at all. Everything to do with *who you are* now hangs
  * off the avatar, which is where a player already looks for it.
  *
- * The profile and settings rows are inert until those pages exist. They are
- * still drawn: the menu's shape is the point, and an item that appears later
- * moves the one under it.
- *
- * For a guest the menu opens on the one row that does work: the account they
- * don't have yet. It sits above the two inert rows because it is the answer to
- * why those two have nothing to show.
+ * A guest sees the account they don't have yet where the profile row would be.
+ * That is not a placeholder: a guest has no profile — the name was issued by
+ * the server and the API will not rename it — so the account is the honest
+ * answer to the row they are looking for. Settings is still theirs; language
+ * and signing out are not questions of who you are.
  */
 export default function ProfileMenu({
     user,
@@ -109,7 +107,8 @@ export default function ProfileMenu({
                 aria-expanded={open}
                 aria-label={copy.trigger}
                 onClick={() => setOpen((wasOpen) => !wasOpen)}
-                className="flex min-w-0 cursor-pointer items-center gap-3 focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-rust">
+                className="flex min-w-0 cursor-pointer items-center gap-3 focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-rust"
+            >
                 <span className="hidden max-w-48 truncate font-display text-[16px] font-extrabold tracking-[-.02em] text-cream min-[1400px]:block">
                     {user.username}
                 </span>
@@ -133,7 +132,8 @@ export default function ProfileMenu({
                 <div
                     role="menu"
                     aria-label={copy.trigger}
-                    className="absolute top-[calc(100%+14px)] right-0 z-40 w-[268px] border-4 border-ink bg-cream shadow-hard">
+                    className="absolute top-[calc(100%+14px)] right-0 z-40 w-[268px] border-4 border-ink bg-cream shadow-hard"
+                >
                     {/* Who you are, before what you can do about it: the avatar repeats
                         at menu scale so the panel reads as belonging to the corner it
                         dropped out of. */}
@@ -158,21 +158,31 @@ export default function ProfileMenu({
                             glyph={Sparkles}
                             href={authPath(locale, "signUp")}
                             onNavigate={() => setOpen(false)}
-                            emphasis>
+                            emphasis
+                        >
                             {copy.createAccount}
                         </MenuItem>
                     ) : (
-                        <MenuItem glyph={UserRound} soon={copy.soon}>
+                        <MenuItem
+                            glyph={UserRound}
+                            href={profilePath(locale)}
+                            onNavigate={() => setOpen(false)}
+                        >
                             {copy.viewProfile}
                         </MenuItem>
                     )}
-                    <MenuItem glyph={Settings} soon={copy.soon}>
+                    <MenuItem
+                        glyph={Settings}
+                        href={settingsPath(locale)}
+                        onNavigate={() => setOpen(false)}
+                    >
                         {copy.settings}
                     </MenuItem>
                     <MenuItem
                         glyph={LogOut}
                         onClick={signOut}
-                        disabled={pending}>
+                        disabled={pending}
+                    >
                         {copy.signOut}
                     </MenuItem>
                 </div>
@@ -184,8 +194,6 @@ export default function ProfileMenu({
 type MenuItemProps = {
     glyph: typeof UserRound;
     children: string;
-    /** Present on the rows whose page hasn't been built yet. */
-    soon?: string;
     /** Turns the row into a link. Mutually exclusive with `onClick`. */
     href?: string;
     /** Closes the menu behind a navigation that leaves it mounted. */
@@ -196,36 +204,24 @@ type MenuItemProps = {
     disabled?: boolean;
 };
 
-/**
- * One row. With neither `onClick` nor `href` it is a `span` rather than a dead
- * button — nothing is going to happen when it is pressed, and a control that
- * takes focus to do nothing is a worse promise than a label that never claimed
- * to be one.
- */
+/** One row: a link where it navigates, a button where it acts. */
 function MenuItem({
     glyph,
     children,
-    soon,
     href,
     onNavigate,
     emphasis,
     onClick,
     disabled,
 }: MenuItemProps) {
-    const inert = !onClick && !href;
     const content = (
         <>
             <Icon
                 glyph={glyph}
                 size="sm"
-                className={cn(inert && "text-moss", emphasis && "text-cream")}
+                className={cn(emphasis && "text-cream")}
             />
             <span className="mr-auto">{children}</span>
-            {soon && (
-                <span className="font-sans text-[11px] tracking-[.1em] text-moss uppercase">
-                    {soon}
-                </span>
-            )}
         </>
     );
     const className = cn(
@@ -248,20 +244,10 @@ function MenuItem({
                     emphasis
                         ? "hover:bg-rust/90 hover:text-cream focus-visible:outline-ink"
                         : "hover:bg-sage focus-visible:bg-sage",
-                )}>
+                )}
+            >
                 {content}
             </Link>
-        );
-    }
-
-    if (!onClick) {
-        return (
-            <span
-                role="menuitem"
-                aria-disabled="true"
-                className={cn(className, "text-moss")}>
-                {content}
-            </span>
         );
     }
 
@@ -275,7 +261,8 @@ function MenuItem({
                 className,
                 interactive,
                 "hover:bg-sage focus-visible:bg-sage disabled:pointer-events-none disabled:opacity-60",
-            )}>
+            )}
+        >
             {content}
         </button>
     );

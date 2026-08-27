@@ -46,7 +46,11 @@ export default function SessionLockedModal({
                     {copy.heading}
                 </Heading>
                 <Text size="sm">{body}</Text>
-                <Button tone="rust" className="mt-1 self-start" onClick={onRetry}>
+                <Button
+                    tone="rust"
+                    className="mt-1 self-start"
+                    onClick={onRetry}
+                >
                     {copy.action}
                 </Button>
             </Card>

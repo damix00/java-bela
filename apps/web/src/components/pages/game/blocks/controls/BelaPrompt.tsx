@@ -52,7 +52,11 @@ export default function BelaPrompt({
                     <Button size="sm" onClick={() => onAnswer(true)}>
                         {declareLabel}
                     </Button>
-                    <Button tone="cream" size="sm" onClick={() => onAnswer(false)}>
+                    <Button
+                        tone="cream"
+                        size="sm"
+                        onClick={() => onAnswer(false)}
+                    >
                         {skipLabel}
                     </Button>
                 </div>

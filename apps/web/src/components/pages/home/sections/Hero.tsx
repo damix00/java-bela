@@ -4,7 +4,7 @@ import MediaPanel from "@/components/ui/surfaces/MediaPanel";
 import Section from "@/components/layout/Section";
 import Text from "@/components/ui/typography/Text";
 import type { Dictionary } from "@/dictionaries";
-import type { Locale } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n/config";
 
 type HeroProps = {
     copy: Dictionary["hero"];

@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/ui/cn";
 
 const sizes = {
     /** Bottom-bar scale: an avatar standing in for a nav glyph. */

@@ -3,7 +3,7 @@ import JoinCta from "@/components/pages/home/blocks/cta/JoinCta";
 import Heading from "@/components/ui/typography/Heading";
 import Text from "@/components/ui/typography/Text";
 import type { Dictionary } from "@/dictionaries";
-import type { Locale } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n/config";
 
 type ClosingSectionProps = {
     copy: Dictionary["closing"];

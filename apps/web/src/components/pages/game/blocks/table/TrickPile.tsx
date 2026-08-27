@@ -1,8 +1,8 @@
 import PlayingCard from "@/components/pages/game/blocks/cards/PlayingCard";
-import { cardKey } from "@/lib/game-rules";
-import { cn } from "@/lib/cn";
+import { cardKey } from "@/lib/game/rules";
+import { cn } from "@/lib/ui/cn";
 import type { PlayedCard } from "@bela/protocol";
-import type { SeatOrder } from "@/lib/game-seats";
+import type { SeatOrder } from "@/lib/game/seats";
 
 const pileClass = [
     "grid place-items-center",

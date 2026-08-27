@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react";
 
 import Input from "@/components/controls/Input";
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/ui/cn";
 
 type TextInputProps = Omit<ComponentProps<typeof Input>, "id"> & {
     id: string;

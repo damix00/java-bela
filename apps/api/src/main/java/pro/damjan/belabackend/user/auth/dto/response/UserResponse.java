@@ -14,6 +14,8 @@ public class UserResponse {
     private String username;
     private String email;
     private String avatarUrl;
+    private String bio;
+    private String countryCode;
     private String role;
     private Instant createdAt;
     private Instant lastLoginAt;
@@ -25,6 +27,8 @@ public class UserResponse {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .avatarUrl(user.getAvatarUrl())
+                .bio(user.getBio())
+                .countryCode(user.getCountryCode())
                 .role(user.getRole().name())
                 .createdAt(user.getCreatedAt())
                 .lastLoginAt(user.getLastLoginAt())

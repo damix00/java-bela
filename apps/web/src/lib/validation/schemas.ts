@@ -86,6 +86,26 @@ export function twoFactorSchema(t: FormErrors) {
     });
 }
 
+export const BIO_MAX = 160;
+
+/**
+ * The profile form. The username rule is the sign-up rule — the same column,
+ * with the same uniqueness behind it — so it reuses the same field rather than
+ * inventing a second, looser one.
+ *
+ * Bio and country are both optional and both allow the empty string, because
+ * clearing one is a thing a player will want to do and a blank box is how they
+ * will ask for it. The API reads an empty string the same way.
+ */
+export function profileSchema(t: FormErrors) {
+    return z.object({
+        username: usernameField(t),
+        bio: z.string().trim().max(BIO_MAX, t.bioLong),
+        /** A country code from the picker, or "" for "rather not say". */
+        countryCode: z.string(),
+    });
+}
+
 export function usernameSchema(t: FormErrors) {
     return z.object({
         username: usernameField(t),
@@ -104,6 +124,7 @@ export type ResetPasswordValues = z.infer<
 >;
 export type TwoFactorValues = z.infer<ReturnType<typeof twoFactorSchema>>;
 export type UsernameValues = z.infer<ReturnType<typeof usernameSchema>>;
+export type ProfileValues = z.infer<ReturnType<typeof profileSchema>>;
 
 /**
  * Segments to fill on the strength meter, 0–4. Length carries most of the

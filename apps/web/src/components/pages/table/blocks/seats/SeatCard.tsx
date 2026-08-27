@@ -2,8 +2,8 @@ import MockLabel from "@/components/pages/table/blocks/shared/MockLabel";
 import SwapBadge from "@/components/pages/table/blocks/seats/SwapBadge";
 import UserAvatar from "@/components/layout/UserAvatar";
 import Card from "@/components/ui/surfaces/Card";
-import { cn } from "@/lib/cn";
-import { pressSm, swapRing } from "@/lib/styles";
+import { cn } from "@/lib/ui/cn";
+import { pressSm, swapRing } from "@/lib/ui/styles";
 
 /** A short mark on a seat — "You", "Host", "Ready". */
 export type SeatTag = {
@@ -75,7 +75,8 @@ export default function SeatCard({
                     className={cn(
                         "border-[3px] px-2 py-[6px] sm:px-3",
                         tagTones[tag.tone ?? "paper"],
-                    )}>
+                    )}
+                >
                     {tag.label}
                 </MockLabel>
             ))}
@@ -106,7 +107,8 @@ export default function SeatCard({
             disabled={disabled}
             aria-label={actionLabel}
             aria-busy={status === "pending"}
-            className={cn(shell, "cursor-pointer text-left", pressSm)}>
+            className={cn(shell, "cursor-pointer text-left", pressSm)}
+        >
             {body}
         </Card>
     );

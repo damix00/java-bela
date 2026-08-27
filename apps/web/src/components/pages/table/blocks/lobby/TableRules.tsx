@@ -13,8 +13,8 @@ import {
     useLobbyActions,
 } from "@/context/lobby-context";
 import type { Dictionary } from "@/dictionaries";
-import { cn } from "@/lib/cn";
-import { focusRing, pressSm } from "@/lib/styles";
+import { cn } from "@/lib/ui/cn";
+import { focusRing, pressSm } from "@/lib/ui/styles";
 
 type TableRulesProps = {
     copy: Dictionary["table"];

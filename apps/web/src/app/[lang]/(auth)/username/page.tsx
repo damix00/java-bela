@@ -1,6 +1,6 @@
 import ChooseUsernameScreen from "@/components/pages/auth/sections/ChooseUsernameScreen";
 import { localePage } from "@/dictionaries";
-import { localeMetadata } from "@/lib/metadata";
+import { localeMetadata } from "@/lib/i18n/metadata";
 
 export const generateMetadata = localeMetadata(
     (dict) => dict.auth.username.title,

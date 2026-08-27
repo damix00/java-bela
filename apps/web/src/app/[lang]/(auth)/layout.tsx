@@ -3,8 +3,8 @@ import Link from "next/link";
 import LanguageSwitcher from "@/components/controls/LanguageSwitcher";
 import Logo from "@/components/ui/brand/Logo";
 import { localePage } from "@/dictionaries";
-import { focusRing } from "@/lib/styles";
-import { landingPath } from "@/lib/routes";
+import { focusRing } from "@/lib/ui/styles";
+import { landingPath } from "@/lib/navigation/routes";
 
 /**
  * Chrome for every auth screen: a way back to the site and a way to switch

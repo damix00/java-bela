@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react";
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/ui/cn";
 
 /** Bordered box that rules off each child from the next. */
 export default function DividedPanel({

@@ -1,8 +1,8 @@
 import type { ComponentProps } from "react";
 
 import Chip from "@/components/ui/surfaces/Chip";
-import { cn } from "@/lib/cn";
-import { hatch } from "@/lib/styles";
+import { cn } from "@/lib/ui/cn";
+import { hatch } from "@/lib/ui/styles";
 
 const shadows = {
     none: "",

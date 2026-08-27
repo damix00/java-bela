@@ -1,9 +1,9 @@
 import { ButtonLink } from "@/components/controls/Button";
 import Text from "@/components/ui/typography/Text";
 import TextLink from "@/components/ui/typography/TextLink";
-import { cn } from "@/lib/cn";
-import type { Locale } from "@/lib/i18n";
-import { authLink, landingSignUpPath } from "@/lib/routes";
+import { cn } from "@/lib/ui/cn";
+import type { Locale } from "@/lib/i18n/config";
+import { authLink, landingSignUpPath } from "@/lib/navigation/routes";
 
 type JoinCtaProps = {
     /** The band's own verb — no two of these read the same. */

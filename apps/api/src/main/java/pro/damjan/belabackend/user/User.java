@@ -35,10 +35,14 @@ public class User implements UserDetails {
     @Column(nullable = false, unique = true)
     private String username;
 
+    /** Free text the player writes about themselves; the profile form caps it at the same 160. */
+    @Column(length = 160)
     private String bio;
 
     private String avatarUrl;
 
+    /** ISO 3166-1 alpha-2, uppercase. Two characters is the whole format. */
+    @Column(length = 2)
     private String countryCode;
 
     // Auth and security

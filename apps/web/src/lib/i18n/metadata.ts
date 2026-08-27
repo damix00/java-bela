@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { localePage, type Dictionary } from "@/dictionaries";
-import type { Locale } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n/config";
 
 /**
  * `generateMetadata` for a localised route, without the seven lines of

@@ -21,13 +21,13 @@ import Heading from "@/components/ui/typography/Heading";
 import Text from "@/components/ui/typography/Text";
 import TextLink from "@/components/ui/typography/TextLink";
 import type { Dictionary } from "@/dictionaries";
-import type { Locale } from "@/lib/i18n";
-import { authLink, legalPath } from "@/lib/routes";
+import type { Locale } from "@/lib/i18n/config";
+import { authLink, legalPath } from "@/lib/navigation/routes";
 import {
     PASSWORD_MIN,
     signUpSchema,
     type SignUpValues,
-} from "@/lib/validation";
+} from "@/lib/validation/schemas";
 
 type SignUpScreenProps = {
     copy: Dictionary["auth"]["signUp"];

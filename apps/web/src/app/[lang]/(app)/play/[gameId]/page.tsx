@@ -3,9 +3,9 @@ import { redirect } from "next/navigation";
 import GameScreen from "@/components/pages/game/sections/GameScreen";
 import { localePage } from "@/dictionaries";
 import { getInitialSession } from "@/actions/auth";
-import { localeMetadata } from "@/lib/metadata";
-import { signInPathWithReturn } from "@/lib/routes";
-import { playPath } from "@/lib/routes";
+import { localeMetadata } from "@/lib/i18n/metadata";
+import { signInPathWithReturn } from "@/lib/navigation/routes";
+import { playPath } from "@/lib/navigation/routes";
 
 export const generateMetadata = localeMetadata((dict) => ({
     title: dict.game.title,

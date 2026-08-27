@@ -1,8 +1,8 @@
 import SignUpScreen from "@/components/pages/auth/sections/SignUpScreen";
 import Modal from "@/components/ui/surfaces/Modal";
 import { localePage } from "@/dictionaries";
-import { readGuestOffer, readReturnTo } from "@/lib/routes";
-import { guardCredentialScreen } from "@/lib/session-guards";
+import { readGuestOffer, readReturnTo } from "@/lib/navigation/routes";
+import { guardCredentialScreen } from "@/lib/auth/session-guards";
 
 /**
  * The sign-up half of the pair — see `(.)sign-in/page.tsx`.

@@ -249,6 +249,8 @@ export interface PlayerSnapshot {
 
 export interface PublicUserResponse {
     avatarUrl: string;
+    bio: string;
+    countryCode: string;
     createdAt: Date;
     id: string;
     username: string;
@@ -373,9 +375,17 @@ export interface TrumpChosenEvent extends PerspectiveOutgoingEvent {
     trumpSuite: Suite;
 }
 
+export interface UpdateProfileRequest {
+    bio: string;
+    countryCode: string;
+    username: string;
+}
+
 export interface UserResponse {
     authProvider: string;
     avatarUrl: string;
+    bio: string;
+    countryCode: string;
     createdAt: Date;
     email: string;
     id: string;

@@ -1,8 +1,8 @@
 import SignUpScreen from "@/components/pages/auth/sections/SignUpScreen";
 import { localePage } from "@/dictionaries";
-import { localeMetadata } from "@/lib/metadata";
-import { readGuestOffer, readReturnTo } from "@/lib/routes";
-import { guardCredentialScreen } from "@/lib/session-guards";
+import { localeMetadata } from "@/lib/i18n/metadata";
+import { readGuestOffer, readReturnTo } from "@/lib/navigation/routes";
+import { guardCredentialScreen } from "@/lib/auth/session-guards";
 
 export const generateMetadata = localeMetadata(
     (dict) => dict.auth.signUp.title,

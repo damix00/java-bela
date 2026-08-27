@@ -4,8 +4,8 @@ import { getCurrentUser } from "@/actions/auth";
 import { isGuest } from "@/api/types/user";
 import TableScreen from "@/components/pages/table/sections/TableScreen";
 import { localePage } from "@/dictionaries";
-import { localeMetadata } from "@/lib/metadata";
-import { authPath } from "@/lib/routes";
+import { localeMetadata } from "@/lib/i18n/metadata";
+import { authPath } from "@/lib/navigation/routes";
 
 // A personal page, and different for every visitor. The indexable copy that
 // used to live on this URL is now at `/[lang]/landing`, which is what the

@@ -3,9 +3,9 @@
 import Image from "next/image";
 
 import { Button } from "@/components/controls/Button";
-import { HUNGARIAN_SUIT_ASSETS } from "@/lib/card-assets";
-import { cn } from "@/lib/cn";
-import { focusRing, pressSm } from "@/lib/styles";
+import { HUNGARIAN_SUIT_ASSETS } from "@/lib/game/card-assets";
+import { cn } from "@/lib/ui/cn";
+import { focusRing, pressSm } from "@/lib/ui/styles";
 import { Suite } from "@bela/protocol";
 
 type TrumpChooserProps = {

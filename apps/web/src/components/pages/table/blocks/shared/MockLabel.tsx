@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react";
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/ui/cn";
 
 /**
  * The table's annotation voice — every small caps label on the screen.

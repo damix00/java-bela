@@ -1,6 +1,6 @@
 import Card from "@/components/ui/surfaces/Card";
 import Eyebrow from "@/components/ui/typography/Eyebrow";
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/ui/cn";
 
 type PlacementCardProps = {
     label: string;

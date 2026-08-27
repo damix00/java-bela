@@ -1,6 +1,6 @@
 import Eyebrow from "@/components/ui/typography/Eyebrow";
-import { cn } from "@/lib/cn";
-import { focusRing, pressSm } from "@/lib/styles";
+import { cn } from "@/lib/ui/cn";
+import { focusRing, pressSm } from "@/lib/ui/styles";
 
 /** The suits, plus a star for anyone who doesn't want to declare one. */
 export const AVATAR_GLYPHS = ["♠", "♥", "♦", "♣", "★"] as const;
@@ -12,6 +12,8 @@ type AvatarPickerProps = {
     onChange: (index: number) => void;
     /** Names each tile for screen readers: "Avatar 1", "Avatar 2"… */
     optionLabel: string;
+    /** Sits opposite the label — the profile marks the picker "coming soon". */
+    badge?: string;
 };
 
 /**
@@ -24,10 +26,16 @@ export default function AvatarPicker({
     value,
     onChange,
     optionLabel,
+    badge,
 }: AvatarPickerProps) {
     return (
         <div className="flex flex-col gap-3">
-            <Eyebrow id="avatar-label">{label}</Eyebrow>
+            <div className="flex items-baseline gap-3">
+                <Eyebrow id="avatar-label" className="mr-auto">
+                    {label}
+                </Eyebrow>
+                {badge && <Eyebrow>{badge}</Eyebrow>}
+            </div>
             <div
                 role="radiogroup"
                 aria-labelledby="avatar-label"

@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react";
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/ui/cn";
 
 /** Small boxed tag — used for captions and annotations. */
 export default function Chip({ className, ...props }: ComponentProps<"span">) {

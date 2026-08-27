@@ -12,11 +12,11 @@ import TableRules from "@/components/pages/table/blocks/lobby/TableRules";
 import MockLabel from "@/components/pages/table/blocks/shared/MockLabel";
 import { SEAT_COUNT, useLobby, useLobbyActions } from "@/context/lobby-context";
 import type { Dictionary } from "@/dictionaries";
-import { cn } from "@/lib/cn";
-import type { Locale } from "@/lib/i18n";
-import { localiseLobbyError } from "@/lib/lobby-errors";
-import { joinUrl } from "@/lib/routes";
-import { focusRing, pressSm } from "@/lib/styles";
+import { cn } from "@/lib/ui/cn";
+import type { Locale } from "@/lib/i18n/config";
+import { localiseLobbyError } from "@/lib/game/lobby-errors";
+import { joinUrl } from "@/lib/navigation/routes";
+import { focusRing, pressSm } from "@/lib/ui/styles";
 
 type LobbyBandProps = {
     copy: Dictionary["table"];
@@ -93,7 +93,8 @@ export default function LobbyBand({
     return (
         <section
             aria-label={t.heading}
-            className="mx-auto flex w-full max-w-[760px] flex-col gap-3 border-4 border-ink bg-baize-deep p-3 shadow-hard-lg sm:p-4">
+            className="mx-auto flex w-full max-w-[760px] flex-col gap-3 border-4 border-ink bg-baize-deep p-3 shadow-hard-lg sm:p-4"
+        >
             <div className="grid gap-3 sm:grid-cols-[minmax(150px,0.9fr)_minmax(190px,1.2fr)_minmax(160px,auto)] sm:gap-4">
                 <TableRules copy={copy} signUpHref={signUpHref} guest={guest} />
 
@@ -106,7 +107,8 @@ export default function LobbyBand({
                         "flex min-h-16 w-full cursor-pointer items-center gap-3 border-[3px] border-ink bg-baize px-4 py-2 text-left shadow-hard-sm",
                         pressSm,
                         focusRing,
-                    )}>
+                    )}
+                >
                     <span className="grid size-11 shrink-0 place-items-center border-[3px] border-ink bg-cream text-ink">
                         <UserPlus aria-hidden size={18} strokeWidth={3} />
                     </span>
@@ -124,7 +126,8 @@ export default function LobbyBand({
                     tone={!starts && isReady ? "cream" : "rust"}
                     size="lg"
                     onClick={() => setReady(!isReady)}
-                    className="min-h-16 w-full py-4 text-center text-[18px] tracking-[-.02em] sm:text-[19px]">
+                    className="min-h-16 w-full py-4 text-center text-[18px] tracking-[-.02em] sm:text-[19px]"
+                >
                     {starts
                         ? lobby.gameConfiguration.matchType == MatchType.PRIVATE
                             ? t.startWithBots
@@ -137,7 +140,8 @@ export default function LobbyBand({
 
             <p
                 aria-live="polite"
-                className="m-0 text-center text-[13px] font-semibold text-mint/75 sm:text-[14px]">
+                className="m-0 text-center text-[13px] font-semibold text-mint/75 sm:text-[14px]"
+            >
                 {full
                     ? t.allReadyNote
                     : starts

@@ -4,8 +4,8 @@ import MediaPanel from "@/components/ui/surfaces/MediaPanel";
 import Section from "@/components/layout/Section";
 import Text from "@/components/ui/typography/Text";
 import type { Dictionary } from "@/dictionaries";
-import type { Locale } from "@/lib/i18n";
-import { landingSignUpPath } from "@/lib/routes";
+import type { Locale } from "@/lib/i18n/config";
+import { landingSignUpPath } from "@/lib/navigation/routes";
 
 type LeaderboardSectionProps = {
     copy: Dictionary["leaderboard"];

@@ -1,7 +1,7 @@
 import CheckEmailScreen from "@/components/pages/auth/sections/CheckEmailScreen";
 import { localePage } from "@/dictionaries";
-import { guardCredentialScreen } from "@/lib/session-guards";
-import { localeMetadata } from "@/lib/metadata";
+import { guardCredentialScreen } from "@/lib/auth/session-guards";
+import { localeMetadata } from "@/lib/i18n/metadata";
 
 export const generateMetadata = localeMetadata(
     (dict) => dict.auth.checkEmail.title,

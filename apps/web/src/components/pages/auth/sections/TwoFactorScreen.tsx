@@ -17,13 +17,13 @@ import Heading from "@/components/ui/typography/Heading";
 import Text from "@/components/ui/typography/Text";
 import TextLink from "@/components/ui/typography/TextLink";
 import type { Dictionary } from "@/dictionaries";
-import type { Locale } from "@/lib/i18n";
-import { authPath } from "@/lib/routes";
+import type { Locale } from "@/lib/i18n/config";
+import { authPath } from "@/lib/navigation/routes";
 import {
     CODE_LENGTH,
     twoFactorSchema,
     type TwoFactorValues,
-} from "@/lib/validation";
+} from "@/lib/validation/schemas";
 
 type TwoFactorScreenProps = {
     copy: Dictionary["auth"]["twoFactor"];

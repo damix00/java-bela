@@ -1,12 +1,12 @@
 import type { MetadataRoute } from "next";
 
-import { locales, type Locale } from "@/lib/i18n";
+import { locales, type Locale } from "@/lib/i18n/config";
 import {
     landingPath,
     legalPages,
     legalPath,
     type LegalPage,
-} from "@/lib/routes";
+} from "@/lib/navigation/routes";
 
 const SITE_URL = "https://belote.gg";
 

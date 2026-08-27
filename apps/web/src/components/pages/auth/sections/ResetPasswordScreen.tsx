@@ -17,7 +17,7 @@ import {
     passwordStrength,
     resetPasswordSchema,
     type ResetPasswordValues,
-} from "@/lib/validation";
+} from "@/lib/validation/schemas";
 
 type ResetPasswordScreenProps = {
     copy: Dictionary["auth"]["reset"];

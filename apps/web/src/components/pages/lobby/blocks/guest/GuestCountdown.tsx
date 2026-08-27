@@ -2,10 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import {
-    formatTimeLeft,
-    type CountdownUnits,
-} from "@/lib/guest-session";
+import { formatTimeLeft, type CountdownUnits } from "@/lib/auth/guest-session";
 
 type GuestCountdownProps = {
     /** Epoch milliseconds — see `guestExpiresAt`. */
@@ -63,7 +60,10 @@ export default function GuestCountdown({
     }, [expiresAt, hours, minutes, expiredLabel]);
 
     return (
-        <time dateTime={new Date(expiresAt).toISOString()} className="font-bold">
+        <time
+            dateTime={new Date(expiresAt).toISOString()}
+            className="font-bold"
+        >
             {label}
         </time>
     );

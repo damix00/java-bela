@@ -28,13 +28,7 @@ type DeclarationsPanelProps = {
     onDecline: () => void;
 };
 
-function Total({
-    label,
-    points,
-}: {
-    label: string;
-    points: number;
-}) {
+function Total({ label, points }: { label: string; points: number }) {
     return (
         <div className="flex min-w-0 flex-1 flex-col items-center border-[3px] border-ink bg-baize-deep px-2 py-2 text-center shadow-hard-sm sm:px-3 sm:py-3">
             <span className="truncate text-[9px] font-bold tracking-wide text-mint/70 uppercase sm:text-[11px]">
@@ -94,15 +88,15 @@ export default function DeclarationsPanel({
               ? "pending"
               : "summary";
 
-    const reveal = reduceMotion
-        ? undefined
-        : { opacity: 1, scale: 1, y: 0 };
+    const reveal = reduceMotion ? undefined : { opacity: 1, scale: 1, y: 0 };
 
     if (mode === "prompt") {
         return (
             <motion.div
                 key="prompt"
-                initial={reduceMotion ? false : { opacity: 0, scale: 0.98, y: 6 }}
+                initial={
+                    reduceMotion ? false : { opacity: 0, scale: 0.98, y: 6 }
+                }
                 animate={reveal}
                 className="flex w-full flex-col items-center gap-2 text-center sm:gap-3 [@media(max-height:560px)]:flex-row [@media(max-height:560px)]:justify-center [@media(max-height:560px)]:gap-3"
             >

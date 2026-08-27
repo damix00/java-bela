@@ -6,9 +6,9 @@ import LeaderboardSection from "@/components/pages/home/sections/LeaderboardSect
 import RankedSection from "@/components/pages/home/sections/RankedSection";
 import ClosingSection from "@/components/pages/home/sections/ClosingSection";
 import { localePage } from "@/dictionaries";
-import { locales } from "@/lib/i18n";
-import { localeMetadata } from "@/lib/metadata";
-import { landingPath } from "@/lib/routes";
+import { locales } from "@/lib/i18n/config";
+import { localeMetadata } from "@/lib/i18n/metadata";
+import { landingPath } from "@/lib/navigation/routes";
 
 /**
  * The marketing page. It owns the canonical URL and the language alternates —

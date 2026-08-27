@@ -79,7 +79,8 @@ export default function InvitePanel({
                     tone="rust"
                     size="md"
                     onClick={copyInvite}
-                    className="flex w-full items-center justify-center gap-3">
+                    className="flex w-full items-center justify-center gap-3"
+                >
                     {copied ? (
                         <Check aria-hidden size={18} strokeWidth={3} />
                     ) : (

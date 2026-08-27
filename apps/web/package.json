@@ -7,11 +7,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "flags": "node scripts/sync-flags.mjs",
+    "postinstall": "node scripts/sync-flags.mjs",
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "@bela/protocol": "workspace:*",
     "@hookform/resolvers": "^5.9.0",
+    "@twemoji/svg": "^15.0.0",
     "clsx": "^2.1.1",
     "lucide-react": "^1.30.0",
     "motion": "^13.1.0",

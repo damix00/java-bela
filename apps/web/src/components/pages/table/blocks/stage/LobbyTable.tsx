@@ -314,7 +314,8 @@ export default function LobbyTable({
                 layoutId={`lobby-${identity}`}
                 transition={transition}
                 animate={bumping ? { scale: [1, 1.04, 1] } : undefined}
-                className="flex size-full">
+                className="flex size-full"
+            >
                 <ResolvedTableSeat
                     copy={copy}
                     player={player}

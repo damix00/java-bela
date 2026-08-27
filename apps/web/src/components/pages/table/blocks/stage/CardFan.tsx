@@ -1,5 +1,5 @@
 import { mockFan } from "@/components/pages/table/mock-data";
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/ui/cn";
 
 // Splayed by hand rather than computed: three cards is not a fan worth writing
 // a formula for, and the middle one sitting a touch proud of its neighbours is

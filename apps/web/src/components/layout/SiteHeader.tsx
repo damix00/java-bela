@@ -3,8 +3,8 @@ import LanguageSwitcher from "@/components/controls/LanguageSwitcher";
 import Logo from "@/components/ui/brand/Logo";
 import TextLink from "@/components/ui/typography/TextLink";
 import type { Dictionary } from "@/dictionaries";
-import type { Locale } from "@/lib/i18n";
-import { landingSignUpPath } from "@/lib/routes";
+import type { Locale } from "@/lib/i18n/config";
+import { landingSignUpPath } from "@/lib/navigation/routes";
 
 type SiteHeaderProps = {
     copy: Dictionary["nav"];

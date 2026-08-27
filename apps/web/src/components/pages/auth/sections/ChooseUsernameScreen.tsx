@@ -19,8 +19,8 @@ import Eyebrow from "@/components/ui/typography/Eyebrow";
 import Heading from "@/components/ui/typography/Heading";
 import Text from "@/components/ui/typography/Text";
 import type { Dictionary } from "@/dictionaries";
-import { focusRing, inputBare, inputFrame } from "@/lib/styles";
-import { usernameSchema, type UsernameValues } from "@/lib/validation";
+import { focusRing, inputBare, inputFrame } from "@/lib/ui/styles";
+import { usernameSchema, type UsernameValues } from "@/lib/validation/schemas";
 
 type ChooseUsernameScreenProps = {
     copy: Dictionary["auth"]["username"];

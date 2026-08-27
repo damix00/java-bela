@@ -1,7 +1,7 @@
 import type { ComponentProps, ReactNode } from "react";
 
 import Card from "@/components/ui/surfaces/Card";
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/ui/cn";
 
 const asideTones = {
     forest: "bg-forest",

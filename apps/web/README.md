@@ -47,7 +47,7 @@ Primitives take a small set of named variants (`tone`, `size`, `padding`,
 `shadow`) resolved through `as const` lookup maps, spread the rest of the
 native element props, and merge a trailing `className` through `cn` so callers
 can override. Follow that shape when adding one. Recurring class fragments
-(`lift`, `focusRing`, `hatch`) belong in `src/lib/styles.ts`.
+(`lift`, `focusRing`, `hatch`) belong in `src/lib/ui/styles.ts`.
 
 Two conventions worth knowing:
 

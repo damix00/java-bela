@@ -1,8 +1,8 @@
 import { ButtonLink } from "@/components/controls/Button";
 import type { Dictionary } from "@/dictionaries";
-import { cn } from "@/lib/cn";
-import type { Locale } from "@/lib/i18n";
-import { authPath } from "@/lib/routes";
+import { cn } from "@/lib/ui/cn";
+import type { Locale } from "@/lib/i18n/config";
+import { authPath } from "@/lib/navigation/routes";
 
 type GuestUpgradeProps = {
     copy: Dictionary["table"]["guestUpgrade"];

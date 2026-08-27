@@ -1,8 +1,8 @@
 "use client";
 
 import PlayingCard from "@/components/pages/game/blocks/cards/PlayingCard";
-import { cardKey, isTrump, legalMoveKeys, sortHand } from "@/lib/game-rules";
-import { cn } from "@/lib/cn";
+import { cardKey, isTrump, legalMoveKeys, sortHand } from "@/lib/game/rules";
+import { cn } from "@/lib/ui/cn";
 import type { Card, PlayedCard, Suite } from "@bela/protocol";
 
 type HandFanProps = {
@@ -38,8 +38,7 @@ const handClass = [
 ].join(" ");
 
 /** How far each card tucks under the one before it, once the hand is one row. */
-const overlapClass =
-    "flat:not-first:-ml-5 desk:not-first:-ml-3.5";
+const overlapClass = "flat:not-first:-ml-5 desk:not-first:-ml-3.5";
 
 /**
  * Your eight cards, in a thumb-readable hand.

@@ -1,8 +1,8 @@
 import { ArrowLeftRight, UserRound } from "lucide-react";
 
 import MockLabel from "@/components/pages/table/blocks/shared/MockLabel";
-import { cn } from "@/lib/cn";
-import { focusRing, pressSm, swapRing } from "@/lib/styles";
+import { cn } from "@/lib/ui/cn";
+import { focusRing, pressSm, swapRing } from "@/lib/ui/styles";
 
 type EmptySeatProps = {
     label: string;

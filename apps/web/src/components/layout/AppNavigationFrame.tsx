@@ -3,8 +3,8 @@
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
-import { cn } from "@/lib/cn";
-import type { Locale } from "@/lib/i18n";
+import { cn } from "@/lib/ui/cn";
+import type { Locale } from "@/lib/i18n/config";
 
 /**
  * Keeps the shared app navigation out of the game itself.

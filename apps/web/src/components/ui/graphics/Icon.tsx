@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/ui/cn";
 
 const sizes = {
     sm: "size-[18px]",

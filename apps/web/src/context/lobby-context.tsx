@@ -26,8 +26,8 @@ import {
     type SocketError,
 } from "@/context/socket-context";
 import { useSocketErrors, useSocketEvent } from "@/hooks/use-socket-event";
-import type { Locale } from "@/lib/i18n";
-import { playPath } from "@/lib/routes";
+import type { Locale } from "@/lib/i18n/config";
+import { playPath } from "@/lib/navigation/routes";
 
 /** `Lobby.MAX_PLAYERS`. Four seats, and the backend will not grow a fifth. */
 export const SEAT_COUNT = 4;

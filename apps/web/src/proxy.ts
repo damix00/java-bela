@@ -6,21 +6,21 @@ import {
     isLocale,
     matchLocale,
     type Locale,
-} from "@/lib/i18n";
+} from "@/lib/i18n/config";
 import {
     authPath,
     homePath,
     safeReturnPath,
     signInPathWithReturn,
-} from "@/lib/routes";
+} from "@/lib/navigation/routes";
 import {
     ACCESS_TOKEN_COOKIE,
     REFRESH_TOKEN_COOKIE,
     accessTokenExpiryMs,
     clearSessionCookies,
     setSessionCookies,
-} from "@/lib/session-cookies";
-import { verifySession } from "@/lib/session-verify";
+} from "@/lib/auth/session-cookies";
+import { verifySession } from "@/lib/auth/session-verify";
 
 /**
  * Two jobs.
@@ -72,13 +72,25 @@ export async function proxy(request: NextRequest) {
  * browser refuses the `history.replaceState()` behind it. Turning the visitor
  * away out here, before the lobby renders at all, is what breaks the cycle.
  *
+ * `profile` and `settings` are the account's own pages: there is nothing on
+ * either of them to render for someone without a session, and `?next=` brings
+ * them back to the one they asked for.
+ *
  * `join` is an invite link arriving from outside — a chat app, usually — and it
  * needs a session before it can take a seat. Gating it here is what makes
  * `?next=` carry the table through sign-in, so someone who clicks a friend's
  * link while signed out lands back on that lobby rather than on the front door
  * with the code lost.
  */
-const gatedSections = new Set(["", "play", "welcome", "username", "join"]);
+const gatedSections = new Set([
+    "",
+    "play",
+    "welcome",
+    "username",
+    "join",
+    "profile",
+    "settings",
+]);
 
 function isGated(section: string) {
     return gatedSections.has(section);

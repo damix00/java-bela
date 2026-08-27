@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { cache } from "react";
 
-import { isLocale, type Locale } from "@/lib/i18n";
+import { isLocale, type Locale } from "@/lib/i18n/config";
 
 /**
  * English is the reference shape. Because `dictionaries` below is annotated

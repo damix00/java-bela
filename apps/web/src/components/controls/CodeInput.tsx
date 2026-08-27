@@ -2,8 +2,8 @@
 
 import { useRef, type ClipboardEvent, type KeyboardEvent } from "react";
 
-import { cn } from "@/lib/cn";
-import { focusRing } from "@/lib/styles";
+import { cn } from "@/lib/ui/cn";
+import { focusRing } from "@/lib/ui/styles";
 
 type CodeInputProps = {
     /** The digits typed so far, shorter than `length` while incomplete. */

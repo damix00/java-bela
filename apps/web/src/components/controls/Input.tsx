@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react";
 
-import { cn } from "@/lib/cn";
-import { focusRing, inputBox } from "@/lib/styles";
+import { cn } from "@/lib/ui/cn";
+import { focusRing, inputBox } from "@/lib/ui/styles";
 
 const tones = {
     white: "bg-white",

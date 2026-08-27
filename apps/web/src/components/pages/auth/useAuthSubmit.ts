@@ -6,8 +6,8 @@ import { useCallback, useState, useTransition } from "react";
 import type { AuthActionResult } from "@/actions/auth";
 import { applyAuthResponse } from "@/api/token-store";
 import type { Dictionary } from "@/dictionaries";
-import type { Locale } from "@/lib/i18n";
-import { homePath } from "@/lib/routes";
+import type { Locale } from "@/lib/i18n/config";
+import { homePath } from "@/lib/navigation/routes";
 
 type FormErrors = Dictionary["form"]["errors"];
 

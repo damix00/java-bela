@@ -38,7 +38,8 @@
             "signUpFailed": "We couldn’t create your account. Please try again.",
             "emailTaken": "That email already has an account.",
             "usernameTaken": "That username is taken.",
-            "networkError": "We couldn’t reach the server. Check your connection and try again."
+            "networkError": "We couldn’t reach the server. Check your connection and try again.",
+            "bioLong": "Keep it to 160 characters or fewer."
         }
     },
     "auth": {
@@ -243,7 +244,8 @@
             "ladder": "Ladder",
             "friends": "Friends",
             "hands": "Hands",
-            "profile": "Profile"
+            "profile": "Profile",
+            "settings": "Settings"
         },
         "profileMenu": {
             "trigger": "Account menu",
@@ -251,8 +253,7 @@
             "createAccount": "Create an account",
             "viewProfile": "View profile",
             "settings": "Settings",
-            "signOut": "Sign out",
-            "soon": "Coming soon"
+            "signOut": "Sign out"
         },
         "guestUpgrade": {
             "label": "Unranked",
@@ -282,11 +283,10 @@
             }
         },
         "gameModeLabel": "Choose a game mode",
+        "unranked": "Unranked",
+        "unrated": "Unrated",
         "selectedLabel": "Selected",
         "matchmakingNote": "Matchmade partner + opponents · to 1001 · rating counts",
-        "seasonLabel": "Season 2 · 31 days left",
-        "progressLabel": "Rank progress",
-        "rankProgress": "118 to Bela · {rank} of 8,100",
         "ladderLabel": "Friends ladder",
         "partner": "your partner",
         "dealer": "dealer",
@@ -435,6 +435,68 @@
             "lost": "You lost",
             "score": "{us} — {them}",
             "back": "Back to the lobby"
+        }
+    },
+    "profile": {
+        "title": "Your profile",
+        "memberSince": "Playing since",
+        "emailLabel": "Email",
+        "bioEmpty": "No line under your name yet.",
+        "editHeading": "Edit profile",
+        "settingsLink": "Settings",
+        "usernameLabel": "Username",
+        "usernameHint": "3–16 characters. Letters, numbers, dot, dash and underscore.",
+        "bioLabel": "About you",
+        "bioHint": "A line or two, at most 160 characters.",
+        "bioPlaceholder": "Plays the fours. Never counts them.",
+        "bioRemaining": "characters left",
+        "countryLabel": "Country",
+        "countryNone": "Rather not say",
+        "countrySearch": "Search countries",
+        "countryNoMatch": "No country by that name.",
+        "submit": "Save profile",
+        "saved": "Profile saved.",
+        "sessionExpired": "Your session timed out. Press save once more.",
+        "failed": "We couldn’t save your profile. Please try again."
+    },
+    "settings": {
+        "title": "Settings",
+        "heading": "Settings",
+        "intro": "How this browser behaves. Your name and country live on your profile.",
+        "profileLink": "Your profile",
+        "soon": "Coming soon",
+        "language": {
+            "heading": "Language",
+            "body": "Changes the site. The cards are the same in both.",
+            "label": "Language"
+        },
+        "account": {
+            "heading": "Account",
+            "body": "The email this account is tied to.",
+            "guestBody": "You’re playing as a guest. A guest session lasts a day, and an account is what keeps your name.",
+            "guestAction": "Create an account"
+        },
+        "signOut": {
+            "heading": "Sign out",
+            "body": "Ends this session on this device.",
+            "action": "Sign out"
+        },
+        "signOutAll": {
+            "heading": "Sign out everywhere",
+            "body": "Ends every session on every device — this one included.",
+            "action": "Sign out everywhere",
+            "confirm": "This signs you out here too. Sure?",
+            "confirmAction": "Yes, sign out everywhere",
+            "cancel": "Cancel",
+            "failed": "We couldn’t sign you out everywhere. Please try again."
+        },
+        "changePassword": {
+            "heading": "Change password",
+            "body": "There is no way to change it from here yet."
+        },
+        "deleteAccount": {
+            "heading": "Delete account",
+            "body": "Nothing here can remove an account yet."
         }
     }
 }

@@ -1,8 +1,8 @@
 import LegalDocument from "@/components/pages/legal/LegalDocument";
 import { getLegalDocument } from "@/content/legal";
 import { localePage } from "@/dictionaries";
-import { localeMetadata } from "@/lib/metadata";
-import { legalPath } from "@/lib/routes";
+import { localeMetadata } from "@/lib/i18n/metadata";
+import { legalPath } from "@/lib/navigation/routes";
 
 export const generateMetadata = localeMetadata(async () => {
     const doc = await getLegalDocument("terms");

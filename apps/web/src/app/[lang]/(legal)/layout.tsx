@@ -4,8 +4,8 @@ import LanguageSwitcher from "@/components/controls/LanguageSwitcher";
 import SiteFooter from "@/components/layout/SiteFooter";
 import Logo from "@/components/ui/brand/Logo";
 import { localePage } from "@/dictionaries";
-import { landingPath } from "@/lib/routes";
-import { focusRing } from "@/lib/styles";
+import { landingPath } from "@/lib/navigation/routes";
+import { focusRing } from "@/lib/ui/styles";
 
 /**
  * Chrome for the legal pages. `SiteHeader` doesn't come along: its nav is

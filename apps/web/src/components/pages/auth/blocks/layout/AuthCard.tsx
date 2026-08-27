@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react";
 
 import Card from "@/components/ui/surfaces/Card";
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/ui/cn";
 
 /**
  * The single-column auth card — password reset, the code prompt, the states

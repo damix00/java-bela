@@ -88,6 +88,40 @@ export function setSessionCookies(store: CookieWriter, auth: SessionPayload) {
     });
 }
 
+/**
+ * Refresh-token lifetimes, in seconds, mirroring `app.jwt.refresh-expiration-ms`
+ * and `app.jwt.refresh-anonymous-expiration-ms` in the API's
+ * `application.properties` — 30 days for an account, 24 hours for a guest.
+ *
+ * These are duplicated here for one reason: `setUserCookie` below rewrites the
+ * user cookie *without* a rotation, so there is no `refreshExpiresIn` in hand to
+ * take the lifetime from. Being generous would be safe rather than wrong —
+ * `getCurrentUser` gates on the refresh cookie, so a user cookie that outlives
+ * it is never read — but matching the real lifetimes keeps a dead guest's name
+ * out of the jar for the 29 days after their session ends.
+ */
+const REFRESH_MAX_AGE = 30 * 24 * 60 * 60;
+const GUEST_REFRESH_MAX_AGE = 24 * 60 * 60;
+
+/**
+ * Rewrites just the user cookie, for a profile edit.
+ *
+ * `setSessionCookies` cannot serve this: it writes the user only alongside a new
+ * refresh token, and a profile save rotates nothing. Without this the cookie
+ * would keep serving the old name until the next rotation — and the cookie is
+ * what every server render reads the session from.
+ */
+export function setUserCookie(
+    store: CookieWriter,
+    user: { email: string | null },
+) {
+    // An anonymous account has no email, and a shorter session behind it.
+    const maxAge =
+        user.email === null ? GUEST_REFRESH_MAX_AGE : REFRESH_MAX_AGE;
+
+    store.set(USER_COOKIE, JSON.stringify(user), { ...baseOptions(), maxAge });
+}
+
 export function clearSessionCookies(store: CookieWriter) {
     store.delete(ACCESS_TOKEN_COOKIE);
     store.delete(REFRESH_TOKEN_COOKIE);

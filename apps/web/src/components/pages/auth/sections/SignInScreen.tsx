@@ -18,9 +18,9 @@ import Heading from "@/components/ui/typography/Heading";
 import Text from "@/components/ui/typography/Text";
 import TextLink from "@/components/ui/typography/TextLink";
 import type { Dictionary } from "@/dictionaries";
-import type { Locale } from "@/lib/i18n";
-import { authLink, authPath } from "@/lib/routes";
-import { signInSchema, type SignInValues } from "@/lib/validation";
+import type { Locale } from "@/lib/i18n/config";
+import { authLink, authPath } from "@/lib/navigation/routes";
+import { signInSchema, type SignInValues } from "@/lib/validation/schemas";
 
 type SignInScreenProps = {
     copy: Dictionary["auth"]["signIn"];

@@ -1,8 +1,8 @@
 import Link from "next/link";
 import type { ComponentProps } from "react";
 
-import { cn } from "@/lib/cn";
-import { focusRing, hitAreaJoined, pressMd, pressSm } from "@/lib/styles";
+import { cn } from "@/lib/ui/cn";
+import { focusRing, hitAreaJoined, pressMd, pressSm } from "@/lib/ui/styles";
 
 const tones = {
     rust: "bg-rust text-cream hover:text-cream",

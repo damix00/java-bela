@@ -2,8 +2,8 @@
 
 import { useState, type ComponentProps } from "react";
 
-import { cn } from "@/lib/cn";
-import { focusRing, inputBare, inputFrame } from "@/lib/styles";
+import { cn } from "@/lib/ui/cn";
+import { focusRing, inputBare, inputFrame } from "@/lib/ui/styles";
 import { Eye, EyeOff } from "lucide-react";
 
 type PasswordInputProps = Omit<ComponentProps<"input">, "type"> & {

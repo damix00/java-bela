@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import type { Countdown } from "@/context/game-context";
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/ui/cn";
 
 /**
  * Seconds left on a server-scheduled task.

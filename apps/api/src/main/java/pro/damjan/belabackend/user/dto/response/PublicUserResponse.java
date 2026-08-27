@@ -12,6 +12,8 @@ public class PublicUserResponse {
     private String id;
     private String username;
     private String avatarUrl;
+    private String bio;
+    private String countryCode;
     private Instant createdAt;
 
     public static PublicUserResponse fromUser(User user) {
@@ -19,6 +21,8 @@ public class PublicUserResponse {
                 .id(user.getId())
                 .username(user.getUsername())
                 .avatarUrl(user.getAvatarUrl())
+                .bio(user.getBio())
+                .countryCode(user.getCountryCode())
                 .createdAt(user.getCreatedAt())
                 .build();
     }

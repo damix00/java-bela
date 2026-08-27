@@ -1,8 +1,8 @@
 import Logo from "@/components/ui/brand/Logo";
 import TextLink from "@/components/ui/typography/TextLink";
 import type { Dictionary } from "@/dictionaries";
-import type { Locale } from "@/lib/i18n";
-import { landingPath, legalPath } from "@/lib/routes";
+import type { Locale } from "@/lib/i18n/config";
+import { landingPath, legalPath } from "@/lib/navigation/routes";
 
 type SiteFooterProps = {
     copy: Dictionary["footer"];

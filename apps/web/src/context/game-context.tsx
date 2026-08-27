@@ -21,8 +21,8 @@ import {
 
 import { useSocketCommands } from "@/context/socket-context";
 import { useSocketEvent } from "@/hooks/use-socket-event";
-import { sameCard } from "@/lib/game-rules";
-import { seatingFor, type GameSeating } from "@/lib/game-seats";
+import { sameCard } from "@/lib/game/rules";
+import { seatingFor, type GameSeating } from "@/lib/game/seats";
 
 /**
  * The `ScheduledTaskType` names the backend puts in a snapshot's `timerType`.

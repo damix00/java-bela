@@ -20,6 +20,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.9.0
         version: 5.9.0(react-hook-form@7.85.0(react@19.2.4))(zod@4.4.3)
+      '@twemoji/svg':
+        specifier: ^15.0.0
+        version: 15.0.0
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -656,6 +659,9 @@ packages:
 
   '@tailwindcss/postcss@4.3.3':
     resolution: {integrity: sha512-JTSZZGQi1AyKirbLN3azmjVzef92tcX7h+iSqPdaeStyFpGpDlKvvpxeOE8njhbUanbRwr3z8DyzhICWnMtQeg==}
+
+  '@twemoji/svg@15.0.0':
+    resolution: {integrity: sha512-ZSPef2B6nBaYnfgdTbAy4jgW95o7pi2xPGwGCU+WMTxo7J6B1lMPTWwSq/wTuiMq+N0khQ90CcvYp1wFoQpo/w==}
 
   '@tybys/wasm-util@0.10.3':
     resolution: {integrity: sha512-F3fo1MYrRJYL3zER0OUOmkutjr1Vp23m7OsSgp7nq4SP6OqX6C/56XFIPAl5bt3zaBRjmW7SGz3u/6LwFpYcOg==}
@@ -2667,6 +2673,8 @@ snapshots:
       '@tailwindcss/oxide': 4.3.3
       postcss: 8.5.25
       tailwindcss: 4.3.3
+
+  '@twemoji/svg@15.0.0': {}
 
   '@tybys/wasm-util@0.10.3':
     dependencies:

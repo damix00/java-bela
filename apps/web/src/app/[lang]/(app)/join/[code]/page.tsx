@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/actions/auth";
 import JoinScreen from "@/components/pages/lobby/sections/JoinScreen";
 import { localePage } from "@/dictionaries";
-import { localeMetadata } from "@/lib/metadata";
-import { authPath } from "@/lib/routes";
+import { localeMetadata } from "@/lib/i18n/metadata";
+import { authPath } from "@/lib/navigation/routes";
 
 export const generateMetadata = localeMetadata((dict) => ({
     title: dict.table.join.heading,

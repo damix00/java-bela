@@ -1,5 +1,5 @@
 import Eyebrow from "@/components/ui/typography/Eyebrow";
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/ui/cn";
 
 type LabeledRuleProps = {
     children: string;

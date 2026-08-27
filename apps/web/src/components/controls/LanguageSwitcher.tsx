@@ -3,15 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { cn } from "@/lib/cn";
-import { focusRing } from "@/lib/styles";
+import { cn } from "@/lib/ui/cn";
+import { focusRing } from "@/lib/ui/styles";
 import {
     LOCALE_COOKIE,
     type Locale,
     isLocale,
     localeNames,
     locales,
-} from "@/lib/i18n";
+} from "@/lib/i18n/config";
 
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365;
 

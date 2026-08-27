@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/ui/cn";
 
 type GameTableStageProps = {
     near: ReactNode;
@@ -101,8 +101,7 @@ export default function GameTableStage({
                     data-game-table=""
                     className={cn(
                         feltClass,
-                        compact &&
-                            "tray-room:w-[max(4rem,min(100%,100cqh))]",
+                        compact && "tray-room:w-[max(4rem,min(100%,100cqh))]",
                     )}
                 >
                     <div className={feltInnerClass}>{centre}</div>

@@ -6,9 +6,9 @@ import Text from "@/components/ui/typography/Text";
 import TextLink from "@/components/ui/typography/TextLink";
 import type { User } from "@/api/types/user";
 import type { Dictionary } from "@/dictionaries";
-import type { Locale } from "@/lib/i18n";
-import { guestCountdown } from "@/lib/guest-session";
-import { authPath } from "@/lib/routes";
+import type { Locale } from "@/lib/i18n/config";
+import { guestCountdown } from "@/lib/auth/guest-session";
+import { authPath } from "@/lib/navigation/routes";
 
 type GuestBannerProps = {
     copy: Dictionary["lobby"]["guestBanner"];
@@ -46,7 +46,12 @@ export default function GuestBanner({ copy, user, locale }: GuestBannerProps) {
 
             {/* The one sentence with a number in it, sized above the list under it:
                 a countdown is only pressure if it is the thing you read first. */}
-            <Text size="lg" tone="cream" weight="medium" className="max-w-[46ch]">
+            <Text
+                size="lg"
+                tone="cream"
+                weight="medium"
+                className="max-w-[46ch]"
+            >
                 {before}
                 <GuestCountdown
                     expiresAt={expiresAt}

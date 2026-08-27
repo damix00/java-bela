@@ -1,5 +1,5 @@
 import DividedPanel from "@/components/ui/surfaces/DividedPanel";
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/ui/cn";
 
 type LadderRow = {
     rank: string;
