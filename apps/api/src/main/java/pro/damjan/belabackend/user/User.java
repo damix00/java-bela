@@ -19,7 +19,11 @@ import java.util.List;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name="users")
+@Table(
+        name = "users",
+        // UserCleanupService sweeps guests hourly by exactly this pair of columns.
+        indexes = @Index(name = "idx_users_auth_provider_created_at", columnList = "authProvider, createdAt")
+)
 @Getter @Setter
 public class User implements UserDetails {
     @Id
