@@ -242,6 +242,26 @@ public class LobbyService {
         lobbyEventPublisher.gameCreated(lobby, game);
     }
 
+    /**
+     * Puts a player back in their lobby once the game they were in has finished.
+     *
+     * The reset runs on whoever gets here first and is a no-op for everyone after — the others are
+     * still on the scoreboard, so only the player who asked to come back gets a snapshot. Pushing
+     * the reset lobby to all four would pull the rest off the scoreboard before they were done
+     * reading it.
+     */
+    public void returnToLobby(Lobby lobby, String userId) {
+        if (lobby.getStatus() == LobbyStatus.IN_GAME) {
+            lobby.resetAfterGame();
+            lobbyRepository.save(lobby);
+        }
+
+        // Clears the game id off the player's presence as a side effect, which is what we want here.
+        userPresenceService.setUserLobby(userId, lobby.getId());
+
+        lobbyEventPublisher.sendSnapshot(lobby, userId);
+    }
+
     public void onPlayerReady(String userId, boolean ready) throws LobbyNotFoundException {
         Lobby lobby = getUserLobby(userId);
 

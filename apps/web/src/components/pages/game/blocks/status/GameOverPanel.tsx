@@ -1,4 +1,3 @@
-import { Button } from "@/components/controls/Button";
 import type { GameResult } from "@/context/game-context";
 
 type GameOverPanelProps = {
@@ -8,22 +7,14 @@ type GameOverPanelProps = {
     wonLabel: string;
     lostLabel: string;
     scoreLabel: string;
-    backLabel: string;
-    /**
-     * Leaves the table as well as navigating.
-     *
-     * Both halves are required. The backend marks the *game* finished and stops
-     * there — `GameFlowService.endGameIfWon` never touches the lobby, which is
-     * left saying IN_GAME with the finished game's id. Since a reconnect's
-     * `lobby:initialState` routes an IN_GAME lobby back to its table, walking
-     * away without leaving would keep pulling the player into a game that is
-     * over.
-     */
-    onBack: () => void;
 };
 
 /**
- * How it ended, and the way out.
+ * How it ended.
+ *
+ * Read-only on purpose: `GameScreen` sends `game:leave` and navigates on its own
+ * a few seconds after the result lands, so there is nothing here to press and
+ * nothing counting down to watch.
  *
  * `winningTeamIndex` is the backend's 0-or-1 over `team1`/`team2`, which is the
  * same axis `seatingFor` reports a player's own team on — so the verdict is a
@@ -35,8 +26,6 @@ export default function GameOverPanel({
     wonLabel,
     lostLabel,
     scoreLabel,
-    backLabel,
-    onBack,
 }: GameOverPanelProps) {
     const won = myTeamIndex !== -1 && result.winningTeamIndex === myTeamIndex;
 
@@ -58,10 +47,6 @@ export default function GameOverPanel({
                     .replace("{us}", String(mine))
                     .replace("{them}", String(theirs))}
             </p>
-
-            <Button tone="rust" size="md" onClick={onBack}>
-                {backLabel}
-            </Button>
         </div>
     );
 }

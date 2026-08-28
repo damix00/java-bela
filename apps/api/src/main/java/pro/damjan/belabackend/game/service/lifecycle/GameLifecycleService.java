@@ -122,6 +122,40 @@ public class GameLifecycleService {
         trumpPhaseService.chooseBotTrumpOrSchedule(game);
     }
 
+    /**
+     * Records that a player has left a finished game, and tears the game down once they all have.
+     *
+     * The "have they all left?" decision rides on a Redis set rather than the in-process game lock,
+     * which does not span instances — SADD/SCARD means exactly one caller sees the count reach the
+     * human count, whichever box it lands on. Bots never leave, so only humans are counted.
+     */
+    public void leaveFinishedGame(String userId, String gameId) {
+        BeloteGame game = gameAccessService.findGameById(gameId);
+
+        // Already dropped by the last player out; the caller still announces the leave so the
+        // player's lobby can take them back.
+        if (game == null) {
+            return;
+        }
+
+        if (game.getStatus() != GameStatus.FINISHED) {
+            throw new IllegalStateException(
+                    "Player " + userId + " tried to leave game " + gameId + " before it finished"
+            );
+        }
+
+        String key = leftKey(gameId);
+        redisTemplate.opsForSet().add(key, userId);
+        Long leftCount = redisTemplate.opsForSet().size(key);
+        redisTemplate.expire(key, 1, TimeUnit.HOURS);
+
+        long humanCount = game.getPlayers().stream().filter(player -> !player.isBot()).count();
+
+        if (leftCount != null && leftCount >= humanCount) {
+            dropGame(gameId);
+        }
+    }
+
     public void dropGame(String gameId) {
         BeloteGame game = gameAccessService.findGameById(gameId);
 
@@ -137,10 +171,15 @@ public class GameLifecycleService {
             userPresenceService.cancelUserGame(player.getUserId());
         }
 
+        redisTemplate.delete(List.of(loadedKey(gameId), leftKey(gameId)));
         gameAccessService.delete(game);
     }
 
     private String loadedKey(String gameId) {
         return "game:loaded:" + gameId;
+    }
+
+    private String leftKey(String gameId) {
+        return "game:left:" + gameId;
     }
 }

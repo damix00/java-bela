@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
     createContext,
     useCallback,
@@ -27,7 +27,7 @@ import {
 } from "@/context/socket-context";
 import { useSocketErrors, useSocketEvent } from "@/hooks/use-socket-event";
 import type { Locale } from "@/lib/i18n/config";
-import { playPath } from "@/lib/navigation/routes";
+import { homePath, isPlayPath, playPath } from "@/lib/navigation/routes";
 
 /** `Lobby.MAX_PLAYERS`. Four seats, and the backend will not grow a fifth. */
 export const SEAT_COUNT = 4;
@@ -159,6 +159,7 @@ export function LobbyProvider({
     // re-render this provider — and so the whole table — for each of them.
     const openedAt = useSocketSession();
     const router = useRouter();
+    const pathname = usePathname();
 
     const [lobby, setLobby] = useState<Lobby | null>(null);
     const [error, setError] = useState<SocketError | null>(null);
@@ -190,6 +191,26 @@ export function LobbyProvider({
          */
         if (lobby.status === LobbyStatus.IN_GAME && lobby.gameId) {
             router.replace(playPath(locale, lobby.gameId));
+            return;
+        }
+
+        /**
+         * And a table that is over shows you out.
+         *
+         * `GameScreen` sends `game:leave` a few seconds after the result, and
+         * `LobbyService.returnToLobby` answers with this snapshot — the lobby
+         * reset for a rematch. Navigating there on the frame rather than
+         * alongside the send is what keeps it from racing: leaving the game
+         * screen any sooner means arriving at a lobby that still holds the
+         * IN_GAME snapshot, and `TableScreen` reads that as "you belong at a
+         * table" and sends the player straight back to the one they just left.
+         *
+         * Narrowed to the play screen because this frame also arrives on every
+         * reconnect, and a player reading their profile has not asked to be
+         * moved.
+         */
+        if (isPlayPath(locale, pathname)) {
+            router.replace(homePath(locale));
         }
     });
 

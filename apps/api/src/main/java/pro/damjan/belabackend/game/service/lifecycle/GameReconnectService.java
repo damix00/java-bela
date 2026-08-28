@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pro.damjan.belabackend.game.events.BeloteGameEventPublisher;
 import pro.damjan.belabackend.game.model.BeloteGame;
+import pro.damjan.belabackend.game.model.GameStatus;
 import pro.damjan.belabackend.game.service.BeloteGameService;
 import pro.damjan.belabackend.user.presence.UserPresence;
 import pro.damjan.belabackend.user.presence.UserPresenceService;
@@ -32,6 +33,13 @@ public class GameReconnectService {
         BeloteGame game = beloteGameService.findGameById(gameId);
         if (game == null) {
             userPresenceService.cancelUserGame(event.userId());
+            return;
+        }
+
+        // The game is over — there is nothing to rejoin. Treat the reconnect as the leave they never
+        // got to send, which hands them back to their lobby and drops the game once the last one is out.
+        if (game.getStatus() == GameStatus.FINISHED) {
+            beloteGameService.leaveGame(event.userId());
             return;
         }
 

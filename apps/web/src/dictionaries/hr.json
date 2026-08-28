@@ -433,8 +433,7 @@
         "over": {
             "won": "Pobijedili ste",
             "lost": "Izgubili ste",
-            "score": "{us} — {them}",
-            "back": "Natrag u predsoblje"
+            "score": "{us} — {them}"
         }
     },
     "profile": {

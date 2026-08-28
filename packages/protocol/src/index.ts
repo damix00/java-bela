@@ -66,6 +66,7 @@ export interface ServerEvents {
 export interface ClientEvents {
     "game:card:throw": ThrowCardCommand;
     "game:declarations:decline": null;
+    "game:leave": null;
     "game:loaded": null;
     "game:trump:choose": ChooseTrumpCommand;
     "game:trump:pass": null;

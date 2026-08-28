@@ -75,6 +75,15 @@ export function playPath(locale: Locale, gameId: string) {
 }
 
 /**
+ * Whether a path is somebody's table. Used to keep "the game is over, go back to
+ * the lobby" from firing at a player who is not looking at a game at all — the
+ * snapshot that says so arrives unprompted on every reconnect.
+ */
+export function isPlayPath(locale: Locale, pathname: string) {
+    return pathname.startsWith(`/${locale}/play/`);
+}
+
+/**
  * An invite link, as it is pasted into a chat.
  *
  * The code is the lobby's own `inviteCode` — six characters of `A-Z0-9`, which

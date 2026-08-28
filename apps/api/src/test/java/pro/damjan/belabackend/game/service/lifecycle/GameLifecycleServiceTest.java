@@ -28,7 +28,9 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -170,6 +172,85 @@ class GameLifecycleServiceTest {
         verify(userPresenceService).cancelUserGame("p2");
         verify(userPresenceService).cancelUserGame("p3");
         verify(gameAccessService).delete(game);
+    }
+
+    @Test
+    void leavingAFinishedGameRecordsTheLeaverWithoutDroppingTheGame() {
+        BeloteGame game = finishedGame(List.of());
+        when(gameAccessService.findGameById("game-1")).thenReturn(game);
+        when(setOperations.size("game:left:game-1")).thenReturn(1L);
+
+        gameLifecycleService.leaveFinishedGame("p0", "game-1");
+
+        verify(setOperations).add("game:left:game-1", "p0");
+        verify(redisTemplate).expire("game:left:game-1", 1, TimeUnit.HOURS);
+        verify(gameAccessService, never()).delete(any(BeloteGame.class));
+        verify(scheduledTaskRegistry, never()).removeTasksForGame(anyString());
+    }
+
+    @Test
+    void theLastHumanLeavingAFinishedGameDropsIt() {
+        BeloteGame game = finishedGame(List.of());
+        when(gameAccessService.findGameById("game-1")).thenReturn(game);
+        when(setOperations.size("game:left:game-1")).thenReturn(4L);
+
+        gameLifecycleService.leaveFinishedGame("p3", "game-1");
+
+        verify(scheduledTaskRegistry).removeTasksForGame("game-1");
+        verify(userPresenceService).cancelUserGame("p0");
+        verify(userPresenceService).cancelUserGame("p3");
+        verify(redisTemplate).delete(List.of("game:loaded:game-1", "game:left:game-1"));
+        verify(gameAccessService).delete(game);
+    }
+
+    @Test
+    void botsDoNotCountTowardsTheLeaversNeededToDropTheGame() {
+        BeloteGame game = finishedGame(List.of(1, 3));
+        when(gameAccessService.findGameById("game-1")).thenReturn(game);
+        when(setOperations.size("game:left:game-1")).thenReturn(2L);
+
+        gameLifecycleService.leaveFinishedGame("p2", "game-1");
+
+        verify(gameAccessService).delete(game);
+    }
+
+    @Test
+    void leavingAGameThatIsStillBeingPlayedIsRejected() {
+        BeloteGame game = game();
+        game.setStatus(GameStatus.IN_PROGRESS);
+        when(gameAccessService.findGameById("game-1")).thenReturn(game);
+
+        assertThatThrownBy(() -> gameLifecycleService.leaveFinishedGame("p0", "game-1"))
+                .isInstanceOf(IllegalStateException.class);
+
+        verify(setOperations, never()).add(anyString(), anyString());
+    }
+
+    @Test
+    void leavingAGameThatIsAlreadyGoneIsANoOp() {
+        when(gameAccessService.findGameById("game-1")).thenReturn(null);
+
+        gameLifecycleService.leaveFinishedGame("p0", "game-1");
+
+        verify(setOperations, never()).add(anyString(), anyString());
+        verify(gameAccessService, never()).delete(any(BeloteGame.class));
+    }
+
+    private BeloteGame finishedGame(List<Integer> botSeats) {
+        List<GamePlayer> players = List.of(
+                new GamePlayer("p0", 0, botSeats.contains(0)),
+                new GamePlayer("p1", 1, botSeats.contains(1)),
+                new GamePlayer("p2", 2, botSeats.contains(2)),
+                new GamePlayer("p3", 3, botSeats.contains(3))
+        );
+        TeamPair teams = Team.pairFrom(players);
+        return BeloteGame.builder()
+                .id("game-1")
+                .team1(teams.teamA())
+                .team2(teams.teamB())
+                .config(GameConfiguration.ranked())
+                .status(GameStatus.FINISHED)
+                .build();
     }
 
     private BeloteGame game() {

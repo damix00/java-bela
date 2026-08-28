@@ -158,6 +158,26 @@ public class Lobby implements Serializable {
         return RemoveResult.REMOVED;
     }
 
+    /**
+     * Puts the lobby back into a rematch-ready state after its game finished.
+     *
+     * Nulling the game id is what re-opens {@code onPlayerReady} — it refuses to run while one is
+     * set. Bots are dropped so the seats they filled are open again, and the humans have to opt back
+     * in rather than being carried into another game by a ready flag they set for the last one.
+     * The game configuration is deliberately kept.
+     */
+    @JsonIgnore
+    public void resetAfterGame() {
+        status = LobbyStatus.IN_LOBBY;
+        gameId = null;
+        joinable = true;
+
+        playerSeats.values().removeIf(LobbyPlayer::isBot);
+        playerSeats.values().forEach(player -> player.setStatus(LobbyPlayerStatus.NOT_READY));
+
+        if (getHost().isEmpty()) assignNewHost();
+    }
+
     @JsonIgnore
     public Optional<LobbyPlayer> assignNewHost() {
         Optional<LobbyPlayer> next = playerSeats.values().stream().findFirst();

@@ -1,7 +1,9 @@
 package pro.damjan.belabackend.game.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import pro.damjan.belabackend.game.events.PlayerLeftGameEvent;
 import pro.damjan.belabackend.game.model.BeloteGame;
 import pro.damjan.belabackend.game.model.card.Rank;
 import pro.damjan.belabackend.game.model.card.Suite;
@@ -25,6 +27,7 @@ public class BeloteGameService {
     private final TrumpPhaseService trumpPhaseService;
     private final CardPlayService cardPlayService;
     private final GameLockService gameLockService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public BeloteGame createGame(Lobby lobby) {
         return gameLifecycleService.createGame(lobby);
@@ -83,6 +86,24 @@ public class BeloteGameService {
                 gameId,
                 () -> cardPlayService.handleNextTrickStart(gameId, roundNumber, completedTrickNumber, winningTurnIndex)
         );
+    }
+
+    /**
+     * Takes a player out of a finished game and announces it so their lobby can take them back.
+     *
+     * The announcement is made outside the game lock — the listener does its own Redis work on the
+     * lobby and has no business holding a game lock while it does. A player with no game left (they
+     * already left, or the last leaver dropped it) still gets announced: that is the path that
+     * recovers a client stuck on a game that is gone.
+     */
+    public void leaveGame(String userId) {
+        String gameId = gameAccessService.getUserGameId(userId);
+
+        if (gameId != null) {
+            gameLockService.withGameLock(gameId, () -> gameLifecycleService.leaveFinishedGame(userId, gameId));
+        }
+
+        applicationEventPublisher.publishEvent(new PlayerLeftGameEvent(userId));
     }
 
     public void dropGame(String gameId) {

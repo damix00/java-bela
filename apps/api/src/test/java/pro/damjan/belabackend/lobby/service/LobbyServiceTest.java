@@ -10,6 +10,7 @@ import pro.damjan.belabackend.lobby.exception.PlayerNotHostException;
 import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 import pro.damjan.belabackend.lobby.model.LobbyPlayerStatus;
+import pro.damjan.belabackend.lobby.model.LobbyStatus;
 import pro.damjan.belabackend.lobby.repository.LobbyRepository;
 import pro.damjan.belabackend.user.User;
 import pro.damjan.belabackend.user.UserService;
@@ -161,6 +162,48 @@ class LobbyServiceTest {
             assertThat(player.getUsername())
                     .isEqualTo(LobbyPlayer.botNameForSeat(player.getSeat()));
         }
+    }
+
+    @Test
+    void returningToTheLobbyResetsItForARematchAndSnapshotsItBackToThePlayer() {
+        givenLobbyInGame();
+
+        lobbyService.returnToLobby(lobby, "host-id");
+
+        assertThat(lobby.getStatus()).isEqualTo(LobbyStatus.IN_LOBBY);
+        assertThat(lobby.getGameId()).isNull();
+        assertThat(lobby.isJoinable()).isTrue();
+        assertThat(lobby.getGameConfiguration()).isEqualTo(GameConfiguration.privateGame(701));
+        assertThat(lobby.getActivePlayers()).noneMatch(LobbyPlayer::isBot);
+        assertThat(lobby.getActivePlayers())
+                .allMatch(player -> player.getStatus() == LobbyPlayerStatus.NOT_READY);
+        verify(lobbyRepository).save(lobby);
+        verify(userPresenceService).setUserLobby("host-id", "lobby-id");
+        verify(lobbyEventPublisher).sendSnapshot(lobby, "host-id");
+    }
+
+    @Test
+    void aSecondPlayerReturningDoesNotResetTheLobbyAgain() {
+        givenLobbyInGame();
+        lobbyService.returnToLobby(lobby, "host-id");
+        lobby.findPlayerById("guest-id").orElseThrow().setStatus(LobbyPlayerStatus.READY);
+
+        lobbyService.returnToLobby(lobby, "guest-id");
+
+        assertThat(lobby.findPlayerById("guest-id").orElseThrow().getStatus())
+                .isEqualTo(LobbyPlayerStatus.READY);
+        verify(lobbyRepository).save(lobby);
+        verify(userPresenceService).setUserLobby("guest-id", "lobby-id");
+        verify(lobbyEventPublisher).sendSnapshot(lobby, "guest-id");
+    }
+
+    private void givenLobbyInGame() {
+        lobby.setGameConfiguration(GameConfiguration.privateGame(701));
+        lobby.setStatus(LobbyStatus.IN_GAME);
+        lobby.setGameId("game-id");
+        lobby.setJoinable(false);
+        lobby.addPlayer(LobbyPlayer.createBot());
+        lobby.getActivePlayers().forEach(player -> player.setStatus(LobbyPlayerStatus.READY));
     }
 
     private void givenKnownUser(String userId, String username, String avatarUrl) {

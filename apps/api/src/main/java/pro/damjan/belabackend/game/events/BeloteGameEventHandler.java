@@ -19,6 +19,11 @@ public class BeloteGameEventHandler {
         beloteGameService.onLoaded(user.getId());
     }
 
+    @OnEvent("game:leave")
+    public void leaveGame(User user) {
+        beloteGameService.leaveGame(user.getId());
+    }
+
     @OnEvent("game:trump:choose")
     public void chooseTrump(User user, ChooseTrumpCommand command) {
         beloteGameService.chooseTrump(user.getId(), command.getSuite());

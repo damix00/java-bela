@@ -151,6 +151,14 @@ type GameActions = {
     passTrump: () => void;
     throwCard: (card: Card, declareBela?: boolean) => void;
     declineDeclarations: () => void;
+    /**
+     * Steps off a finished table, back into the lobby it was made from.
+     *
+     * Only a finished one: the backend rejects it mid-game. The lobby resets
+     * itself for a rematch on the first player out, and the game is dropped once
+     * the last one has gone.
+     */
+    leaveGame: () => void;
 };
 
 /** Split for the reason `lobby-context.tsx` documents: different clocks. */
@@ -703,6 +711,8 @@ export function GameProvider({
         [send],
     );
 
+    const leaveGame = useCallback(() => send("game:leave"), [send]);
+
     const state = useMemo<GameState>(() => {
         const chair = seating?.chair ?? -1;
 
@@ -739,8 +749,9 @@ export function GameProvider({
             passTrump,
             throwCard,
             declineDeclarations,
+            leaveGame,
         }),
-        [ready, chooseTrump, passTrump, throwCard, declineDeclarations],
+        [ready, chooseTrump, passTrump, throwCard, declineDeclarations, leaveGame],
     );
 
     return (

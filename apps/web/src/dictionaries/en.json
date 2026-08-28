@@ -433,8 +433,7 @@
         "over": {
             "won": "You won",
             "lost": "You lost",
-            "score": "{us} — {them}",
-            "back": "Back to the lobby"
+            "score": "{us} — {them}"
         }
     },
     "profile": {

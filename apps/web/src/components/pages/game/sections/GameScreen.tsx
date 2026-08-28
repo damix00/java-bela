@@ -27,7 +27,7 @@ import {
     type GamePhase,
     type RoundView,
 } from "@/context/game-context";
-import { SNAPSHOT_GRACE_MS, useLobbyActions } from "@/context/lobby-context";
+import { SNAPSHOT_GRACE_MS } from "@/context/lobby-context";
 import { useSocketStatus } from "@/context/socket-context";
 import type { Dictionary } from "@/dictionaries";
 import { cn } from "@/lib/ui/cn";
@@ -82,6 +82,9 @@ const playAreaClass = [
 /* On the desktop table the timer sits above the hand; on a phone it sits under
    it, where the thumb is not covering it. */
 const timerAreaClass = "flex flex-none flex-col gap-1 desk:order-1";
+
+/** How long the result stays up before the table shows itself out. */
+const GAME_OVER_DWELL_MS = 3000;
 const handAreaClass = "flex flex-none justify-center desk:order-2";
 
 /* The decision surface, and the near seat's own label, are phone furniture:
@@ -136,9 +139,14 @@ export default function GameScreen({
         canPass,
         result,
     } = useGame();
-    const { ready, chooseTrump, passTrump, throwCard, declineDeclarations } =
-        useGameActions();
-    const { leave } = useLobbyActions();
+    const {
+        ready,
+        chooseTrump,
+        passTrump,
+        throwCard,
+        declineDeclarations,
+        leaveGame,
+    } = useGameActions();
     const status = useSocketStatus();
     const router = useRouter();
 
@@ -173,6 +181,27 @@ export default function GameScreen({
 
         return () => clearTimeout(id);
     }, [status, game, router, locale]);
+
+    /**
+     * The way out of a finished table, taken for the player.
+     *
+     * Long enough to read the result, short enough that nobody wonders whether
+     * the game is waiting on them — so it is a plain wait, with nothing to press
+     * and nothing counting down on screen.
+     *
+     * Only the leave is sent here. The lobby snapshot it comes back with is what
+     * navigates, in `LobbyProvider` — the same place every other "where does this
+     * player belong" decision is made. Leaving the screen before the timer fires
+     * costs nothing either: the backend treats a reconnect into a finished game
+     * as the leave that never arrived.
+     */
+    useEffect(() => {
+        if (phase !== "finished") return;
+
+        const id = setTimeout(leaveGame, GAME_OVER_DWELL_MS);
+
+        return () => clearTimeout(id);
+    }, [phase, leaveGame]);
 
     if (!game || !seating) {
         return <Notice className={appGutters}>{copy.loading}</Notice>;
@@ -245,11 +274,6 @@ export default function GameScreen({
                     wonLabel={copy.over.won}
                     lostLabel={copy.over.lost}
                     scoreLabel={copy.over.score}
-                    backLabel={copy.over.back}
-                    onBack={() => {
-                        leave();
-                        router.push(homePath(locale));
-                    }}
                 />
             </main>
         );
