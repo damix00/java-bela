@@ -7,6 +7,7 @@ import pro.damjan.belabackend.game.events.BeloteGameEventPublisher;
 import pro.damjan.belabackend.game.model.BeloteGame;
 import pro.damjan.belabackend.game.model.GameStatus;
 import pro.damjan.belabackend.game.model.card.Card;
+import pro.damjan.belabackend.game.model.config.GameConfiguration;
 import pro.damjan.belabackend.game.model.card.Deck;
 import pro.damjan.belabackend.game.model.player.GamePlayer;
 import pro.damjan.belabackend.game.model.player.Team;
@@ -43,13 +44,26 @@ public class GameLifecycleService {
                 .map(p -> new GamePlayer(p.getUserId(), p.getSeat(), p.isBot(), p.getUsername(), p.getAvatarUrl()))
                 .toList();
 
+        return createGame(players, lobby.getGameConfiguration());
+    }
+
+    /**
+     * Creates a game from an explicit seating rather than from one lobby's.
+     *
+     * A matched table is drawn from two to four lobbies that all stay as they are, so there is no
+     * single lobby whose seats describe it. The players arrive already seated — index in the list
+     * is the seat — and everything downstream is the same either way.
+     *
+     * @param players exactly four, ordered by seat
+     */
+    public BeloteGame createGame(List<GamePlayer> players, GameConfiguration config) {
         TeamPair teams = Team.pairFrom(players);
 
         BeloteGame game = BeloteGame.builder()
                 .id(UUID.randomUUID().toString())
                 .team1(teams.teamA())
                 .team2(teams.teamB())
-                .config(lobby.getGameConfiguration())
+                .config(config)
                 .status(GameStatus.WAITING)
                 .build();
 

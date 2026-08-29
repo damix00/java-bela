@@ -179,6 +179,10 @@ export interface LobbyInitialStateEvent extends OutgoingEvent {
     lobby: Lobby;
 }
 
+export interface LobbyMatchmakingStatusEvent extends OutgoingEvent {
+    status: LobbyStatus;
+}
+
 export interface LobbyPlayer {
     avatarUrl: string;
     bot: boolean;
@@ -407,6 +411,7 @@ export enum LobbyPlayerStatus {
 
 export enum LobbyStatus {
     IN_LOBBY = "IN_LOBBY",
+    MATCHMAKING = "MATCHMAKING",
     IN_GAME = "IN_GAME",
 }
 

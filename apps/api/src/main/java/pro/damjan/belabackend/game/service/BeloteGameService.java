@@ -5,6 +5,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import pro.damjan.belabackend.game.events.PlayerLeftGameEvent;
 import pro.damjan.belabackend.game.model.BeloteGame;
+import pro.damjan.belabackend.game.model.config.GameConfiguration;
+import pro.damjan.belabackend.game.model.player.GamePlayer;
 import pro.damjan.belabackend.game.model.card.Rank;
 import pro.damjan.belabackend.game.model.card.Suite;
 import pro.damjan.belabackend.game.exception.GameNotFoundException;
@@ -31,6 +33,11 @@ public class BeloteGameService {
 
     public BeloteGame createGame(Lobby lobby) {
         return gameLifecycleService.createGame(lobby);
+    }
+
+    /** Creates a game from an explicit seating, for a table matched out of several lobbies. */
+    public BeloteGame createGame(List<GamePlayer> players, GameConfiguration config) {
+        return gameLifecycleService.createGame(players, config);
     }
 
     public BeloteGame findGameById(String gameId) {

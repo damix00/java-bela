@@ -108,4 +108,27 @@ public enum TicketShape {
         throw new IllegalArgumentException(
                 "Lobby " + lobby.getId() + " cannot queue with " + (even + odd) + " players");
     }
+
+    /**
+     * Which of a lobby's two seat parities holds its larger group.
+     *
+     * A matched table says only whether a lobby's larger group is flipped onto the other team;
+     * turning that into seats needs to know which group was the larger one, and a shape has
+     * deliberately forgotten. Recomputing it here keeps matchmaking free of seats while still
+     * letting both sides agree.
+     *
+     * Ties — a SPLIT, or the two parities of a SOLO — resolve to 0. Which one is picked does not
+     * matter, only that the answer is the same every time it is asked.
+     */
+    public static int majorParity(Lobby lobby) {
+        int even = 0;
+        int odd = 0;
+
+        for (int seat : lobby.getPlayerSeats().keySet()) {
+            if (seat % 2 == 0) even++;
+            else odd++;
+        }
+
+        return odd > even ? 1 : 0;
+    }
 }

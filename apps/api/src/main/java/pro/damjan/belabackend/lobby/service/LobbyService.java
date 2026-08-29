@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import pro.damjan.belabackend.game.model.BeloteGame;
 import pro.damjan.belabackend.game.model.config.GameConfiguration;
 import pro.damjan.belabackend.game.model.config.MatchType;
-import pro.damjan.belabackend.game.service.BeloteGameService;
 import pro.damjan.belabackend.lobby.exception.AlreadyInLobbyException;
 import pro.damjan.belabackend.lobby.exception.LobbyFullException;
 import pro.damjan.belabackend.lobby.exception.LobbyNotFoundException;
@@ -19,6 +18,7 @@ import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 import pro.damjan.belabackend.lobby.model.LobbyPlayerStatus;
 import pro.damjan.belabackend.lobby.events.LobbyEventPublisher;
+import pro.damjan.belabackend.matchmaking.MatchmakingService;
 import pro.damjan.belabackend.user.UserService;
 import pro.damjan.belabackend.user.presence.UserPresence;
 import pro.damjan.belabackend.user.presence.UserPresenceService;
@@ -45,7 +45,8 @@ public class LobbyService {
     private final UserPresenceService userPresenceService;
     private final LobbyEventPublisher lobbyEventPublisher;
     private final SessionService sessionService;
-    private final BeloteGameService beloteGameService;
+    private final LobbyGameStarter lobbyGameStarter;
+    private final MatchmakingService matchmakingService;
     private final UserService userService;
 
     /**
@@ -180,6 +181,9 @@ public class LobbyService {
         lobbyRepository.save(lobby);
         userPresenceService.cleanUpUser(userId);
 
+        // The lobby it was queued as no longer exists, so the waiting ticket is wrong.
+        leaveMatchmaking(lobby);
+
         lobbyEventPublisher.playerLeft(lobby, userId);
     }
 
@@ -198,6 +202,10 @@ public class LobbyService {
 
         // Persistence and tasks
         if (remainingPlayers == 0) {
+            // Cancel before deleting: nothing else will ever clear a ticket whose lobby is gone
+            // until it reaches the head of its bucket and is found missing.
+            matchmakingService.cancel(lobby.getId());
+
             lobbyRepository.delete(lobby);
             log.info("Lobby {} deleted because the last player left", lobby.getId());
         } else {
@@ -207,6 +215,7 @@ public class LobbyService {
             }
 
             lobbyRepository.save(lobby);
+            leaveMatchmaking(lobby);
             lobbyEventPublisher.playerLeft(lobby, userId);
 
             if (removeResult == Lobby.RemoveResult.REMOVED_AND_HOST_CHANGED) {
@@ -228,18 +237,7 @@ public class LobbyService {
     }
 
     public void createGame(Lobby lobby) {
-        BeloteGame game = beloteGameService.createGame(lobby);
-
-        lobby.setGameId(game.getId());
-        lobby.setStatus(LobbyStatus.IN_GAME);
-        lobby.setJoinable(false);
-        lobbyRepository.save(lobby);
-
-        for (LobbyPlayer player : lobby.getPlayersAsList()) {
-            if (!player.isBot()) userPresenceService.setUserGame(player.getUserId(), game.getId());
-        }
-
-        lobbyEventPublisher.gameCreated(lobby, game);
+        lobbyGameStarter.startFrom(lobby);
     }
 
     /**
@@ -279,7 +277,11 @@ public class LobbyService {
         lobbyRepository.save(lobby);
         lobbyEventPublisher.playerStatusChanged(lobby, player);
 
-        if (!lobby.allPlayersReady()) return;
+        if (!lobby.allPlayersReady()) {
+            // Someone taking their ready back is how a queued lobby leaves the queue.
+            leaveMatchmaking(lobby);
+            return;
+        }
 
         // everyone is ready and the lobby is full => start the game
         if (lobby.isFull()) {
@@ -291,6 +293,49 @@ public class LobbyService {
             startWithBots(lobby);
             return;
         }
+
+        if (lobby.getGameConfiguration().matchType() == MatchType.CASUAL) {
+            enterMatchmaking(lobby);
+        }
+    }
+
+    /**
+     * Puts an all-ready casual lobby into the queue to be matched with others.
+     *
+     * The lobby is closed to joins first. Its shape — how many players it needs on each team — is
+     * what the queue is indexed by, so someone arriving on an invite code mid-search would make
+     * the waiting ticket describe a lobby that no longer exists.
+     *
+     * Matching can complete inside this call, in which case the game has already started by the
+     * time it returns and the searching event is never seen. That is why the state is saved before
+     * asking rather than after.
+     */
+    private void enterMatchmaking(Lobby lobby) {
+        lobby.setStatus(LobbyStatus.MATCHMAKING);
+        lobby.setJoinable(false);
+        lobbyRepository.save(lobby);
+
+        lobbyEventPublisher.matchmakingStarted(lobby);
+
+        matchmakingService.requestMatch(lobby);
+    }
+
+    /**
+     * Takes a lobby out of the queue and reopens it.
+     *
+     * A no-op unless the lobby is actually searching, so the ordinary path of un-readying in a
+     * private lobby costs nothing.
+     */
+    private void leaveMatchmaking(Lobby lobby) {
+        if (lobby.getStatus() != LobbyStatus.MATCHMAKING) return;
+
+        matchmakingService.cancel(lobby.getId());
+
+        lobby.setStatus(LobbyStatus.IN_LOBBY);
+        lobby.setJoinable(true);
+        lobbyRepository.save(lobby);
+
+        lobbyEventPublisher.matchmakingStopped(lobby);
     }
 
     public void swapSeats(String userId, int targetSeat) throws LobbyNotFoundException {

@@ -65,6 +65,16 @@ public class LobbyEventPublisher {
         broadcastToLobby(lobby, new LobbyConfigurationChangedEvent(lobby.getGameConfiguration()));
     }
 
+    /** Tells a lobby it is now searching for opponents. */
+    public void matchmakingStarted(Lobby lobby) {
+        broadcastToLobby(lobby, new LobbyMatchmakingStatusEvent(lobby.getStatus()));
+    }
+
+    /** Tells a lobby it has stopped searching and is back to waiting for its own players. */
+    public void matchmakingStopped(Lobby lobby) {
+        broadcastToLobby(lobby, new LobbyMatchmakingStatusEvent(lobby.getStatus()));
+    }
+
     public void gameCreated(Lobby lobby, BeloteGame game) {
         broadcastToLobby(lobby, new LobbyGameCreatedEvent(lobby, game));
     }

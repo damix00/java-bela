@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pro.damjan.belabackend.game.model.BeloteGame;
 import pro.damjan.belabackend.game.model.config.GameConfiguration;
-import pro.damjan.belabackend.game.service.BeloteGameService;
+import pro.damjan.belabackend.matchmaking.MatchmakingService;
 import pro.damjan.belabackend.lobby.events.LobbyEventPublisher;
 import pro.damjan.belabackend.lobby.exception.PlayerNotHostException;
 import pro.damjan.belabackend.lobby.model.Lobby;
@@ -35,7 +35,8 @@ class LobbyServiceTest {
     private UserPresenceService userPresenceService;
     private LobbyEventPublisher lobbyEventPublisher;
     private SessionService sessionService;
-    private BeloteGameService beloteGameService;
+    private LobbyGameStarter lobbyGameStarter;
+    private MatchmakingService matchmakingService;
     private UserService userService;
     private LobbyService lobbyService;
     private Lobby lobby;
@@ -46,14 +47,16 @@ class LobbyServiceTest {
         userPresenceService = mock(UserPresenceService.class);
         lobbyEventPublisher = mock(LobbyEventPublisher.class);
         sessionService = mock(SessionService.class);
-        beloteGameService = mock(BeloteGameService.class);
+        lobbyGameStarter = mock(LobbyGameStarter.class);
+        matchmakingService = mock(MatchmakingService.class);
         userService = mock(UserService.class);
         lobbyService = new LobbyService(
                 lobbyRepository,
                 userPresenceService,
                 lobbyEventPublisher,
                 sessionService,
-                beloteGameService,
+                lobbyGameStarter,
+                matchmakingService,
                 userService
         );
 
@@ -216,7 +219,7 @@ class LobbyServiceTest {
 
     private void givenGameCanBeCreated() {
         lobby.setGameConfiguration(GameConfiguration.privateGame(501));
-        when(beloteGameService.createGame(any(Lobby.class)))
+        when(lobbyGameStarter.startFrom(any(Lobby.class)))
                 .thenReturn(BeloteGame.builder().id("game-id").build());
     }
 

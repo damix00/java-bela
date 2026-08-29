@@ -25,6 +25,7 @@ import type {
     LobbyGameCreatedEvent,
     LobbyHostChangedEvent,
     LobbyInitialStateEvent,
+    LobbyMatchmakingStatusEvent,
     LobbyPlayerJoinedEvent,
     LobbyPlayerLeftEvent,
     LobbyPlayerStatusChangeEvent,
@@ -53,6 +54,7 @@ export interface ServerEvents {
     "lobby:gameCreated": LobbyGameCreatedEvent;
     "lobby:hostUpdated": LobbyHostChangedEvent;
     "lobby:initialState": LobbyInitialStateEvent;
+    "lobby:matchmakingStatus": LobbyMatchmakingStatusEvent;
     "lobby:playerJoined": LobbyPlayerJoinedEvent;
     "lobby:playerLeft": LobbyPlayerLeftEvent;
     "lobby:playerStatusChange": LobbyPlayerStatusChangeEvent;
