@@ -1,0 +1,14 @@
+**/node_modules
+**/.next
+**/build
+**/.gradle
+.git
+.github
+.idea
+**/*.iml
+**/.env
+**/.env.local
+**/*.rdb
+**/.DS_Store
+# Frozen reference copy of the old client, excluded from the workspace and never built.
+apps/web-deprecated

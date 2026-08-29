@@ -1,0 +1,13 @@
+build/
+.gradle/
+bin/
+.idea/
+.settings/
+.classpath
+.project
+.factorypath
+*.iml
+.env
+dump.rdb
+*.rdb
+.DS_Store
