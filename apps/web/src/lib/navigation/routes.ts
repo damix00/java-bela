@@ -48,15 +48,6 @@ export function homePath(locale: Locale) {
 }
 
 /**
- * The marketing page. It used to live at `/[lang]` and is still the indexable
- * one — the sitemap and the `hreflang` alternates point here, and the lobby is
- * `noindex`.
- */
-export function landingPath(locale: Locale) {
-    return `/${locale}/landing`;
-}
-
-/**
  * The account's own two pages. Split rather than tabbed: one is about the face
  * other players see, the other about how this browser behaves, and they are
  * reached from different places — the avatar menu opens on both, the phone's

@@ -2,7 +2,7 @@ import Logo from "@/components/ui/brand/Logo";
 import TextLink from "@/components/ui/typography/TextLink";
 import type { Dictionary } from "@/dictionaries";
 import type { Locale } from "@/lib/i18n/config";
-import { landingPath, legalPath } from "@/lib/navigation/routes";
+import { legalPath } from "@/lib/navigation/routes";
 
 type SiteFooterProps = {
     copy: Dictionary["footer"];
@@ -10,16 +10,10 @@ type SiteFooterProps = {
 };
 
 export default function SiteFooter({ copy, locale }: SiteFooterProps) {
-    const landing = landingPath(locale);
-
-    // The anchors carry the landing path rather than standing alone: this footer
-    // also sits under the legal pages, where a bare `#faq` would be a link to
-    // nothing — and the sections it points at live on `/landing`, not on the
-    // lobby that now occupies the locale root.
+    // Rules, FAQ and contact were anchors into sections of `/landing`. That page is
+    // temporarily removed, so they would each be a link to nothing — they come back
+    // with it. The legal documents are pages in their own right and stay.
     const footerLinks = [
-        { href: `${landing}#ranked`, label: copy.rules },
-        { href: `${landing}#faq`, label: copy.faq },
-        { href: `${landing}#join`, label: copy.contact },
         { href: legalPath(locale, "terms"), label: copy.terms },
         { href: legalPath(locale, "privacy"), label: copy.privacy },
     ];

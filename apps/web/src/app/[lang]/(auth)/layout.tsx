@@ -4,7 +4,7 @@ import LanguageSwitcher from "@/components/controls/LanguageSwitcher";
 import Logo from "@/components/ui/brand/Logo";
 import { localePage } from "@/dictionaries";
 import { focusRing } from "@/lib/ui/styles";
-import { landingPath } from "@/lib/navigation/routes";
+import { homePath } from "@/lib/navigation/routes";
 
 /**
  * Chrome for every auth screen: a way back to the site and a way to switch
@@ -27,7 +27,7 @@ export default async function AuthLayout({
         <main className="flex min-h-dvh flex-col gap-10 px-5 py-8 sm:px-8 sm:py-12">
             <div className="mx-auto flex w-full max-w-[1080px] items-center gap-4">
                 <Link
-                    href={landingPath(lang)}
+                    href={homePath(lang)}
                     className={`${focusRing} no-underline`}
                 >
                     <Logo />
