@@ -13,6 +13,9 @@ import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 import pro.damjan.belabackend.lobby.model.LobbyPlayerStatus;
 import pro.damjan.belabackend.lobby.model.LobbyStatus;
 import pro.damjan.belabackend.lobby.repository.LobbyRepository;
+import pro.damjan.belabackend.lobby.service.lock.LobbyLockService;
+import pro.damjan.belabackend.redis.lock.InMemoryLockStore;
+import pro.damjan.belabackend.redis.lock.ReentrantDistributedLock;
 import pro.damjan.belabackend.user.User;
 import pro.damjan.belabackend.user.UserService;
 import pro.damjan.belabackend.user.presence.UserPresence;
@@ -52,6 +55,9 @@ class LobbyServiceTest {
         lobbyGameStarter = mock(LobbyGameStarter.class);
         matchmakingService = mock(MatchmakingService.class);
         userService = mock(UserService.class);
+        // A real lock over the in-memory store rather than a mock: these tests run through the
+        // locked paths, and a stubbed lock that ran nothing would pass while the service did
+        // nothing at all.
         lobbyService = new LobbyService(
                 lobbyRepository,
                 userPresenceService,
@@ -59,7 +65,8 @@ class LobbyServiceTest {
                 sessionService,
                 lobbyGameStarter,
                 matchmakingService,
-                userService
+                userService,
+                new LobbyLockService(new ReentrantDistributedLock(new InMemoryLockStore()))
         );
 
         lobby = new Lobby();
@@ -172,8 +179,9 @@ class LobbyServiceTest {
     @Test
     void returningToTheLobbyResetsItForARematchAndSnapshotsItBackToThePlayer() {
         givenLobbyInGame();
+        givenLobbyIsLoadable();
 
-        lobbyService.returnToLobby(lobby, "host-id");
+        lobbyService.returnToLobby("lobby-id", "host-id");
 
         assertThat(lobby.getStatus()).isEqualTo(LobbyStatus.IN_LOBBY);
         assertThat(lobby.getGameId()).isNull();
@@ -190,16 +198,48 @@ class LobbyServiceTest {
     @Test
     void aSecondPlayerReturningDoesNotResetTheLobbyAgain() {
         givenLobbyInGame();
-        lobbyService.returnToLobby(lobby, "host-id");
+        givenLobbyIsLoadable();
+        lobbyService.returnToLobby("lobby-id", "host-id");
         lobby.findPlayerById("guest-id").orElseThrow().setStatus(LobbyPlayerStatus.READY);
 
-        lobbyService.returnToLobby(lobby, "guest-id");
+        lobbyService.returnToLobby("lobby-id", "guest-id");
 
         assertThat(lobby.findPlayerById("guest-id").orElseThrow().getStatus())
                 .isEqualTo(LobbyPlayerStatus.READY);
         verify(lobbyRepository).save(lobby);
         verify(userPresenceService).setUserLobby("guest-id", "lobby-id");
         verify(lobbyEventPublisher).sendSnapshot(lobby, "guest-id");
+    }
+
+    @Test
+    void returningToALobbyThatIsGoneReleasesThePlayerInstead() {
+        // The sweeper deleting it while the game finished is the ordinary way this happens.
+        when(lobbyRepository.findById("lobby-id")).thenReturn(Optional.empty());
+
+        lobbyService.returnToLobby("lobby-id", "host-id");
+
+        verify(userPresenceService).cleanUpUser("host-id");
+        verify(lobbyEventPublisher, never()).sendSnapshot(any(Lobby.class), anyString());
+    }
+
+    @Test
+    void aSeatSwapIsDecidedFromTheLobbyAsItIsWhenTheLockIsTaken() {
+        // The point of locking before loading: the service must read the lobby itself rather than
+        // act on a copy fetched earlier, or a concurrent change is silently overwritten.
+        when(userPresenceService.getUserPresence("host-id"))
+                .thenReturn(new UserPresence(Instant.now(), "lobby-id", null));
+        when(lobbyRepository.findById("lobby-id")).thenReturn(Optional.of(lobby));
+
+        lobbyService.swapSeats("host-id", 3);
+
+        verify(lobbyRepository).findById("lobby-id");
+        verify(lobbyRepository).save(lobby);
+        assertThat(lobby.findPlayerById("host-id").orElseThrow().getSeat()).isEqualTo(3);
+    }
+
+    /** returnToLobby resolves the lobby by id inside its lock, so the repository must serve it. */
+    private void givenLobbyIsLoadable() {
+        when(lobbyRepository.findById("lobby-id")).thenReturn(Optional.of(lobby));
     }
 
     private void givenLobbyInGame() {

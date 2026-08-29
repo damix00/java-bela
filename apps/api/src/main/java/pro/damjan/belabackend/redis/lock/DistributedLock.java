@@ -30,4 +30,21 @@ public interface DistributedLock {
             return null;
         });
     }
+
+    /**
+     * Runs an action only if the lock is free right now, and says whether it ran.
+     *
+     * For work that another instance doing the same thing makes redundant rather than urgent — a
+     * periodic sweep is the case this exists for. Waiting would only queue a second pass of a job
+     * that has just been done, and {@link #withLock} would raise
+     * {@link LockAcquisitionException} for something that is not an error, so losing the race
+     * returns {@code false} and the caller moves on.
+     *
+     * @param key   what is being locked; callers namespace this themselves
+     * @param lease how long the lock survives without being released. Must comfortably exceed the
+     *              slowest run of the action, and for a scheduled sweep should not outlast the
+     *              interval, or one slow pass suppresses the next.
+     * @return whether the lock was taken and the action ran
+     */
+    boolean tryWithLock(String key, Duration lease, Runnable action);
 }

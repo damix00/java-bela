@@ -42,26 +42,57 @@ public class ReentrantDistributedLock implements DistributedLock {
 
     @Override
     public <T> T withLock(String key, Duration lease, Duration wait, Supplier<T> action) {
-        if (key == null || key.isBlank()) {
-            throw new IllegalArgumentException("Lock key must not be blank");
-        }
+        requireKey(key);
 
         Map<String, Holding> holdings = held.get();
         Holding existing = holdings.get(key);
 
-        // Already ours further up the stack: go straight in, and leave releasing to the outermost
-        // frame. Re-taking it remotely would block on ourselves.
-        if (existing != null) {
-            holdings.put(key, new Holding(existing.token(), existing.depth() + 1));
-            try {
-                return action.get();
-            } finally {
-                unwind(holdings, key, existing);
-            }
-        }
+        if (existing != null) return reenter(holdings, key, existing, action);
 
         String token = UUID.randomUUID().toString();
         acquire(key, token, lease, wait);
+
+        return holdWhile(holdings, key, token, action);
+    }
+
+    @Override
+    public boolean tryWithLock(String key, Duration lease, Runnable action) {
+        requireKey(key);
+
+        Map<String, Holding> holdings = held.get();
+        Holding existing = holdings.get(key);
+
+        // Reentering is not contention: this thread already holds the key, so the work is not a
+        // duplicate of somebody else's and there is nothing to decline.
+        if (existing != null) {
+            reenter(holdings, key, existing, asSupplier(action));
+            return true;
+        }
+
+        String token = UUID.randomUUID().toString();
+        if (!lockStore.tryAcquire(key, token, lease)) return false;
+
+        holdWhile(holdings, key, token, asSupplier(action));
+        return true;
+    }
+
+    /**
+     * Runs inside a lock this thread already holds further up the stack.
+     *
+     * Releasing is left to the outermost frame, which is the whole point — re-taking the key
+     * remotely would block on ourselves.
+     */
+    private <T> T reenter(Map<String, Holding> holdings, String key, Holding existing, Supplier<T> action) {
+        holdings.put(key, new Holding(existing.token(), existing.depth() + 1));
+        try {
+            return action.get();
+        } finally {
+            holdings.put(key, existing);
+        }
+    }
+
+    /** Runs while holding a key this thread has just taken, releasing it however the action ends. */
+    private <T> T holdWhile(Map<String, Holding> holdings, String key, String token, Supplier<T> action) {
         holdings.put(key, new Holding(token, 1));
 
         try {
@@ -74,8 +105,17 @@ public class ReentrantDistributedLock implements DistributedLock {
         }
     }
 
-    private void unwind(Map<String, Holding> holdings, String key, Holding previous) {
-        holdings.put(key, previous);
+    private static Supplier<Void> asSupplier(Runnable action) {
+        return () -> {
+            action.run();
+            return null;
+        };
+    }
+
+    private static void requireKey(String key) {
+        if (key == null || key.isBlank()) {
+            throw new IllegalArgumentException("Lock key must not be blank");
+        }
     }
 
     private void acquire(String key, String token, Duration lease, Duration wait) {

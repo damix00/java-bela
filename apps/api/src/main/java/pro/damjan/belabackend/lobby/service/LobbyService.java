@@ -19,6 +19,7 @@ import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 import pro.damjan.belabackend.lobby.model.LobbyPlayerStatus;
 import pro.damjan.belabackend.lobby.events.LobbyEventPublisher;
+import pro.damjan.belabackend.lobby.service.lock.LobbyLockService;
 import pro.damjan.belabackend.matchmaking.MatchmakingService;
 import pro.damjan.belabackend.user.UserService;
 import pro.damjan.belabackend.user.presence.UserPresence;
@@ -32,6 +33,7 @@ import pro.damjan.belabackend.user.auth.Role;
 import java.security.SecureRandom;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 @Slf4j
 @Service
@@ -49,6 +51,7 @@ public class LobbyService {
     private final LobbyGameStarter lobbyGameStarter;
     private final MatchmakingService matchmakingService;
     private final UserService userService;
+    private final LobbyLockService lobbyLockService;
 
     /**
      * A seated player, with their identity copied onto the seat.
@@ -102,6 +105,25 @@ public class LobbyService {
             return null;
         }
         return lobbyRepository.findById(lobbyId).orElse(null);
+    }
+
+    /**
+     * Runs an action on the lobby a player is in, holding that lobby's lock across the read and
+     * the write both.
+     *
+     * Resolving the id, locking, and only then loading is the order that matters. Loading first
+     * and locking after would leave the read outside the section and reintroduce exactly the lost
+     * update the lock is here to prevent: two callers would each build their change from the same
+     * starting state and the later save would drop the earlier one.
+     */
+    private void withUserLobby(String userId, Consumer<Lobby> action) {
+        String lobbyId = getUserLobbyId(userId);
+        if (lobbyId == null) {
+            throw new LobbyNotFoundException();
+        }
+
+        lobbyLockService.withLobbyLock(lobbyId, () ->
+                action.accept(lobbyRepository.findById(lobbyId).orElseThrow(LobbyNotFoundException::new)));
     }
 
     public Lobby createLobby(String creatorId, String sessionId) {
@@ -173,7 +195,19 @@ public class LobbyService {
         lobbyEventPublisher.playerJoined(lobby, newPlayer);
     }
 
+    /**
+     * Removes a player another instance can no longer see.
+     *
+     * Takes the lobby rather than an id because the sweeper evicts several players from one lobby
+     * and then inspects what is left; handing back a freshly loaded copy each time would strand
+     * that. The caller is therefore expected to have read this lobby under its lock already, and
+     * the lock taken here is the reentrant no-op that proves it — see {@code LobbyEvictionService}.
+     */
     public void evictPlayer(String userId, Lobby lobby) {
+        lobbyLockService.withLobbyLock(lobby.getId(), () -> applyEviction(userId, lobby));
+    }
+
+    private void applyEviction(String userId, Lobby lobby) {
         if (!lobby.isPlayerInLobby(userId)) {
             return;
         }
@@ -189,13 +223,28 @@ public class LobbyService {
     }
 
     public void leaveLobby(String userId) {
-        Lobby lobby = getUserLobby(userId);
+        String lobbyId = getUserLobbyId(userId);
 
-        if (lobby == null) {
+        if (lobbyId == null) {
             userPresenceService.cleanUpUser(userId);
             return;
         }
 
+        lobbyLockService.withLobbyLock(lobbyId, () -> {
+            Lobby lobby = lobbyRepository.findById(lobbyId).orElse(null);
+
+            // Presence still named a lobby that has since been deleted — the sweeper getting there
+            // first is the ordinary way this happens, so it is a cleanup, not a failure.
+            if (lobby == null) {
+                userPresenceService.cleanUpUser(userId);
+                return;
+            }
+
+            applyLeave(lobby, userId);
+        });
+    }
+
+    private void applyLeave(Lobby lobby, String userId) {
         Lobby.RemoveResult removeResult = lobby.removePlayer(userId);
         int remainingPlayers = lobby.getPlayerCount();
 
@@ -232,9 +281,17 @@ public class LobbyService {
 
     public void joinLobbyViaCode(String userId, String sessionId, String code)
             throws LobbyNotFoundException, AlreadyInLobbyException, LobbyFullException, SessionLockException {
-        Lobby lobby = lobbyRepository.findByInviteCode(code).orElseThrow(LobbyNotFoundException::new);
+        // The invite code only resolves the id. The lobby itself is read again inside the lock,
+        // because the seat count this join is about to check is exactly what a concurrent join
+        // changes — deciding on the copy fetched beforehand is how a lobby ends up over-filled.
+        String lobbyId = lobbyRepository.findByInviteCode(code)
+                .map(Lobby::getId)
+                .orElseThrow(LobbyNotFoundException::new);
 
-        joinLobby(userId, sessionId, lobby);
+        lobbyLockService.withLobbyLock(lobbyId, () -> {
+            Lobby lobby = lobbyRepository.findById(lobbyId).orElseThrow(LobbyNotFoundException::new);
+            joinLobby(userId, sessionId, lobby);
+        });
     }
 
     public void createGame(Lobby lobby) {
@@ -249,25 +306,34 @@ public class LobbyService {
      * the reset lobby to all four would pull the rest off the scoreboard before they were done
      * reading it.
      */
-    public void returnToLobby(Lobby lobby, String userId) {
-        if (lobby.getStatus() == LobbyStatus.IN_GAME) {
-            lobby.resetAfterGame();
-            lobbyRepository.save(lobby);
-        }
+    public void returnToLobby(String lobbyId, String userId) {
+        lobbyLockService.withLobbyLock(lobbyId, () -> {
+            Lobby lobby = lobbyRepository.findById(lobbyId).orElse(null);
 
-        // Clears the game id off the player's presence as a side effect, which is what we want here.
-        userPresenceService.setUserLobby(userId, lobby.getId());
+            // The lobby went away while the game was finishing. Nothing to return to, so the
+            // player is simply released rather than left pointing at it.
+            if (lobby == null) {
+                userPresenceService.cleanUpUser(userId);
+                return;
+            }
 
-        lobbyEventPublisher.sendSnapshot(lobby, userId);
+            if (lobby.getStatus() == LobbyStatus.IN_GAME) {
+                lobby.resetAfterGame();
+                lobbyRepository.save(lobby);
+            }
+
+            // Clears the game id off the player's presence as a side effect, which is what we want here.
+            userPresenceService.setUserLobby(userId, lobby.getId());
+
+            lobbyEventPublisher.sendSnapshot(lobby, userId);
+        });
     }
 
     public void onPlayerReady(String userId, boolean ready) throws LobbyNotFoundException {
-        Lobby lobby = getUserLobby(userId);
+        withUserLobby(userId, lobby -> applyReady(lobby, userId, ready));
+    }
 
-        if (lobby == null) {
-            throw new LobbyNotFoundException();
-        }
-
+    private void applyReady(Lobby lobby, String userId, boolean ready) {
         if (lobby.getGameId() != null) {
             throw new IllegalStateException("Player in lobby " + lobby.getId() + " tried to change ready status but game has already started");
         }
@@ -352,12 +418,10 @@ public class LobbyService {
     }
 
     public void swapSeats(String userId, int targetSeat) throws LobbyNotFoundException {
-        Lobby lobby = getUserLobby(userId);
+        withUserLobby(userId, lobby -> applySwapSeats(lobby, userId, targetSeat));
+    }
 
-        if (lobby == null) {
-            throw new LobbyNotFoundException();
-        }
-
+    private void applySwapSeats(Lobby lobby, String userId, int targetSeat) {
         requireNotSearching(lobby);
 
         lobby.swapSeats(userId, targetSeat);
@@ -367,12 +431,10 @@ public class LobbyService {
     }
 
     public void updateConfig(String userId, GameConfiguration configuration) {
-        Lobby lobby = getUserLobby(userId);
+        withUserLobby(userId, lobby -> applyConfig(lobby, userId, configuration));
+    }
 
-        if (lobby == null) {
-            throw new LobbyNotFoundException();
-        }
-
+    private void applyConfig(Lobby lobby, String userId, GameConfiguration configuration) {
         requireNotSearching(lobby);
 
         LobbyPlayer lobbyPlayer = lobby.findPlayerById(userId)
@@ -389,6 +451,10 @@ public class LobbyService {
     }
 
     public void startWithBots(Lobby lobby) {
+        lobbyLockService.withLobbyLock(lobby.getId(), () -> applyStartWithBots(lobby));
+    }
+
+    private void applyStartWithBots(Lobby lobby) {
         if (lobby.getGameId() != null) {
             throw new IllegalStateException("Game already started");
         }

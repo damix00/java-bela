@@ -163,4 +163,98 @@ class ReentrantDistributedLockTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Lock key must not be blank");
     }
+
+    @Test
+    void tryRunsTheActionAndReportsThatItDid() {
+        AtomicInteger calls = new AtomicInteger();
+
+        assertThat(lock.tryWithLock("key", LEASE, calls::incrementAndGet)).isTrue();
+        assertThat(calls).hasValue(1);
+    }
+
+    @Test
+    void tryReleasesTheLockAfterwards() {
+        lock.tryWithLock("key", LEASE, () -> {});
+
+        assertThat(lockStore.isHeld("key")).isFalse();
+    }
+
+    @Test
+    void tryReleasesTheLockWhenTheActionThrows() {
+        assertThatThrownBy(() -> lock.tryWithLock("key", LEASE, () -> {
+            throw new IllegalStateException("boom");
+        })).isInstanceOf(IllegalStateException.class);
+
+        assertThat(lockStore.isHeld("key")).isFalse();
+    }
+
+    @Test
+    void trySkipsTheActionWhenAnotherHolderHasTheKey() throws Exception {
+        // The sweeper's case: another instance is already doing this work, so the right outcome is
+        // to decline and move on rather than wait or raise.
+        CountDownLatch acquired = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        AtomicInteger calls = new AtomicInteger();
+        AtomicBoolean ran = new AtomicBoolean(true);
+
+        Thread holder = new Thread(() -> lock.withLock("key", LEASE, WAIT, () -> {
+            acquired.countDown();
+            try {
+                release.await(5, TimeUnit.SECONDS);
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+            }
+            return null;
+        }));
+        holder.start();
+
+        assertThat(acquired.await(5, TimeUnit.SECONDS)).isTrue();
+
+        Thread contender = new Thread(() ->
+                ran.set(lock.tryWithLock("key", LEASE, calls::incrementAndGet)));
+        contender.start();
+        contender.join(5_000);
+
+        assertThat(ran).isFalse();
+        assertThat(calls).hasValue(0);
+
+        release.countDown();
+        holder.join(5_000);
+    }
+
+    @Test
+    void tryDoesNotDeclineALockThisThreadAlreadyHolds() {
+        // Reentering is not contention: the work is this call stack's own, not a duplicate of
+        // somebody else's, so there is nothing to skip.
+        AtomicInteger calls = new AtomicInteger();
+        AtomicBoolean ran = new AtomicBoolean();
+
+        lock.withLock("key", LEASE, WAIT, () -> {
+            ran.set(lock.tryWithLock("key", LEASE, calls::incrementAndGet));
+            return null;
+        });
+
+        assertThat(ran).isTrue();
+        assertThat(calls).hasValue(1);
+    }
+
+    @Test
+    void tryLeavesAnOuterSectionHoldingItsLock() {
+        AtomicBoolean heldAfterInner = new AtomicBoolean();
+
+        lock.withLock("key", LEASE, WAIT, () -> {
+            lock.tryWithLock("key", LEASE, () -> {});
+            heldAfterInner.set(lockStore.isHeld("key"));
+            return null;
+        });
+
+        assertThat(heldAfterInner).isTrue();
+    }
+
+    @Test
+    void tryRejectsABlankKey() {
+        assertThatThrownBy(() -> lock.tryWithLock(" ", LEASE, () -> {}))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Lock key must not be blank");
+    }
 }

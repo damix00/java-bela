@@ -48,6 +48,20 @@ public class LobbyMatchService implements MatchedTableHandler {
     private final BeloteGameService beloteGameService;
     private final LobbyGameStarter lobbyGameStarter;
 
+    /**
+     * Deliberately not taken under the lobby locks, unlike every other path that writes a lobby.
+     *
+     * This one touches four lobbies at once, and the caller already holds the lock of the lobby
+     * whose ready triggered the match. Acquiring the other three on top of that is a lock-order
+     * inversion waiting to happen: two instances seating overlapping tables would each hold one
+     * lobby and wait for the other's, and neither would move until the leases expired. Ordering
+     * the acquisitions cannot fix it while a lock is already held from outside.
+     *
+     * What makes that acceptable is that matchmaking has already committed these tickets under
+     * its own lock, so no other instance can reach these lobbies through matchmaking at all. The
+     * narrow window left is a player changing their own lobby by hand in the instant between the
+     * commit and the seating, which the ticket revalidation above is what guards.
+     */
     @Override
     public void onTableFormed(MatchedTable table) {
         List<Lobby> lobbies = new ArrayList<>();
