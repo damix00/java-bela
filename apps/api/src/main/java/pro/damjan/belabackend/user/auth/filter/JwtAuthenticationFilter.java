@@ -45,7 +45,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // /auth/refresh and /auth/logout deliberately run without an access token
         return (path.startsWith("/auth") && !path.equals("/auth/me") && !path.equals("/auth/logout-all"))
-                || path.startsWith("/ws");
+                || path.startsWith("/ws")
+                || path.startsWith("/actuator");
     }
 
     @Override

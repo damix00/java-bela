@@ -39,6 +39,10 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        // The deploy swaps instances only once the new one reports ready, so the
+                        // probe has to answer before anyone could hold a token. show-details=never
+                        // keeps it to UP or DOWN.
+                        .requestMatchers("/actuator/health/**").permitAll()
                         .requestMatchers("/auth/me", "/auth/logout-all").authenticated()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()

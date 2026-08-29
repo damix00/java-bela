@@ -43,6 +43,14 @@ dependencies {
     implementation 'com.bucket4j:bucket4j-core:8.10.1'
     implementation 'com.bucket4j:bucket4j-redis:8.10.1'
 
+    // Schema migrations, replacing ddl-auto=update — every instance ran that at startup,
+    // so two booting together raced each other emitting DDL.
+    //
+    // The starter rather than flyway-core alone: Spring Boot 4 split auto-configuration
+    // into modules, and core by itself sits on the classpath unwired while migrations
+    // silently never run.
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql'
 
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
