@@ -10,6 +10,7 @@ import pro.damjan.belabackend.lobby.exception.AlreadyInLobbyException;
 import pro.damjan.belabackend.lobby.exception.LobbyFullException;
 import pro.damjan.belabackend.lobby.exception.LobbyNotFoundException;
 import pro.damjan.belabackend.lobby.exception.LobbyNotJoinableException;
+import pro.damjan.belabackend.lobby.exception.LobbySearchingException;
 import pro.damjan.belabackend.lobby.exception.PlayerNotHostException;
 import pro.damjan.belabackend.lobby.exception.PlayerNotInLobbyException;
 import pro.damjan.belabackend.lobby.model.LobbyStatus;
@@ -326,6 +327,18 @@ public class LobbyService {
      * A no-op unless the lobby is actually searching, so the ordinary path of un-readying in a
      * private lobby costs nothing.
      */
+    /**
+     * Refuses anything that would change the shape a waiting ticket was written from.
+     *
+     * Un-readying is the way out of the queue, and it goes through {@link #leaveMatchmaking} so
+     * the ticket is withdrawn rather than left to go stale.
+     */
+    private void requireNotSearching(Lobby lobby) {
+        if (lobby.getStatus() == LobbyStatus.MATCHMAKING) {
+            throw new LobbySearchingException();
+        }
+    }
+
     private void leaveMatchmaking(Lobby lobby) {
         if (lobby.getStatus() != LobbyStatus.MATCHMAKING) return;
 
@@ -345,6 +358,8 @@ public class LobbyService {
             throw new LobbyNotFoundException();
         }
 
+        requireNotSearching(lobby);
+
         lobby.swapSeats(userId, targetSeat);
         lobbyRepository.save(lobby);
 
@@ -357,6 +372,8 @@ public class LobbyService {
         if (lobby == null) {
             throw new LobbyNotFoundException();
         }
+
+        requireNotSearching(lobby);
 
         LobbyPlayer lobbyPlayer = lobby.findPlayerById(userId)
                 .orElseThrow(PlayerNotInLobbyException::new);

@@ -329,6 +329,9 @@
             "unreadyAction": "Not ready",
             "startWithBots": "Play with bots",
             "play": "Play",
+                "searchingAction": "Searching\u2026",
+                "cancelSearch": "Stop searching",
+                "searchingNote": "Looking for another table to play against. This can take a while \u2014 you can stop any time.",
             "botFillNote": {
                 "one": "Starting now fills the last open seat with a bot.",
                 "other": "Starting now fills the {count} open seats with bots."

@@ -44,7 +44,28 @@ public class BeloteGameService {
         return gameAccessService.findGameById(gameId);
     }
 
+    /**
+     * Records that a player's game screen is up, or gets them off it if the game is gone.
+     *
+     * Refusing here used to trap people. A player whose game was dropped while they were away —
+     * they closed the tab rather than leaving, so nothing ever reset their lobby — still has a
+     * lobby saying IN_GAME with the dead game's id. Reconnecting sends them to that game, this
+     * command answered with "game not found", the screen gave up and went home, and home read the
+     * same lobby and sent them back. Nothing in that circle cleared the id that caused it.
+     *
+     * So a missing game is announced as a leave instead, which is the path that already exists for
+     * exactly this: the lobby resets itself and the snapshot it sends puts the player back at
+     * their table. Safe when the id is already gone too, and it only ever runs when there is no
+     * game to load, so the ordinary handshake is untouched.
+     */
     public void onLoaded(String userId) {
+        String gameId = gameAccessService.getUserGameId(userId);
+
+        if (gameId == null || gameAccessService.findGameById(gameId) == null) {
+            leaveGame(userId);
+            return;
+        }
+
         withUserGameLock(userId, () -> gameLifecycleService.onLoaded(userId));
     }
 

@@ -26,6 +26,15 @@ type LobbyTableProps = {
     seats: Seats;
     chair: number;
     hasTable: boolean;
+    /**
+     * Seats are pinned while the table is queued for a match.
+     *
+     * The queue is indexed by the shape the table entered with — how many players it needs on
+     * each team — so moving a seat mid-search would leave the waiting ticket describing a table
+     * that no longer exists, and the backend refuses it for exactly that reason. Kept separate
+     * from `hasTable`, which answers a different question: whether there is a table at all.
+     */
+    seatsLocked: boolean;
     openSeatCount: number | null;
     onSwapSeat: (seat: number) => void;
 };
@@ -37,6 +46,7 @@ type TableSeatProps = {
     chair: number;
     isYou: boolean;
     variant: "row" | "side";
+    seatsLocked: boolean;
     hasTable: boolean;
     name: string;
     avatarUrl: string | null;
@@ -130,6 +140,7 @@ function TableSeat({
     isYou,
     variant,
     hasTable,
+    seatsLocked,
     name,
     avatarUrl,
     status,
@@ -140,7 +151,7 @@ function TableSeat({
     // constraint — `Lobby.swapSeats` takes any index and treats a vacant target
     // as a plain move — and a seat that is dead for a reason the player cannot
     // see is worse than one whose only effect is to rotate the drawing.
-    const canMoveHere = hasTable && seat !== chair;
+    const canMoveHere = hasTable && !seatsLocked && seat !== chair;
     const handleSwap = useCallback(
         () => onRequestSwap(seat),
         [onRequestSwap, seat],
@@ -226,6 +237,7 @@ export default function LobbyTable({
     seats,
     chair,
     hasTable,
+    seatsLocked,
     openSeatCount,
     onSwapSeat,
 }: LobbyTableProps) {
@@ -324,6 +336,7 @@ export default function LobbyTable({
                     isYou={isYou}
                     variant={variant}
                     hasTable={hasTable}
+                    seatsLocked={seatsLocked}
                     user={user}
                     status={status}
                     disabled={swapRequest !== null}
@@ -355,7 +368,7 @@ export default function LobbyTable({
                         {/* The seats carry a swap badge each, but a badge is a
                             hint and this is the sentence. The felt is the one
                             place on the stage with room for it. */}
-                        {hasTable ? (
+                        {hasTable && !seatsLocked ? (
                             <MockLabel className="text-center text-[11px] font-medium tracking-normal text-mint/50 normal-case sm:text-[12px]">
                                 {copy.lobby.moveHint}
                             </MockLabel>

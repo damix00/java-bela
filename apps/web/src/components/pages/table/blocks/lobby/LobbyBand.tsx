@@ -48,7 +48,8 @@ export default function LobbyBand({
     guest,
 }: LobbyBandProps) {
     const t = copy.lobby;
-    const { lobby, seats, playerCount, isHost, isReady, error } = useLobby();
+    const { lobby, seats, playerCount, isHost, isReady, isSearching, error } =
+        useLobby();
     const { setReady } = useLobbyActions();
 
     const [inviteOpen, setInviteOpen] = useState(false);
@@ -73,6 +74,15 @@ export default function LobbyBand({
      * sent the invitations.
      */
     const starts = isHost && !full && (alone || everyoneReady);
+
+    /**
+     * While searching, the button is the way out rather than the way in.
+     *
+     * There is nothing else to press: the table is closed to invite codes and its seats are
+     * locked, because the queue is indexed by the shape it was entered with. Taking a ready back
+     * is what withdraws it, so the control keeps calling `setReady` and only its wording changes.
+     */
+    const searchLabel = isReady ? t.cancelSearch : t.searchingAction;
 
     /**
      * How many chairs the bots would take, and the sentence that says so.
@@ -123,18 +133,20 @@ export default function LobbyBand({
                 </button>
 
                 <Button
-                    tone={!starts && isReady ? "cream" : "rust"}
+                    tone={isSearching || (!starts && isReady) ? "cream" : "rust"}
                     size="lg"
                     onClick={() => setReady(!isReady)}
                     className="min-h-16 w-full py-4 text-center text-[18px] tracking-[-.02em] sm:text-[19px]"
                 >
-                    {starts
-                        ? lobby.gameConfiguration.matchType == MatchType.PRIVATE
-                            ? t.startWithBots
-                            : t.play
-                        : isReady
-                          ? t.unreadyAction
-                          : t.readyAction}
+                    {isSearching
+                        ? searchLabel
+                        : starts
+                          ? lobby.gameConfiguration.matchType == MatchType.PRIVATE
+                              ? t.startWithBots
+                              : t.play
+                          : isReady
+                            ? t.unreadyAction
+                            : t.readyAction}
                 </Button>
             </div>
 
@@ -142,11 +154,13 @@ export default function LobbyBand({
                 aria-live="polite"
                 className="m-0 text-center text-[13px] font-semibold text-mint/75 sm:text-[14px]"
             >
-                {full
-                    ? t.allReadyNote
-                    : starts
-                      ? botNote
-                      : t.waitingNote.replace("{count}", String(playerCount))}
+                {isSearching
+                    ? t.searchingNote
+                    : full
+                      ? t.allReadyNote
+                      : starts
+                        ? botNote
+                        : t.waitingNote.replace("{count}", String(playerCount))}
             </p>
 
             {error && (

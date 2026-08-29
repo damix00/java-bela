@@ -83,7 +83,7 @@ export default function TableScreen({
     guest,
     signUpHref,
 }: TableScreenProps) {
-    const { lobby, seats, me, playerCount, error } = useLobby();
+    const { lobby, seats, me, playerCount, isSearching, error } = useLobby();
     const { create, swapSeat } = useLobbyActions();
     const status = useSocketStatus();
     const openedAt = useSocketSession();
@@ -204,6 +204,7 @@ export default function TableScreen({
                         seats={seats}
                         chair={chair}
                         hasTable={hasTable}
+                        seatsLocked={isSearching}
                         openSeatCount={
                             hasTable ? SEAT_COUNT - playerCount : null
                         }

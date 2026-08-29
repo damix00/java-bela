@@ -329,6 +329,9 @@
             "unreadyAction": "Nisam spreman",
             "startWithBots": "Igraj s botovima",
             "play": "Igraj",
+                "searchingAction": "Tra\u017eim\u2026",
+                "cancelSearch": "Prekini tra\u017eenje",
+                "searchingNote": "Tra\u017eim drugi stol za igru. Mo\u017ee potrajati \u2014 mo\u017ee\u0161 prekinuti kad god \u017eeli\u0161.",
             "botFillNote": {
                 "one": "Kreneš li sad, zadnje prazno mjesto popunjava bot.",
                 "other": "Kreneš li sad, {count} prazna mjesta popunjavaju botovi."

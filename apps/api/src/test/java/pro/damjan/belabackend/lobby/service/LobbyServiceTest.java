@@ -6,6 +6,7 @@ import pro.damjan.belabackend.game.model.BeloteGame;
 import pro.damjan.belabackend.game.model.config.GameConfiguration;
 import pro.damjan.belabackend.matchmaking.MatchmakingService;
 import pro.damjan.belabackend.lobby.events.LobbyEventPublisher;
+import pro.damjan.belabackend.lobby.exception.LobbySearchingException;
 import pro.damjan.belabackend.lobby.exception.PlayerNotHostException;
 import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
@@ -24,6 +25,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -207,6 +209,97 @@ class LobbyServiceTest {
         lobby.setJoinable(false);
         lobby.addPlayer(LobbyPlayer.createBot());
         lobby.getActivePlayers().forEach(player -> player.setStatus(LobbyPlayerStatus.READY));
+    }
+
+    // --- casual matchmaking ---
+
+    private void givenReadyCasualLobby() {
+        lobby.setGameConfiguration(GameConfiguration.casual());
+        lobby.getActivePlayers().forEach(player -> player.setStatus(LobbyPlayerStatus.READY));
+        givenUserInLobby("host-id");
+    }
+
+    @Test
+    void readyingUpACasualLobbyStartsASearch() {
+        givenReadyCasualLobby();
+        lobby.findPlayerById("host-id").orElseThrow().setStatus(LobbyPlayerStatus.NOT_READY);
+
+        lobbyService.onPlayerReady("host-id", true);
+
+        verify(matchmakingService).requestMatch(lobby);
+        assertThat(lobby.getStatus()).isEqualTo(LobbyStatus.MATCHMAKING);
+    }
+
+    @Test
+    void aSearchingLobbyIsClosedToInviteCodes() {
+        givenReadyCasualLobby();
+        lobby.findPlayerById("host-id").orElseThrow().setStatus(LobbyPlayerStatus.NOT_READY);
+
+        lobbyService.onPlayerReady("host-id", true);
+
+        assertThat(lobby.isJoinable()).isFalse();
+    }
+
+    @Test
+    void unreadyingCancelsTheSearch() {
+        givenReadyCasualLobby();
+        lobby.setStatus(LobbyStatus.MATCHMAKING);
+        lobby.setJoinable(false);
+
+        lobbyService.onPlayerReady("host-id", false);
+
+        verify(matchmakingService).cancel("lobby-id");
+        assertThat(lobby.getStatus()).isEqualTo(LobbyStatus.IN_LOBBY);
+        assertThat(lobby.isJoinable()).isTrue();
+    }
+
+    @Test
+    void unreadyingTellsTheLobbyTheSearchStopped() {
+        givenReadyCasualLobby();
+        lobby.setStatus(LobbyStatus.MATCHMAKING);
+
+        lobbyService.onPlayerReady("host-id", false);
+
+        verify(lobbyEventPublisher).matchmakingStopped(lobby);
+    }
+
+    @Test
+    void unreadyingInAPrivateLobbyTouchesNoSearch() {
+        lobby.setGameConfiguration(GameConfiguration.privateGame(501));
+        lobby.getActivePlayers().forEach(player -> player.setStatus(LobbyPlayerStatus.READY));
+        givenUserInLobby("host-id");
+
+        lobbyService.onPlayerReady("host-id", false);
+
+        verify(matchmakingService, never()).cancel(anyString());
+    }
+
+    @Test
+    void leavingCancelsTheSearch() {
+        givenReadyCasualLobby();
+        lobby.setStatus(LobbyStatus.MATCHMAKING);
+
+        lobbyService.leaveLobby("host-id");
+
+        verify(matchmakingService).cancel("lobby-id");
+    }
+
+    @Test
+    void aSearchingLobbyRefusesSeatSwaps() {
+        givenReadyCasualLobby();
+        lobby.setStatus(LobbyStatus.MATCHMAKING);
+
+        assertThatThrownBy(() -> lobbyService.swapSeats("host-id", 1))
+                .isInstanceOf(LobbySearchingException.class);
+    }
+
+    @Test
+    void aSearchingLobbyRefusesRuleChanges() {
+        givenReadyCasualLobby();
+        lobby.setStatus(LobbyStatus.MATCHMAKING);
+
+        assertThatThrownBy(() -> lobbyService.updateConfig("host-id", GameConfiguration.casual()))
+                .isInstanceOf(LobbySearchingException.class);
     }
 
     private void givenKnownUser(String userId, String username, String avatarUrl) {

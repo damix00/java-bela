@@ -56,6 +56,14 @@ type LobbyState = {
     me: LobbyPlayer | null;
     isHost: boolean;
     isReady: boolean;
+    /**
+     * The table is queued for a match against other tables.
+     *
+     * Casual matchmaking has no bots and no timeout, so this can last as long as it takes and the
+     * screen has to say so. Taking a ready back is the way out, which the backend treats as
+     * cancelling the search.
+     */
+    isSearching: boolean;
     playerCount: number;
     /** The last refusal from a `lobby:*` command, for the UI to explain. */
     error: SocketError | null;
@@ -273,6 +281,10 @@ export function LobbyProvider({
         );
     });
 
+    useSocketEvent("lobby:matchmakingStatus", ({ status }) => {
+        setLobby((current) => (current ? { ...current, status } : current));
+    });
+
     useSocketEvent("lobby:seatsUpdated", ({ userSeats }) => {
         setLobby((current) =>
             current ? { ...current, playerSeats: userSeats } : current,
@@ -403,6 +415,7 @@ export function LobbyProvider({
             me,
             isHost: me?.host ?? false,
             isReady: me?.status === LobbyPlayerStatus.READY,
+            isSearching: lobby?.status === LobbyStatus.MATCHMAKING,
             playerCount: seats.filter(Boolean).length,
             error,
         }),
