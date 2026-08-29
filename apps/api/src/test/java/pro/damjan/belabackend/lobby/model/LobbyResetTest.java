@@ -40,7 +40,7 @@ class LobbyResetTest {
 
         assertThat(lobby.getGameConfiguration()).isEqualTo(GameConfiguration.privateGame(701));
         assertThat(lobby.findPlayerById("host-id").orElseThrow().getSeat()).isEqualTo(0);
-        assertThat(lobby.findPlayerById("guest-id").orElseThrow().getSeat()).isEqualTo(1);
+        assertThat(lobby.findPlayerById("guest-id").orElseThrow().getSeat()).isEqualTo(2);
         assertThat(lobby.getActivePlayers())
                 .allMatch(player -> player.getStatus() == LobbyPlayerStatus.NOT_READY);
         assertThat(lobby.getHost().orElseThrow().getUserId()).isEqualTo("host-id");

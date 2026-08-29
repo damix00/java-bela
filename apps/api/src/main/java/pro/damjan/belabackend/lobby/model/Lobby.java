@@ -37,6 +37,17 @@ public class Lobby implements Serializable {
 
     public static final int MAX_PLAYERS = 4;
 
+    /**
+     * Order in which {@link #addPlayer} claims free seats.
+     *
+     * Partners sit opposite each other — seats 0 and 2 are one team, 1 and 3 the other, as
+     * {@code Team.pairFrom} pairs them — so the second player to arrive is seated at 2 rather
+     * than 1. Someone who invites a friend expects to play *with* them; filling the seats in
+     * index order made the default the opposite of that, and only a seat swap undid it.
+     * Playing against a friend is still available, by swapping.
+     */
+    private static final int[] SEAT_FILL_ORDER = { 0, 2, 1, 3 };
+
     @Getter @Setter
     private Map<Integer, LobbyPlayer> playerSeats = new HashMap<>();
 
@@ -86,33 +97,15 @@ public class Lobby implements Serializable {
         return playerSeats.values().stream().allMatch(p -> p.getStatus() == LobbyPlayerStatus.READY);
     }
 
-    @JsonIgnore
-    public int getTeam(int seat) {
-        return seat < 2 ? 0 : 1; // 0 = team A (seats 0,1), 1 = team B (seats 2,3)
-    }
-
-    @JsonIgnore
-    public int getTeam(LobbyPlayer player) {
-        return getTeam(player.getSeat());
-    }
-
-    @JsonIgnore
-    public List<LobbyPlayer> getTeamPlayers(int team) {
-        return playerSeats.entrySet().stream()
-                .filter(e -> getTeam(e.getKey()) == team)
-                .map(Map.Entry::getValue)
-                .toList();
-    }
-
     // --- Mutation methods ---
 
     @JsonIgnore
     public void addPlayer(LobbyPlayer player) {
         if (isFull()) throw new LobbyFullException();
-        for (int i = 0; i < MAX_PLAYERS; i++) {
-            if (!playerSeats.containsKey(i)) {
-                player.setSeat(i);
-                playerSeats.put(i, player);
+        for (int seat : SEAT_FILL_ORDER) {
+            if (!playerSeats.containsKey(seat)) {
+                player.setSeat(seat);
+                playerSeats.put(seat, player);
                 return;
             }
         }
