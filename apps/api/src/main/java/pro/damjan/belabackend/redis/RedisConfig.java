@@ -62,4 +62,23 @@ public class RedisConfig {
         return RedisScript.of(script, List.class);
     }
 
+    /**
+     * Releases a lock only if the caller still owns it.
+     *
+     * The comparison and the delete have to happen in one step. A holder whose lease expired
+     * mid-section would otherwise read its own token, be descheduled while another instance takes
+     * the key, and then delete a lock it no longer holds.
+     */
+    @Bean
+    public RedisScript<Long> releaseLockScript() {
+        String script = """
+            if redis.call('GET', KEYS[1]) == ARGV[1] then
+                return redis.call('DEL', KEYS[1])
+            end
+            return 0
+            """;
+
+        return RedisScript.of(script, Long.class);
+    }
+
 }
