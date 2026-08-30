@@ -177,6 +177,11 @@ jobs:
       INTERNAL_API_KEY: ${{ secrets.INTERNAL_API_KEY }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+      # The Cloudflare origin certificate kamal-proxy serves. Missing here, Kamal resolves them
+      # to empty strings and writes empty PEM files, and the proxy fails with "unable to load
+      # certificate" only after the app has already booted healthily.
+      CERTIFICATE_PEM: ${{ secrets.CERTIFICATE_PEM }}
+      PRIVATE_KEY_PEM: ${{ secrets.PRIVATE_KEY_PEM }}
     steps:
       - uses: actions/checkout@v4
 
