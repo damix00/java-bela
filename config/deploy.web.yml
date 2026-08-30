@@ -51,8 +51,8 @@ builder:
   # runtime env — by the time the container starts it is far too late. That makes this image
   # specific to production: an image built with these values must never be promoted elsewhere.
   args:
-    NEXT_PUBLIC_API_URL: https://api.bela.damjan.pro
-    NEXT_PUBLIC_WS_URL: wss://api.bela.damjan.pro
+    NEXT_PUBLIC_API_URL: https://bela-api.damjan.pro
+    NEXT_PUBLIC_WS_URL: wss://bela-api.damjan.pro
 
 ssh:
   user: damjan

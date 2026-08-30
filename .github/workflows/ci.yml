@@ -224,13 +224,13 @@ jobs:
         run: |
           set -e
           echo "API readiness:"
-          curl -fsS https://api.bela.damjan.pro/actuator/health/readiness
+          curl -fsS https://bela-api.damjan.pro/actuator/health/readiness
 
           echo "Web:"
           curl -fsS -o /dev/null -w '%{http_code}\n' https://bela.damjan.pro/api/health
 
           echo "CORS mapping present:"
-          curl -fsS -o /dev/null -D - -X OPTIONS https://api.bela.damjan.pro/auth/me \
+          curl -fsS -o /dev/null -D - -X OPTIONS https://bela-api.damjan.pro/auth/me \
             -H 'Origin: https://bela.damjan.pro' \
             -H 'Access-Control-Request-Method: GET' \
             | grep -qi 'access-control-allow-origin: https://bela.damjan.pro' \

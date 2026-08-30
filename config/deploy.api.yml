@@ -32,7 +32,11 @@ proxy:
   ssl:
     certificate_pem: CERTIFICATE_PEM
     private_key_pem: PRIVATE_KEY_PEM
-  host: api.bela.damjan.pro
+  # bela-api.damjan.pro, not api.bela.damjan.pro. Cloudflare's free Universal SSL covers only
+  # one level of subdomain — its wildcard is *.damjan.pro — so a two-level name has no edge
+  # certificate and Cloudflare aborts the TLS handshake before the request ever reaches here.
+  # Nothing on this server can fix that; the name has to stay flat.
+  host: bela-api.damjan.pro
   app_port: 8080
   healthcheck:
     # Readiness rather than liveness: liveness answers as soon as the process is up, which for
@@ -74,7 +78,7 @@ env:
     REDIS_HOST: bela-api-redis
     REDIS_PORT: 6379
     FRONTEND_DOMAIN: https://bela.damjan.pro
-    BACKEND_DOMAIN: https://api.bela.damjan.pro
+    BACKEND_DOMAIN: https://bela-api.damjan.pro
   secret:
     - JWT_SECRET
     - INTERNAL_API_KEY
