@@ -196,8 +196,14 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+      # Unhashed on purpose. `ssh-keyscan -H` hashes the hostname, and Kamal's Ruby SSH client
+      # does not resolve hashed entries the way OpenSSH does — it fails to find the host and
+      # reports a fingerprint mismatch instead of a missing key, which is a confusing way to
+      # learn this. ed25519 only, so one key type is offered and compared.
       - name: Trust the host key
-        run: ssh-keyscan -H 62.238.122.182 >> ~/.ssh/known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -t ed25519 62.238.122.182 >> ~/.ssh/known_hosts
 
       # API first: a schema migration has to be live before the client that depends on it.
       - name: Deploy API
