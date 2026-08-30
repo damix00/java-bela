@@ -207,14 +207,56 @@ jobs:
         run: |
           set -e
           echo "API readiness:"
-          curl -fsS https://api.bela.damjan.pro/actuator/health/readiness
+          curl -fsS https://bela-api.damjan.pro/actuator/health/readiness
 
           echo "Web:"
           curl -fsS -o /dev/null -w '%{http_code}\n' https://bela.damjan.pro/api/health
 
           echo "CORS mapping present:"
-          curl -fsS -o /dev/null -D - -X OPTIONS https://api.bela.damjan.pro/auth/me \
+          curl -fsS -o /dev/null -D - -X OPTIONS https://bela-api.damjan.pro/auth/me \
             -H 'Origin: https://bela.damjan.pro' \
             -H 'Access-Control-Request-Method: GET' \
             | grep -qi 'access-control-allow-origin: https://bela.damjan.pro' \
             || { echo "No CORS header — is SPRING_PROFILES_ACTIVE=prod set?"; exit 1; }
+
+          # Every check above passed while the lobby was completely unreachable, because none of
+          # them used the host and path the browser actually uses. This one does. It covers the
+          # whole chain in one request: DNS, a TLS certificate that genuinely matches the name,
+          # Cloudflare and kamal-proxy both forwarding the Upgrade, and the handler mounted at
+          # /ws. The lobby has no REST surface, so a socket that does not open is a dead app.
+          #
+          # No token on purpose: WebSocketAuthInterceptor accepts an unauthenticated handshake
+          # and closes with 4401 afterwards, so 101 is the correct answer here and CI never has
+          # to mint a JWT.
+          #
+          # --max-time with `|| true` because curl treats 101 as informational and waits for a
+          # final response that never arrives; -D has written the status line long before then.
+          echo "WebSocket upgrade:"
+          ws=$(curl -sS --http1.1 --max-time 10 -o /dev/null -D - \
+            -H 'Connection: Upgrade' \
+            -H 'Upgrade: websocket' \
+            -H 'Sec-WebSocket-Version: 13' \
+            -H 'Sec-WebSocket-Key: AAAAAAAAAAAAAAAAAAAAAA==' \
+            -H 'Origin: https://bela.damjan.pro' \
+            https://bela-api.damjan.pro/ws 2>/dev/null || true)
+          echo "$ws" | head -1
+          echo "$ws" | grep -qi '^HTTP/1.1 101' \
+            || { echo "No 101 — check NEXT_PUBLIC_WS_URL host and /ws path, and that TLS covers the name"; exit 1; }
+
+          # And that the allow-list still bites. A WebSocket upgrade never passes through the
+          # CORS filter, so setAllowedOrigins in WebSocketConfig is the only thing standing
+          # between the lobby and any origin on the internet — and this is the only place that
+          # protection is observable from outside.
+          echo "WebSocket origin allow-list:"
+          ws_foreign=$(curl -sS --http1.1 --max-time 10 -o /dev/null -D - \
+            -H 'Connection: Upgrade' \
+            -H 'Upgrade: websocket' \
+            -H 'Sec-WebSocket-Version: 13' \
+            -H 'Sec-WebSocket-Key: AAAAAAAAAAAAAAAAAAAAAA==' \
+            -H 'Origin: https://evil.example' \
+            https://bela-api.damjan.pro/ws || true)
+          echo "$ws_foreign" | head -1
+          if echo "$ws_foreign" | grep -qi '^HTTP/1.1 101'; then
+            echo "A foreign origin was upgraded — is FRONTEND_DOMAIN set?"
+            exit 1
+          fi
