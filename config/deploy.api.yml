@@ -94,11 +94,16 @@ accessories:
     # noeviction makes a write fail loudly instead, which is recoverable; a vanished game is not.
     #
     # --appendonly yes so a restart does not drop every game in progress.
+    # Wrapped in `sh -c` so the expansion happens inside the container, where REDIS_PASSWORD is
+    # in the environment. Kamal does not interpolate ${...} in this file — it is shell syntax,
+    # not Kamal syntax, and would have been passed through as a literal password. Interpolating
+    # it here with ERB would work but would put the password in the container's command line,
+    # visible to `docker ps` and to anything reading /proc.
     cmd: >-
-      redis-server
+      sh -c 'exec redis-server
       --appendonly yes
       --maxmemory-policy noeviction
-      --requirepass ${REDIS_PASSWORD}
+      --requirepass "$REDIS_PASSWORD"'
     env:
       secret:
         - REDIS_PASSWORD
