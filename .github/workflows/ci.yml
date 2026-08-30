@@ -165,8 +165,14 @@ jobs:
     concurrency:
       group: deploy-production
       cancel-in-progress: false
+    # Lets the automatic GITHUB_TOKEN push to GHCR, so the registry needs no PAT of its own.
+    permissions:
+      contents: read
+      packages: write
     env:
-      KAMAL_REGISTRY_PASSWORD: ${{ secrets.KAMAL_REGISTRY_PASSWORD }}
+      # Minted per run and scoped to this repository, so there is no long-lived registry
+      # credential to store or rotate.
+      KAMAL_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       INTERNAL_API_KEY: ${{ secrets.INTERNAL_API_KEY }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
