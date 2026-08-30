@@ -15,7 +15,17 @@ servers:
     - 62.238.122.182
 
 proxy:
-  ssl: true
+  # A Cloudflare Origin Certificate rather than Let's Encrypt. Automatic certificates need an
+  # HTTP-01 challenge to reach this box, which means publishing the origin IP in DNS at least
+  # once — and passive-DNS services record that permanently, so it cannot be taken back. An
+  # origin cert is issued by Cloudflare out of band, so the records stay proxied from the very
+  # first deploy and the origin IP is never exposed.
+  #
+  # Only Cloudflare trusts this certificate, which is exactly right: nothing else should be
+  # reaching the origin. Set the zone's SSL/TLS mode to Full (strict) so Cloudflare verifies it.
+  ssl:
+    certificate_pem: CERTIFICATE_PEM
+    private_key_pem: PRIVATE_KEY_PEM
   host: bela.damjan.pro
   app_port: 3000
   healthcheck:
