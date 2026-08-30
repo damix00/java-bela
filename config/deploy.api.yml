@@ -51,6 +51,9 @@ registry:
 builder:
   arch: amd64
   context: apps/api
+  # Resolved from the repo root, not from `context`. Without it Kamal looks for ./Dockerfile
+  # at the root and fails with "Missing Dockerfile".
+  dockerfile: apps/api/Dockerfile
 
 ssh:
   user: damjan
