@@ -75,3 +75,16 @@
 @custom-variant desk-md (@media (min-width: 768px) and (min-height: 561px));
 @custom-variant desk-lg (@media (min-width: 1024px) and (min-height: 561px));
 @custom-variant desk-xl (@media (min-width: 1280px) and (min-height: 561px));
+
+/* How much room the felt has for a decision taken on it.
+ *
+ * On the desk table the trump call and the declarations sit on the felt, and the
+ * felt is sized from whatever height the screen has left over. Below this it is
+ * smaller than either surface needs, so the decision moves to the tray under the
+ * table — the same one phones use — rather than being clipped by the felt's own
+ * `overflow-hidden`. Measured against the surfaces themselves: both want about
+ * 245px of felt, and the cut-off is set where the felt still has ~290px — the
+ * slack is there so a longer translation cannot creep over the edge.
+ *
+ * Declared after `desk` so it wins over it. */
+@custom-variant felt-short (@media (max-height: 840px));

@@ -36,9 +36,13 @@ import type { Locale } from "@/lib/i18n/config";
 import { homePath } from "@/lib/navigation/routes";
 import { appGutters } from "@/lib/ui/styles";
 
-/* The screen's own frame. On a phone it is the viewport, safe areas included,
-   and nothing is allowed to scroll out of it; once both dimensions can hold the
-   desktop table it becomes an ordinary centred page on the app's gutters. */
+/* The screen's own frame: the viewport, safe areas included, at every size —
+   the play route's wrapper is `h-dvh overflow-hidden`, so anything this lays out
+   past the bottom edge is not scrolled to, it is simply gone. A wide window that
+   is short (a laptop with a browser's chrome in it) is the case that used to lose
+   the hand. The rows that can't give — score, hand, timer — keep their size and
+   the felt takes what is left, so the padding and gaps only ease off with the
+   height rather than stepping at a breakpoint. */
 const screenClass = [
     "flex h-full min-h-0 flex-auto flex-col gap-2 overflow-hidden",
     "pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]",
@@ -46,7 +50,7 @@ const screenClass = [
     // A shorter phone gives the fixed furniture less and the table more.
     "portrait-sm:gap-1.5",
     "flat:gap-1 flat:pt-[max(0.375rem,env(safe-area-inset-top))] flat:pb-[max(0.375rem,env(safe-area-inset-bottom))]",
-    "desk:h-auto desk:min-h-full desk:justify-center desk:gap-4 desk:overflow-visible desk:px-8 desk:py-6",
+    "desk:justify-center desk:gap-[clamp(0.375rem,1.5vh,1rem)] desk:px-8 desk:py-[clamp(0.5rem,2.5vh,1.5rem)]",
     "desk-md:px-28 desk-lg:px-48 desk-xl:px-72",
 ].join(" ");
 
@@ -76,7 +80,7 @@ const playAreaClass = [
     "flex w-full min-h-0 flex-auto items-stretch mt-2",
     "portrait-sm:mt-1",
     "flat:mt-0",
-    "desk:min-h-[auto] desk:flex-none desk:items-center desk:mt-4",
+    "desk:items-center desk:mt-[clamp(0.25rem,1.5vh,1rem)]",
 ].join(" ");
 
 /* On the desktop table the timer sits above the hand; on a phone it sits under
@@ -88,12 +92,21 @@ const GAME_OVER_DWELL_MS = 3000;
 const handAreaClass = "flex flex-none justify-center desk:order-2";
 
 /* The decision surface, and the near seat's own label, are phone furniture:
-   above `desk` the felt and the table's fourth chair carry both. */
-const mobileActionClass = "flex w-full flex-none justify-center desk:hidden";
+   above `desk` the table's fourth chair carries the label, and the felt carries
+   the decision — but only while the felt is big enough to hold it. Below that
+   the tray comes back and takes the decision with it, because one clipped by the
+   felt's edge is one that cannot be taken; the felt is left to the trick, and the
+   fourth chair gives up its row to it. The tray is capped and centred there
+   rather than left full-width, which on a wide screen would stretch four suit
+   pips across the whole table. */
+const mobileActionClass = [
+    "flex w-full flex-none justify-center desk:hidden",
+    "felt-short:flex felt-short:desk:mx-auto felt-short:desk:max-w-160",
+].join(" ");
 const mobilePlayerClass =
-    "flex w-full min-h-9 flex-none justify-center desk:hidden";
-const mobileOnlyClass = "block desk:hidden";
-const desktopOnlyClass = "hidden desk:block";
+    "flex w-full min-h-9 flex-none justify-center desk:hidden felt-short:flex";
+const mobileOnlyClass = "block desk:hidden flat:hidden";
+const desktopOnlyClass = "hidden desk:block felt-short:hidden";
 
 type GameScreenProps = {
     copy: Dictionary["game"];
@@ -638,6 +651,8 @@ function Notice({
         <p
             className={cn(
                 "py-6 text-center text-[14px] font-semibold text-mint/70",
+                // On a felt this small the padding is most of the box.
+                "felt-short:py-2 felt-short:text-[12px] felt-short:leading-tight",
                 className,
             )}
         >

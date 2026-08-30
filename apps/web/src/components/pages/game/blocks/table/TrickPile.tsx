@@ -46,7 +46,7 @@ export default function TrickPile({
 
     if (playedCards.length === 0) {
         return (
-            <p className="py-6 text-center text-[13px] font-semibold text-mint/60">
+            <p className="py-6 text-center text-[13px] font-semibold text-mint/60 felt-short:py-2 felt-short:text-[12px] felt-short:leading-tight">
                 {emptyLabel}
             </p>
         );
