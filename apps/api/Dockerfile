@@ -35,4 +35,11 @@ EXPOSE 8080
 # memory rather than the container's limit, and two instances overlap during a deploy.
 ENV JAVA_OPTS="-XX:MaxRAMPercentage=75"
 
+# The profile belongs to the image, not just to the deploy that runs it. Leaving it to the
+# environment makes forgetting it a silent failure rather than a loud one: the CORS beans are
+# @Profile-gated, so with no profile active neither registers and there is no CORS mapping at
+# all. The container still starts and still passes its health check — it just cannot be reached
+# from a browser. Overridable at runtime for anyone who wants a different profile.
+ENV SPRING_PROFILES_ACTIVE=prod
+
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar"]
