@@ -52,7 +52,11 @@ builder:
   # specific to production: an image built with these values must never be promoted elsewhere.
   args:
     NEXT_PUBLIC_API_URL: https://bela-api.damjan.pro
-    NEXT_PUBLIC_WS_URL: wss://bela-api.damjan.pro
+    # The /ws path is part of the value, not something the client appends: socket-context.tsx
+    # uses this verbatim and only adds `?token=`. Without it the browser opens a socket against
+    # `/`, which has no handler, and every connection fails as a bare 1006 that the reconnect
+    # loop retries forever.
+    NEXT_PUBLIC_WS_URL: wss://bela-api.damjan.pro/ws
 
 ssh:
   user: damjan
