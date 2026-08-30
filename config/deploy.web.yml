@@ -1,0 +1,62 @@
+# Kamal configuration for the Next.js frontend.
+#
+# Deployed with:  kamal deploy -c config/deploy.web.yml
+#
+# Deploy the API FIRST. A schema migration has to be live before the client that depends on it,
+# and the web container talks to the API on boot.
+#
+# No accessories here — Postgres and Redis belong to deploy.api.yml, which owns them.
+
+service: bela-web
+image: damix00/bela-web
+
+servers:
+  web:
+    - 62.238.122.182
+
+proxy:
+  ssl: true
+  host: bela.damjan.pro
+  app_port: 3000
+  healthcheck:
+    # A dedicated route rather than `/`, which 307-redirects to the detected locale and then on
+    # to sign-in. Health-checking a redirect chain couples the deploy to routing decisions.
+    path: /api/health
+    interval: 3
+    timeout: 3
+
+registry:
+  server: ghcr.io
+  username: damix00
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+builder:
+  arch: amd64
+  # The repo root, not apps/web: the build needs the workspace manifests, the lockfile, and
+  # packages/protocol, which is a source-only workspace package.
+  context: .
+  dockerfile: apps/web/Dockerfile
+  # NEXT_PUBLIC_* are inlined into the client bundle at BUILD time, so they cannot be supplied as
+  # runtime env — by the time the container starts it is far too late. That makes this image
+  # specific to production: an image built with these values must never be promoted elsewhere.
+  args:
+    NEXT_PUBLIC_API_URL: https://api.bela.damjan.pro
+    NEXT_PUBLIC_WS_URL: wss://api.bela.damjan.pro
+
+ssh:
+  user: damjan
+
+deploy_timeout: 60
+drain_timeout: 30
+
+env:
+  clear:
+    # A private hop over the Docker network, so server-side rendering never leaves the box and
+    # the internal API key never crosses the public internet.
+    INTERNAL_API_URL: http://bela-api:8080
+    SECURE_COOKIES: "true"
+  secret:
+    # Must be byte-identical to the API's INTERNAL_API_KEY or every server-rendered request is
+    # rejected. Same value, two names — the web app reads it under the _SB suffix.
+    - INTERNAL_API_KEY_SB

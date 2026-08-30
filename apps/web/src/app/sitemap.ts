@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { legalPages, legalPath, type LegalPage } from "@/lib/navigation/routes";
 
-const SITE_URL = "https://belote.gg";
+const SITE_URL = "https://bela.damjan.pro";
 
 /**
  * Lists public pages and their genuine language alternates. This keeps the `/`

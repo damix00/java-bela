@@ -1,0 +1,106 @@
+# Kamal configuration for the API.
+#
+# Deployed with:  kamal deploy -c config/deploy.api.yml
+#
+# The accessories (Postgres, Redis) are declared here and NOT in deploy.web.yml, so that one
+# config owns them. Declaring them in both would leave two deploys fighting over the same
+# containers. Boot them once with:
+#
+#   kamal accessory boot all -c config/deploy.api.yml
+#
+# Both services share a single kamal-proxy on the host, which is what routes by hostname and
+# performs the health-gated swap that makes a deploy invisible.
+
+service: bela-api
+image: damix00/bela-api
+
+servers:
+  web:
+    - 62.238.122.182
+
+# Reachable only over the private Docker network, so the API's own port is never published to
+# the host. kamal-proxy is the only way in from outside.
+proxy:
+  ssl: true
+  host: api.bela.damjan.pro
+  app_port: 8080
+  healthcheck:
+    # Readiness rather than liveness: liveness answers as soon as the process is up, which for
+    # Spring Boot is before Flyway has migrated and the context has finished refreshing.
+    # Promoting on liveness would swap traffic onto a container that is not ready to serve.
+    path: /actuator/health/readiness
+    interval: 3
+    timeout: 3
+
+registry:
+  server: ghcr.io
+  username: damix00
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+builder:
+  arch: amd64
+  context: apps/api
+
+ssh:
+  user: damjan
+
+# Spring Boot with Flyway needs well over Kamal's 20s default, especially on the first boot of a
+# fresh database. Too low and Kamal declares a healthy deploy failed and rolls it back.
+deploy_timeout: 60
+
+# Must exceed spring.lifecycle.timeout-per-shutdown-phase (25s) in application-prod.properties,
+# or the container is killed part-way through draining and in-flight requests are cut.
+drain_timeout: 30
+
+env:
+  clear:
+    SPRING_PROFILES_ACTIVE: prod
+    DB_URL: jdbc:postgresql://bela-api-postgres:5432/bela
+    DB_USERNAME: bela
+    REDIS_HOST: bela-api-redis
+    REDIS_PORT: 6379
+    FRONTEND_DOMAIN: https://bela.damjan.pro
+    BACKEND_DOMAIN: https://api.bela.damjan.pro
+  secret:
+    - JWT_SECRET
+    - INTERNAL_API_KEY
+    - DB_PASSWORD
+    - REDIS_PASSWORD
+
+accessories:
+  postgres:
+    image: postgres:16-alpine
+    host: 62.238.122.182
+    # No `port:` on purpose. Publishing 5432 to the host would expose the database to the
+    # internet on a box whose firewall only means to allow 22, 80 and 443. The app reaches it
+    # over the Docker network by container name instead.
+    env:
+      clear:
+        POSTGRES_DB: bela
+        POSTGRES_USER: bela
+      secret:
+        - POSTGRES_PASSWORD
+    directories:
+      - data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    host: 62.238.122.182
+    # --maxmemory-policy noeviction is the important one and is not the Redis default behaviour
+    # people assume. Redis here is not a cache: it holds the authoritative lobby and game state,
+    # plus the distributed locks that keep two API instances from corrupting it. Under an
+    # eviction policy such as allkeys-lru, memory pressure would silently delete live games.
+    # noeviction makes a write fail loudly instead, which is recoverable; a vanished game is not.
+    #
+    # --appendonly yes so a restart does not drop every game in progress.
+    cmd: >-
+      redis-server
+      --appendonly yes
+      --maxmemory-policy noeviction
+      --requirepass ${REDIS_PASSWORD}
+    env:
+      secret:
+        - REDIS_PASSWORD
+    directories:
+      - data:/data

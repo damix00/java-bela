@@ -38,7 +38,7 @@ export async function generateMetadata({
     const { dict } = await localePage(params);
 
     return {
-        metadataBase: new URL("https://belote.gg"),
+        metadataBase: new URL("https://bela.damjan.pro"),
         // Only the landing page names itself in full; every other screen supplies
         // its own short title and gets the brand appended.
         title: { default: dict.meta.title, template: "%s — belote.gg" },
