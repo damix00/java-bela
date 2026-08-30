@@ -16,7 +16,17 @@ image: damix00/bela-api
 
 servers:
   web:
-    - 62.238.122.182
+    hosts:
+      - 62.238.122.182
+    # Kamal names the container bela-api-web-<sha>, which changes every deploy, and adds no
+    # alias of its own — so the web app's INTERNAL_API_URL of http://bela-api:8080 had nothing
+    # to resolve and every server-rendered call failed with ENOTFOUND. A fixed alias gives the
+    # private hop a name that survives deploys.
+    #
+    # Two containers briefly share the alias mid-deploy, while the old one drains. Docker
+    # round-robins between them and both serve correctly, so that overlap is harmless.
+    options:
+      network-alias: bela-api
 
 # Reachable only over the private Docker network, so the API's own port is never published to
 # the host. kamal-proxy is the only way in from outside.
