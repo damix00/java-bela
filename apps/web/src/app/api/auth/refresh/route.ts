@@ -9,6 +9,37 @@ import {
     setSessionCookies,
 } from "@/actions/cookies";
 
+function originHost(origin: string): string | null {
+    try {
+        return new URL(origin).host;
+    } catch {
+        // A malformed Origin is not a same-origin request by any reading.
+        return null;
+    }
+}
+
+/**
+ * The host the browser actually addressed, taken from the proxy's forwarded
+ * header and falling back to `Host` when there is no proxy in front.
+ *
+ * `request.nextUrl` cannot answer this. The standalone server builds its
+ * absolute URLs from HOSTNAME and PORT, so in the container every request looks
+ * like it arrived at `http://0.0.0.0:3000` and no browser origin can ever match
+ * it. Neither header can be forged by a cross-site page — they are on the
+ * browser's forbidden list — which is what makes this the same origin/host
+ * pairing Next itself uses to guard server actions.
+ */
+function requestHost(request: NextRequest): string | null {
+    const forwarded = request.headers.get("x-forwarded-host");
+    if (forwarded) {
+        // A chain of proxies appends rather than replaces; the first entry is the
+        // one the browser spoke to.
+        return forwarded.split(",")[0].trim();
+    }
+
+    return request.headers.get("host");
+}
+
 /**
  * Exchanges the httpOnly refresh cookie for a fresh access token.
  *
@@ -19,7 +50,8 @@ import {
  */
 export async function POST(request: NextRequest) {
     const origin = request.headers.get("origin");
-    if (origin && origin !== request.nextUrl.origin) {
+    const host = requestHost(request);
+    if (origin && (host === null || originHost(origin) !== host)) {
         return NextResponse.json(
             {
                 code: "BAD_ORIGIN",
