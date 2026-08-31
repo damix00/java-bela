@@ -22,7 +22,9 @@ type FormErrors = Dictionary["form"]["errors"];
  * `returnTo` is the destination the proxy stashed in `?next=` when it turned
  * this player away from a gated URL, already validated server-side. When there
  * is one, that is where they land instead of the lobby — the point of asking
- * them to sign in was to get them where they were going.
+ * them to sign in was to get them where they were going, and it outranks the
+ * `landing` a caller asks for: an invite link is an errand, the profile step is
+ * an offer.
  */
 export function useAuthSubmit(
     locale: Locale,
@@ -34,7 +36,20 @@ export function useAuthSubmit(
     const [error, setError] = useState<string | null>(null);
 
     const submit = useCallback(
-        (action: () => Promise<AuthActionResult>, fallback: string) => {
+        (
+            action: () => Promise<AuthActionResult>,
+            fallback: string,
+            /**
+             * Where to land when nothing was asked for in `?next=`. Registering
+             * a real account passes the profile step; sign-in and the guest
+             * button leave it out and get the lobby.
+             *
+             * Per call rather than per screen, because the sign-up screen makes
+             * both kinds: the guest button below the form creates an anonymous
+             * account, and the API has no profile for one to fill in.
+             */
+            landing?: string,
+        ) => {
             setError(null);
 
             startTransition(async () => {
@@ -53,7 +68,7 @@ export function useAuthSubmit(
                 // behind the lobby, or Back walks straight into a form the player has
                 // already cleared. `refresh` re-runs the server components so the lobby
                 // renders in its signed-in state.
-                router.replace(returnTo ?? homePath(locale));
+                router.replace(returnTo ?? landing ?? homePath(locale));
                 router.refresh();
             });
         },

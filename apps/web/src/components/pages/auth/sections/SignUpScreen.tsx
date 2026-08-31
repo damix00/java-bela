@@ -22,7 +22,7 @@ import Text from "@/components/ui/typography/Text";
 import TextLink from "@/components/ui/typography/TextLink";
 import type { Dictionary } from "@/dictionaries";
 import type { Locale } from "@/lib/i18n/config";
-import { authLink, legalPath } from "@/lib/navigation/routes";
+import { authLink, legalPath, welcomePath } from "@/lib/navigation/routes";
 import {
     PASSWORD_MIN,
     signUpSchema,
@@ -140,6 +140,11 @@ export default function SignUpScreen({
                                 values.password,
                             ),
                         form.errors.signUpFailed,
+                        // A fresh account goes past the lobby to the profile
+                        // step. Only this call: the guest button below hands
+                        // out an anonymous account, and the API has no profile
+                        // for one to write.
+                        welcomePath(locale),
                     ),
                 )}
                 className="contents"

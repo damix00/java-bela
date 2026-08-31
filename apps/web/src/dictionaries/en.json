@@ -130,9 +130,10 @@
         "welcome": {
             "title": "Account created",
             "heading": "You’re in,",
-            "body": "Five placement games and you’ll have a rating. Join the queue on your own, or open a table and invite your usual three.",
-            "primary": "Play a placement game",
-            "secondary": "Open a private table",
+            "body": "A line about you and a flag beside your name — it’s what the other three see when you sit down. Both can wait, and both live on your profile afterwards.",
+            "formHeading": "A line about you",
+            "submit": "Save and play",
+            "skip": "Skip for now",
             "placement": "placement"
         }
     },

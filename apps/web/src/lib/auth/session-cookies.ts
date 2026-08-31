@@ -14,6 +14,16 @@ export const REFRESH_TOKEN_COOKIE = "refresh_token";
 export const USER_COOKIE = "user";
 
 /**
+ * Whether this browser has already answered the post-sign-up profile step —
+ * saved or skipped, both count as answered.
+ *
+ * A cookie rather than `localStorage` because the screen behind it is a server
+ * component: the page can turn someone away before rendering, where a value
+ * only the browser holds would flash the form and then take it back.
+ */
+export const WELCOME_COOKIE = "welcome_done";
+
+/**
  * A minimal view of both `cookies()` from next/headers and `response.cookies`
  * from NextResponse, so route handlers, server actions and the proxy share one
  * writer.
@@ -122,10 +132,33 @@ export function setUserCookie(
     store.set(USER_COOKIE, JSON.stringify(user), { ...baseOptions(), maxAge });
 }
 
+/**
+ * Marks the profile step as answered, for as long as this browser keeps its
+ * cookies — ten years, since "don't ask me again" has no natural expiry.
+ *
+ * It goes out `httpOnly` like the rest: the only reader is the server page that
+ * decides whether to render the step at all.
+ */
+export function setWelcomeDone(store: CookieWriter) {
+    store.set(WELCOME_COOKIE, "1", {
+        ...baseOptions(),
+        maxAge: 10 * 365 * 24 * 60 * 60,
+    });
+}
+
+/**
+ * The welcome flag goes with the session deliberately.
+ *
+ * Keeping it would mean the second person to sign up on a shared computer never
+ * sees the step, because the first one dismissed it. Clearing it gives every
+ * account its one offer while the promise stays what it says: dismiss it and it
+ * does not come back for that player.
+ */
 export function clearSessionCookies(store: CookieWriter) {
     store.delete(ACCESS_TOKEN_COOKIE);
     store.delete(REFRESH_TOKEN_COOKIE);
     store.delete(USER_COOKIE);
+    store.delete(WELCOME_COOKIE);
 }
 
 /**

@@ -18,6 +18,17 @@ export type ProfileValues = {
     countryCode: string;
 };
 
+/**
+ * What `updateProfile` accepts, which is not quite the profile form.
+ *
+ * `PATCH /users/me` treats an absent field as untouched, and the welcome step
+ * asks for a bio and a country only — the name was already chosen at sign-up,
+ * and sending it back unchanged would put that screen through the uniqueness
+ * check for nothing.
+ */
+export type ProfileUpdate = Omit<ProfileValues, "username"> &
+    Partial<Pick<ProfileValues, "username">>;
+
 export type ProfileActionResult =
     { ok: true; user: User } | { ok: false; error: string; code?: string };
 

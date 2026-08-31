@@ -8,6 +8,7 @@ import {
     ACCESS_TOKEN_COOKIE,
     clearSessionCookies,
     setUserCookie,
+    setWelcomeDone,
 } from "@/actions/cookies";
 // A `"use server"` module may export nothing but async functions — every export
 // of one becomes a callable endpoint — so the result shapes and the error code
@@ -16,7 +17,7 @@ import {
     SESSION_EXPIRED,
     type ActionResult,
     type ProfileActionResult,
-    type ProfileValues,
+    type ProfileUpdate,
 } from "@/lib/profile/result";
 
 /**
@@ -78,7 +79,7 @@ function failure(result: {
  * `refreshAccessToken` is the thing that owns single-flight and the token store.
  */
 export async function updateProfile(
-    values: ProfileValues,
+    values: ProfileUpdate,
 ): Promise<ProfileActionResult> {
     const result = await callAsUser<User>("/users/me", {
         method: "PATCH",
@@ -111,4 +112,18 @@ export async function signOutEverywhere(): Promise<ActionResult> {
     clearSessionCookies(cookieStore);
 
     return { ok: true };
+}
+
+/**
+ * Marks the post-sign-up profile step as answered.
+ *
+ * Saved and skipped both land here: the promise made by the skip link is that
+ * the screen does not come back, and a player who filled it in has even less
+ * reason to see it again. Writing the flag is the whole of the call — it is a
+ * server action rather than a `document.cookie` line only because the cookie is
+ * httpOnly, which is what lets the page read it before rendering.
+ */
+export async function dismissWelcome(): Promise<void> {
+    const cookieStore = await cookies();
+    setWelcomeDone(cookieStore);
 }

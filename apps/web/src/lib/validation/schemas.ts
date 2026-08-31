@@ -106,6 +106,16 @@ export function profileSchema(t: FormErrors) {
     });
 }
 
+/**
+ * The welcome step's half of the profile form: the same two optional fields,
+ * without the username. Registration already wrote one, and a resolver holding
+ * a required field the screen has no box for is a form that cannot be
+ * submitted.
+ */
+export function welcomeProfileSchema(t: FormErrors) {
+    return profileSchema(t).pick({ bio: true, countryCode: true });
+}
+
 export function usernameSchema(t: FormErrors) {
     return z.object({
         username: usernameField(t),
@@ -125,6 +135,9 @@ export type ResetPasswordValues = z.infer<
 export type TwoFactorValues = z.infer<ReturnType<typeof twoFactorSchema>>;
 export type UsernameValues = z.infer<ReturnType<typeof usernameSchema>>;
 export type ProfileValues = z.infer<ReturnType<typeof profileSchema>>;
+export type WelcomeProfileValues = z.infer<
+    ReturnType<typeof welcomeProfileSchema>
+>;
 
 /**
  * Segments to fill on the strength meter, 0–4. Length carries most of the

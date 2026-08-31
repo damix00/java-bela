@@ -130,9 +130,10 @@
         "welcome": {
             "title": "Račun otvoren",
             "heading": "Unutra si,",
-            "body": "Još pet kvalifikacijskih partija i imaš rejting. Uđi u red sam ili otvori stol i pozovi svoju stalnu trojku.",
-            "primary": "Odigraj kvalifikacijsku partiju",
-            "secondary": "Otvori privatni stol",
+            "body": "Redak o tebi i zastava uz ime — to ostala trojica vide kad sjedneš za stol. Oboje može pričekati i oboje poslije stoji na tvom profilu.",
+            "formHeading": "Redak o tebi",
+            "submit": "Spremi i igraj",
+            "skip": "Preskoči za sad",
             "placement": "kvalifikacije"
         }
     },

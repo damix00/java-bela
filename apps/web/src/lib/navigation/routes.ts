@@ -61,6 +61,17 @@ export function settingsPath(locale: Locale) {
     return `/${locale}/settings`;
 }
 
+/**
+ * The step a brand-new account lands on, between sign-up and the lobby.
+ *
+ * It lives among the auth screens rather than the account's own pages because
+ * that is what it is — the tail of the sign-up flow, wearing the same chrome —
+ * and `proxy.ts` already gates the segment on a session.
+ */
+export function welcomePath(locale: Locale) {
+    return authPath(locale, "welcome");
+}
+
 export function playPath(locale: Locale, gameId: string) {
     return `/${locale}/play/${gameId}`;
 }

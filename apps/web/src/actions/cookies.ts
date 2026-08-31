@@ -8,10 +8,12 @@ export {
     ACCESS_TOKEN_COOKIE,
     REFRESH_TOKEN_COOKIE,
     USER_COOKIE,
+    WELCOME_COOKIE,
     accessTokenExpiryMs,
     clearSessionCookies,
     setSessionCookies,
     setUserCookie,
+    setWelcomeDone,
     type CookieOptions,
     type CookieWriter,
 } from "@/lib/auth/session-cookies";
