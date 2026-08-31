@@ -16,6 +16,7 @@ import SettingsRow from "@/components/pages/settings/blocks/SettingsRow";
 import DividedPanel from "@/components/ui/surfaces/DividedPanel";
 import Text from "@/components/ui/typography/Text";
 import type { Dictionary } from "@/dictionaries";
+import { forgetLobby } from "@/lib/game/last-lobby";
 import type { Locale } from "@/lib/i18n/config";
 import { authPath, homePath, profilePath } from "@/lib/navigation/routes";
 
@@ -48,6 +49,10 @@ export default function SettingsScreen({
         startTransition(async () => {
             await logout();
             clearAuth();
+            // The remembered table belongs to the account that was sitting at
+            // it. Left behind, the next person to sign in on this tab would be
+            // rejoined to a stranger's lobby — see `last-lobby`.
+            forgetLobby();
             router.replace(homePath(locale));
             router.refresh();
         });
@@ -67,6 +72,7 @@ export default function SettingsScreen({
             // The cookies are already gone server-side; this drops the access
             // token the client still holds so nothing keeps sending it.
             clearAuth();
+            forgetLobby();
             router.replace(homePath(locale));
             router.refresh();
         });

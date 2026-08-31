@@ -16,6 +16,7 @@ import { clearAuth } from "@/api/token-store";
 import type { User } from "@/api/types/user";
 import { isGuest } from "@/api/types/user";
 import type { Dictionary } from "@/dictionaries";
+import { forgetLobby } from "@/lib/game/last-lobby";
 import { cn } from "@/lib/ui/cn";
 import type { Locale } from "@/lib/i18n/config";
 import { authPath, profilePath, settingsPath } from "@/lib/navigation/routes";
@@ -91,6 +92,10 @@ export default function ProfileMenu({
             // server-side; this drops the access token the client still holds, so
             // `apiFetch` stops sending a token that is no longer ours.
             clearAuth();
+            // The remembered table belongs to the account that was sitting at
+            // it. Left behind, the next person to sign in on this tab would be
+            // rejoined to a stranger's lobby — see `last-lobby`.
+            forgetLobby();
             setOpen(false);
             // `refresh` is what makes the server components re-render and the lobby
             // fall back to its signed-out half.
