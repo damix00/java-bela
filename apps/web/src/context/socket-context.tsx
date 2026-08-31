@@ -65,7 +65,15 @@ export type SocketStatus =
     | "connected"
     | "disconnected"
     /** Terminal. The session is over, so reconnecting cannot help. */
-    | "auth-failed";
+    | "auth-failed"
+    /**
+     * Terminal, and terminal on purpose. The player opened the game somewhere
+     * else and that window now holds their seat. Reconnecting *would* work —
+     * the newest connection always wins — which is exactly why this one does
+     * not: two windows both taking the seat back would pass it between them
+     * forever.
+     */
+    | "superseded";
 
 /**
  * A backend failure, delivered as `{"event": "error:<command>", ...}`.
@@ -148,11 +156,11 @@ const ERROR_CHANNEL = "\0error";
  * `UserSession` open for nothing.
  *
  * Note what the backend does on either side of this connection. Every handshake
- * mints a fresh `UserSession`, and closing deletes it — which is what releases
- * the single-device lock, so a dropped connection doesn't strand the player
- * outside their own table. And on reconnect `LobbyReconnectService` re-locks the
- * session and re-sends `lobby:initialState` unprompted, so nothing here has to
- * ask for the state it lost.
+ * mints a fresh `UserSession`, and closing deletes it. On reconnect
+ * `LobbyReconnectService` hands that new session the player's seat — taking it
+ * from any older session of theirs, which is what `session:superseded` below
+ * announces to the window that lost it — and re-sends `lobby:initialState`
+ * unprompted, so nothing here has to ask for the state it lost.
  */
 export function SocketProvider({ children }: { children: ReactNode }) {
     // "connecting", not "disconnected": the provider opens a socket on mount,
@@ -193,8 +201,24 @@ export function SocketProvider({ children }: { children: ReactNode }) {
         attemptRef.current += 1;
     }, []);
 
+    const disconnect = useCallback(() => {
+        // Orphans every callback still holding the old generation.
+        generationRef.current += 1;
+
+        if (reconnectRef.current) {
+            clearTimeout(reconnectRef.current);
+            reconnectRef.current = null;
+        }
+
+        socketRef.current?.close();
+        socketRef.current = null;
+    }, []);
+
     const connect = useCallback(async () => {
         if (socketRef.current?.readyState === WebSocket.OPEN) return;
+        // Terminal: another window has the seat and taking it back here would
+        // only bounce it between the two.
+        if (statusRef.current === "superseded") return;
 
         const generation = ++generationRef.current;
 
@@ -252,6 +276,14 @@ export function SocketProvider({ children }: { children: ReactNode }) {
         };
 
         socket.onmessage = (event) => {
+            // A frame from a socket we have already walked away from. `onopen`
+            // and `onclose` guard the same way; this one matters most, because
+            // the backend may not have processed our close before the
+            // replacement handshake, and it can still answer the old session
+            // with `session:superseded` — a takeover by the very tab reading
+            // this. Acting on it would gate the tab against itself.
+            if (generation !== generationRef.current) return;
+
             let message: {
                 event?: string;
                 data?: unknown;
@@ -267,6 +299,14 @@ export function SocketProvider({ children }: { children: ReactNode }) {
             }
 
             if (!message.event) return;
+
+            // Not dispatched to subscribers: there is nothing for a screen to
+            // do with it beyond stop, and stopping is the socket's own job.
+            if (message.event === "session:superseded") {
+                setStatus("superseded");
+                disconnect();
+                return;
+            }
 
             listenersRef.current
                 .get(message.event)
@@ -287,20 +327,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
                     ?.forEach((handler) => handler(error as never));
             }
         };
-    }, [scheduleReconnect]);
-
-    const disconnect = useCallback(() => {
-        // Orphans every callback still holding the old generation.
-        generationRef.current += 1;
-
-        if (reconnectRef.current) {
-            clearTimeout(reconnectRef.current);
-            reconnectRef.current = null;
-        }
-
-        socketRef.current?.close();
-        socketRef.current = null;
-    }, []);
+    }, [disconnect, scheduleReconnect]);
 
     const reconnect = useCallback(() => {
         disconnect();
@@ -428,8 +455,15 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 
             hiddenSinceRef.current = null;
 
-            // Terminal. A new socket would be closed with the same 4401.
-            if (statusRef.current === "auth-failed") return;
+            // Terminal, both of them: a new socket would be closed with the
+            // same 4401, or would snatch back a seat this window has already
+            // been told it lost.
+            if (
+                statusRef.current === "auth-failed" ||
+                statusRef.current === "superseded"
+            ) {
+                return;
+            }
 
             if (
                 socketRef.current?.readyState === WebSocket.OPEN &&

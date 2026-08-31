@@ -32,6 +32,7 @@ import type {
     LobbyReadyCommand,
     LobbySeatsUpdatedEvent,
     RoundStartEvent,
+    SessionSupersededEvent,
     SwapSeatsCommand,
     ThrowCardCommand,
     TrumpChoiceSkippedEvent,
@@ -59,6 +60,7 @@ export interface ServerEvents {
     "lobby:playerLeft": LobbyPlayerLeftEvent;
     "lobby:playerStatusChange": LobbyPlayerStatusChangeEvent;
     "lobby:seatsUpdated": LobbySeatsUpdatedEvent;
+    "session:superseded": SessionSupersededEvent;
 }
 
 /**

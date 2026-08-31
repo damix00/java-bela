@@ -1,6 +1,7 @@
 import { getInitialSession } from "@/actions/auth";
 import AppNavigationFrame from "@/components/layout/AppNavigationFrame";
 import GameNavigation from "@/components/layout/GameNavigation";
+import SessionSupersededModal from "@/components/layout/SessionSupersededModal";
 import { AuthProvider } from "@/context/auth-context";
 import { GameProvider } from "@/context/game-context";
 import { LobbyProvider } from "@/context/lobby-context";
@@ -43,6 +44,10 @@ export default async function AppLayout({
             initialExpiresAt={expiresAt}
         >
             <SocketProvider>
+                {/* Above the lobby and the game both: taking the seat in
+                    another window ends this one wherever it is standing. */}
+                <SessionSupersededModal copy={dict.table.sessionSuperseded} />
+
                 <LobbyProvider locale={lang}>
                     {/* Mounted here rather than on the play route, and that is
                         load-bearing: on reconnect the backend pushes

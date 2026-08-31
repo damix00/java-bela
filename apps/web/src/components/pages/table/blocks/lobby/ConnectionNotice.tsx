@@ -22,7 +22,9 @@ import { authPath } from "@/lib/navigation/routes";
  *
  * `connecting` says nothing at all. It is the first half-second of every page
  * load, and a banner that appears and vanishes on arrival is worse than
- * silence.
+ * silence. Neither does `superseded`: the player has the game open in another
+ * window, `SessionSupersededModal` is already standing over this one saying so,
+ * and "Reconnecting…" underneath it would promise something that is not coming.
  *
  * It floats rather than sitting in the column. A backoff retry can drop and
  * restore this line several times in a minute, and in the flow each of those
@@ -45,7 +47,10 @@ export default function ConnectionNotice({
     const status = useSocketStatus();
 
     const expired = status === "auth-failed";
-    const settled = status === "connected" || status === "connecting";
+    const settled =
+        status === "connected" ||
+        status === "connecting" ||
+        status === "superseded";
 
     return (
         <div

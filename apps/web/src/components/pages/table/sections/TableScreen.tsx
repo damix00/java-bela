@@ -8,7 +8,6 @@ import type { User } from "@/api/types/user";
 import ConnectionNotice from "@/components/pages/table/blocks/lobby/ConnectionNotice";
 import LobbyBand from "@/components/pages/table/blocks/lobby/LobbyBand";
 import LobbyBandSkeleton from "@/components/pages/table/blocks/lobby/LobbyBandSkeleton";
-import SessionLockedModal from "@/components/pages/table/blocks/lobby/SessionLockedModal";
 import LobbyTable from "@/components/pages/table/blocks/stage/LobbyTable";
 import {
     SEAT_COUNT,
@@ -25,23 +24,16 @@ import {
 import type { Dictionary } from "@/dictionaries";
 import { cn } from "@/lib/ui/cn";
 import type { Locale } from "@/lib/i18n/config";
-import {
-    isAlreadyInLobby,
-    isSessionLocked,
-    localiseLobbyError,
-} from "@/lib/game/lobby-errors";
+import { isAlreadyInLobby, localiseLobbyError } from "@/lib/game/lobby-errors";
 import { playPath } from "@/lib/navigation/routes";
 import { appGutters } from "@/lib/ui/styles";
 
-/** How often to re-ask for a table while another window holds the lock. */
-const SESSION_LOCK_RETRY_MS = 3000;
+/** How often to re-ask for a table the backend thinks we are already at. */
+const STALE_LOBBY_RETRY_MS = 3000;
 
 /** A create refusal that reconnecting can resolve into an existing snapshot. */
 function isRecoverableCreateError(error: SocketError): boolean {
-    return (
-        error.command === "lobby:create" &&
-        (isSessionLocked(error) || isAlreadyInLobby(error))
-    );
+    return error.command === "lobby:create" && isAlreadyInLobby(error);
 }
 
 type TableScreenProps = {
@@ -156,13 +148,14 @@ export default function TableScreen({
     }, [lobby, status, requestLobby]);
 
     /**
-     * The lock in another window clears itself; the screen follows.
+     * A seat the backend still remembers finds its way back here.
      *
-     * A session lock lifts when the player closes or leaves their first table.
-     * The backend only transfers that existing lobby to this tab during its
-     * reconnect lifecycle; another `lobby:create` merely changes the refusal
-     * from "session locked" to "already in lobby" and sends no snapshot.
-     * Reconnecting preserves the standing modal until the snapshot arrives.
+     * "Already in lobby" means the presence outlived the connection that made
+     * it — the tab was away long enough to lose its socket, or two of our own
+     * frames raced. Another `lobby:create` would only be refused the same way:
+     * the backend hands an existing lobby over during its *reconnect*
+     * lifecycle and nowhere else. So remake the line and let the snapshot
+     * arrive on its own.
      */
     useEffect(() => {
         if (
@@ -174,7 +167,7 @@ export default function TableScreen({
             return;
         }
 
-        const id = setTimeout(reconnect, SESSION_LOCK_RETRY_MS);
+        const id = setTimeout(reconnect, STALE_LOBBY_RETRY_MS);
 
         return () => clearTimeout(id);
     }, [lobby, status, error, reconnect]);
@@ -230,15 +223,6 @@ export default function TableScreen({
                     )}
                 </div>
             </main>
-
-            {!lobby && error && isRecoverableCreateError(error) && (
-                <SessionLockedModal
-                    copy={copy.sessionLockedModal}
-                    body={copy.lobbyErrors.sessionLocked}
-                    closeLabel={copy.sessionLockedModal.close}
-                    onRetry={reconnect}
-                />
-            )}
         </div>
     );
 }

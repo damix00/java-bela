@@ -354,13 +354,12 @@
             "full": "Taj stol je pun.",
             "notJoinable": "Taj stol je već počeo.",
             "alreadyIn": "Već si za stolom.",
-            "sessionLocked": "Već si za stolom u drugom prozoru. Prvo ga napusti.",
             "notHost": "To može samo domaćin.",
             "generic": "Nije uspjelo. Pokušaj za koji trenutak."
         },
-        "sessionLockedModal": {
-            "heading": "Tvoje mjesto je u drugom prozoru",
-            "action": "Pokušaj ponovno",
+        "sessionSuperseded": {
+            "heading": "Prijava s druge lokacije",
+            "body": "Sada igraš u drugom prozoru. Ovaj je odložen.",
             "close": "Zatvori"
         }
     },

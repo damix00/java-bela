@@ -317,6 +317,9 @@ export interface RoundTeam {
     points: number;
 }
 
+export interface SessionSupersededEvent extends OutgoingEvent {
+}
+
 export interface SwapSeatsCommand extends IncomingEvent {
     seat: number;
 }
