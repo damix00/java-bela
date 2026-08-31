@@ -147,7 +147,10 @@ export default function SignUpScreen({
                 {error && <FormError>{error}</FormError>}
 
                 {/* The account needs a name up front: the API's register call writes a
-            NOT NULL UNIQUE username, so there is no later step to defer it to. */}
+            NOT NULL UNIQUE username, so there is no later step to defer it to.
+            It autocompletes as `nickname`, not `username`: sign-in takes the
+            email, and a password manager saves whatever the `username` field
+            holds as the identifier it offers back. */}
                 <Field
                     htmlFor="username"
                     label={common.username}
@@ -155,7 +158,7 @@ export default function SignUpScreen({
                 >
                     <Input
                         id="username"
-                        autoComplete="username"
+                        autoComplete="nickname"
                         {...invalidProps("username", errors.username)}
                         {...register("username")}
                     />
@@ -169,7 +172,7 @@ export default function SignUpScreen({
                     <Input
                         id="email"
                         type="email"
-                        autoComplete="email"
+                        autoComplete="username"
                         placeholder={form.emailPlaceholder}
                         {...invalidProps("email", errors.email)}
                         {...register("email")}

@@ -212,7 +212,7 @@ export default function ProfileScreen({
                 >
                     <Input
                         id="username"
-                        autoComplete="username"
+                        autoComplete="nickname"
                         {...invalidProps("username", fieldErrors.username)}
                         {...register("username")}
                     />

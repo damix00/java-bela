@@ -108,7 +108,7 @@ export default function ChooseUsernameScreen({
                     <div className={inputFrame}>
                         <input
                             id="username"
-                            autoComplete="username"
+                            autoComplete="nickname"
                             className={`${focusRing} ${inputBare}`}
                             {...invalidProps("username", errors.username)}
                             {...register("username")}

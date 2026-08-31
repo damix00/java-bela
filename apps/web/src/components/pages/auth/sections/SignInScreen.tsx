@@ -145,7 +145,7 @@ export default function SignInScreen({
                     <Input
                         id="email"
                         type="email"
-                        autoComplete="email"
+                        autoComplete="username"
                         {...invalidProps("email", errors.email)}
                         {...register("email")}
                     />
