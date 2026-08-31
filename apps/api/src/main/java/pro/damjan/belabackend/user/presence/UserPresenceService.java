@@ -33,7 +33,7 @@ public class UserPresenceService {
 
     public void setUserPresence(String userId, UserPresence presence) {
         presence.setLastPing(Instant.now()); // Update last ping time whenever we set the presence
-        redisTemplate.opsForValue().set(PRESENCE_KEY_PREFIX + userId, presence, UserPresence.STALE_TTL);
+        redisTemplate.opsForValue().set(PRESENCE_KEY_PREFIX + userId, presence, UserPresence.ABANDONED_TTL);
     }
 
     public boolean isUserOnline(String userId) {
@@ -46,12 +46,24 @@ public class UserPresenceService {
         return presence == null || presence.isStale();
     }
 
+    /**
+     * Whether the seat this user holds can be taken back.
+     *
+     * A longer window than {@link #isUserStale}, and the one a lobby should ask — see
+     * {@link UserPresence#ABANDONED_TTL}. A missing record still counts: the key outlives the
+     * grace, so its absence means the player has been gone longer than the grace allows.
+     */
+    public boolean isUserAbandoned(String userId) {
+        UserPresence presence = getUserPresence(userId);
+        return presence == null || presence.isAbandoned();
+    }
+
     public void presenceKeepAlive(String userId) {
         UserPresence presence = getUserPresence(userId);
 
         if (presence != null) {
             presence.setLastPing(Instant.now());
-            redisTemplate.opsForValue().set(PRESENCE_KEY_PREFIX + userId, presence, UserPresence.STALE_TTL);
+            redisTemplate.opsForValue().set(PRESENCE_KEY_PREFIX + userId, presence, UserPresence.ABANDONED_TTL);
         } else {
             // Presence doesn't exist, we will create a new one with default values.
             setUserPresence(userId, new UserPresence(Instant.now(), null, null));

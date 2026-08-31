@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { LobbyStatus } from "@bela/protocol";
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 import type { User } from "@/api/types/user";
 import ConnectionNotice from "@/components/pages/table/blocks/lobby/ConnectionNotice";
@@ -24,6 +24,7 @@ import {
 import type { Dictionary } from "@/dictionaries";
 import { cn } from "@/lib/ui/cn";
 import type { Locale } from "@/lib/i18n/config";
+import { forgetLobby, recallLobby } from "@/lib/game/last-lobby";
 import { isAlreadyInLobby, localiseLobbyError } from "@/lib/game/lobby-errors";
 import { playPath } from "@/lib/navigation/routes";
 import { appGutters } from "@/lib/ui/styles";
@@ -31,10 +32,41 @@ import { appGutters } from "@/lib/ui/styles";
 /** How often to re-ask for a table the backend thinks we are already at. */
 const STALE_LOBBY_RETRY_MS = 3000;
 
-/** A create refusal that reconnecting can resolve into an existing snapshot. */
-function isRecoverableCreateError(error: SocketError): boolean {
-    return error.command === "lobby:create" && isAlreadyInLobby(error);
+/**
+ * A refusal that reconnecting can resolve into an existing snapshot.
+ *
+ * Both of this screen's automatic commands can earn it. "Already in lobby"
+ * means the backend still has us seated somewhere — the presence outlived the
+ * connection that made it — and it hands an existing lobby over during its
+ * *reconnect* lifecycle and nowhere else, so neither retrying the command nor
+ * asking for a different one gets us there.
+ */
+function isRecoverableError(error: SocketError): boolean {
+    return (
+        (error.command === "lobby:create" ||
+            error.command === "lobby:join:code") &&
+        isAlreadyInLobby(error)
+    );
 }
+
+/**
+ * A refusal from the automatic rejoin below, which the player should not read.
+ *
+ * Every `lobby:join:code` failure on this screen is one: the invite route is a
+ * different screen and shows its own. Ours is not news — the table it names is
+ * one the player left by tabbing away, and a fresh one is already opening in
+ * its place.
+ */
+function isSilentRejoinError(error: SocketError): boolean {
+    return error.command === "lobby:join:code";
+}
+
+/**
+ * How far this screen has got with getting the player a table, for the socket
+ * session in hand. One pass per connection: rejoin the last table if there is
+ * one to rejoin, otherwise open a new one.
+ */
+type Attempt = "idle" | "rejoining" | "creating";
 
 type TableScreenProps = {
     copy: Dictionary["table"];
@@ -76,7 +108,7 @@ export default function TableScreen({
     signUpHref,
 }: TableScreenProps) {
     const { lobby, seats, me, playerCount, isSearching, error } = useLobby();
-    const { create, swapSeat } = useLobbyActions();
+    const { create, joinByCode, swapSeat } = useLobbyActions();
     const status = useSocketStatus();
     const openedAt = useSocketSession();
     const { reconnect } = useSocketCommands();
@@ -96,16 +128,12 @@ export default function TableScreen({
         router.replace(playPath(locale, lobby.gameId));
     }, [lobby, locale, router]);
 
-    // One attempt per socket session. A second `lobby:create` on the same
+    // One pass per socket session. A second `lobby:create` on the same
     // connection would only be answered with "already in lobby", and a retry
     // loop against that is a request every frame for as long as the tab is
     // open. A *new* connection is a different matter: it is the one moment the
     // answer can have changed.
-    const requested = useRef(false);
-    const requestLobby = useCallback(() => {
-        requested.current = true;
-        create();
-    }, [create]);
+    const attempt = useRef<Attempt>("idle");
 
     /**
      * A remade line gets a fresh attempt.
@@ -120,49 +148,95 @@ export default function TableScreen({
      * session.
      */
     useEffect(() => {
-        requested.current = false;
+        attempt.current = "idle";
     }, [openedAt]);
 
     /**
-     * The table opens itself.
+     * The table opens itself — the one it had, if that one can be had.
      *
      * Pressing a button to be given a table you were always going to be given
      * is a step with no decision in it — the mode selector that used to stand
-     * here offered three choices and two of them were unbuilt. So the lobby is
-     * created on arrival, and the first thing on screen is the code that fills
+     * here offered three choices and two of them were unbuilt. So a lobby is
+     * there on arrival, and the first thing on screen is the code that fills
      * it.
      *
-     * The pause before creating is not a nicety. A reconnect makes the backend
-     * re-send `lobby:initialState` unprompted for a player who is already
-     * seated somewhere, and creating in that window would race the snapshot and
-     * lose — the backend refuses with "already in lobby" for a table the player
-     * is quite happily sitting at. Waiting a moment lets the snapshot land
-     * first, and the effect re-runs and stands down when it does.
+     * Which lobby is the part that matters. Tab away for long enough — copying
+     * the invite link and switching apps to send it is the ordinary way — and
+     * the backend eventually takes the seat back, so the reconnect on return
+     * brings no snapshot. Creating outright at that point hands the player a
+     * new table with a new code, having just watched them send out the old one.
+     * So the remembered code is spent first, on the same `lobby:join:code` an
+     * invited friend uses; only if that table is truly gone does a new one open,
+     * and it opens without comment.
+     *
+     * The pause before either is not a nicety. A reconnect makes the backend
+     * re-send `lobby:initialState` unprompted for a player who is still seated,
+     * and acting inside that window races the snapshot and loses — the backend
+     * refuses both commands with "already in lobby" for a table the player is
+     * quite happily sitting at. Waiting a moment lets the snapshot land first,
+     * and the effect re-runs and stands down when it does.
      */
     useEffect(() => {
-        if (lobby || status !== "connected" || requested.current) return;
+        if (lobby || status !== "connected" || attempt.current !== "idle") {
+            return;
+        }
 
-        const id = setTimeout(requestLobby, SNAPSHOT_GRACE_MS);
+        const id = setTimeout(() => {
+            const code = recallLobby();
+
+            if (code) {
+                attempt.current = "rejoining";
+                joinByCode(code);
+                return;
+            }
+
+            attempt.current = "creating";
+            create();
+        }, SNAPSHOT_GRACE_MS);
 
         return () => clearTimeout(id);
-    }, [lobby, status, requestLobby]);
+    }, [lobby, status, create, joinByCode]);
+
+    /**
+     * The rejoin missed, so open a new table instead.
+     *
+     * No pause and no retry: the refusal *is* the answer. The lobby was deleted
+     * once the last of us was evicted from it, or the friends who were sent the
+     * code filled the last seat while we were away. Either way that table is
+     * not somewhere the player can be put back, and the code is worth nothing
+     * now — `create` clears the refusal on its way out, so none of this is ever
+     * seen.
+     *
+     * "Already in lobby" is the exception and is left to the effect below,
+     * which remakes the line rather than giving up on the table.
+     */
+    useEffect(() => {
+        if (lobby || status !== "connected") return;
+        if (attempt.current !== "rejoining") return;
+        if (!error || !isSilentRejoinError(error) || isRecoverableError(error)) {
+            return;
+        }
+
+        forgetLobby();
+        attempt.current = "creating";
+        create();
+    }, [lobby, status, error, create]);
 
     /**
      * A seat the backend still remembers finds its way back here.
      *
      * "Already in lobby" means the presence outlived the connection that made
      * it — the tab was away long enough to lose its socket, or two of our own
-     * frames raced. Another `lobby:create` would only be refused the same way:
-     * the backend hands an existing lobby over during its *reconnect*
-     * lifecycle and nowhere else. So remake the line and let the snapshot
-     * arrive on its own.
+     * frames raced. Neither command above can resolve it: the backend hands an
+     * existing lobby over during its *reconnect* lifecycle and nowhere else. So
+     * remake the line and let the snapshot arrive on its own.
      */
     useEffect(() => {
         if (
             lobby ||
             status !== "connected" ||
             !error ||
-            !isRecoverableCreateError(error)
+            !isRecoverableError(error)
         ) {
             return;
         }
@@ -211,7 +285,9 @@ export default function TableScreen({
                             signUpHref={signUpHref}
                             guest={guest}
                         />
-                    ) : error && !isRecoverableCreateError(error) ? (
+                    ) : error &&
+                      !isRecoverableError(error) &&
+                      !isSilentRejoinError(error) ? (
                         <p
                             role="status"
                             className="mx-auto text-center text-[13px] font-semibold text-mint/75 sm:text-[14px]"

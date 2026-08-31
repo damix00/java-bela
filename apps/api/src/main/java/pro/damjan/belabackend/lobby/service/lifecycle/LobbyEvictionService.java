@@ -61,18 +61,35 @@ public class LobbyEvictionService {
         }
     }
 
+    /**
+     * How long a player may be silent before their seat is taken, which is not one number.
+     *
+     * A game in progress asks the short question: three other people are waiting on this player's
+     * card, so {@code isUserStale} at thirty seconds is right. A lobby is waiting on nothing, and
+     * the ordinary reason someone goes quiet there is that they switched apps to send the invite
+     * link — so it asks {@code isUserAbandoned} instead, and holds the seat for the longer grace.
+     * Evicting on staleness alone is what made a copied link go dead while it was being pasted.
+     */
+    private boolean hasLostTheirSeat(String userId, boolean inGame) {
+        return inGame
+                ? userPresenceService.isUserStale(userId)
+                : userPresenceService.isUserAbandoned(userId);
+    }
+
     private void evictStalePlayers(Lobby lobby) {
+        boolean inGame = lobby.getStatus() == LobbyStatus.IN_GAME;
+
         List<LobbyPlayer> stalePlayerIds = lobby.getActivePlayers().stream()
                 .filter(player -> {
                     if (player == null || player.isBot()) return false; // Skip null players and bots
-                    return userPresenceService.isUserStale(player.getUserId());
+                    return hasLostTheirSeat(player.getUserId(), inGame);
                 })
                 .toList();
 
         if (stalePlayerIds.isEmpty()) return; // No stale players, skip eviction
 
         // Drop the current game
-        if (lobby.getStatus() == LobbyStatus.IN_GAME) {
+        if (inGame) {
             gameEvictionService.dropGame(lobby.getGameId());
         }
 

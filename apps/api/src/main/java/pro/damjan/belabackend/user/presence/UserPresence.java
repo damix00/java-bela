@@ -30,8 +30,25 @@ public class UserPresence implements Serializable {
     public static final Duration ONLINE_TTL = Duration.ofSeconds(15);
     public static final Duration STALE_TTL = Duration.ofSeconds(30);
 
+    /**
+     * How long a lobby seat is held for a player nobody can hear.
+     *
+     * Longer than {@link #STALE_TTL} on purpose, because the two answer different questions.
+     * Staleness asks whether the player is responding *now*, which is what an in-progress game
+     * needs: the other three are sitting there waiting on them. A lobby is waiting on nothing, and
+     * the commonest reason a lobby player goes quiet is that they tabbed away to send the invite
+     * link — a backgrounded tab has its keepalive throttled within seconds. Thirty seconds of that
+     * cost them the table *and* the code they had just copied, because a lobby left with nobody in
+     * it is deleted.
+     *
+     * This is also the Redis expiry below, and has to be: a presence record that outlives
+     * staleness is the only thing {@code LobbyReconnectService} can read to find the returning
+     * player their table.
+     */
+    public static final Duration ABANDONED_TTL = Duration.ofMinutes(2);
+
     @TimeToLive
-    private long ttl = STALE_TTL.getSeconds();
+    private long ttl = ABANDONED_TTL.getSeconds();
 
     public boolean isOnline() {
         return lastPing.isAfter(Instant.now().minus(ONLINE_TTL));
@@ -40,6 +57,11 @@ public class UserPresence implements Serializable {
     public boolean isStale() {
         // truly gone — safe to clean up lobby/game references
         return lastPing.isBefore(Instant.now().minus(STALE_TTL));
+    }
+
+    /** Quiet for long enough that the seat is no longer being kept warm. */
+    public boolean isAbandoned() {
+        return lastPing.isBefore(Instant.now().minus(ABANDONED_TTL));
     }
 
     public PresenceStatus getStatus() {

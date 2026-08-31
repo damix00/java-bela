@@ -26,6 +26,7 @@ import {
     type SocketError,
 } from "@/context/socket-context";
 import { useSocketErrors, useSocketEvent } from "@/hooks/use-socket-event";
+import { forgetLobby, rememberLobby } from "@/lib/game/last-lobby";
 import type { Locale } from "@/lib/i18n/config";
 import { homePath, isPlayPath, playPath } from "@/lib/navigation/routes";
 
@@ -181,6 +182,12 @@ export function LobbyProvider({
         snapshotAt.current = Date.now();
         setError(null);
         setLobby(lobby);
+
+        // The one frame that always carries the current table — it arrives on
+        // create, on join, and unprompted on every reconnect. Kept so that a
+        // reconnect which brings *no* snapshot still has a code to rejoin with;
+        // see `last-lobby`.
+        rememberLobby(lobby.inviteCode);
 
         /**
          * A table that is already playing sends you to it.
@@ -383,6 +390,9 @@ export function LobbyProvider({
 
     const leave = useCallback(() => {
         send("lobby:leave");
+        // Leaving on purpose is the player saying they do not want this table
+        // back, which is the one thing a silent rejoin must not override.
+        forgetLobby();
         // Cleared here rather than on an event: the backend removes the leaver
         // before it broadcasts, so we are never told about our own departure.
         setLobby(null);

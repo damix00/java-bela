@@ -6,6 +6,7 @@ import pro.damjan.belabackend.game.service.lifecycle.GameEvictionService;
 import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.lobby.model.LobbyPlayer;
 import pro.damjan.belabackend.lobby.model.LobbyPlayerStatus;
+import pro.damjan.belabackend.lobby.model.LobbyStatus;
 import pro.damjan.belabackend.lobby.repository.LobbyRepository;
 import pro.damjan.belabackend.lobby.service.LobbyService;
 import pro.damjan.belabackend.lobby.service.lock.LobbyLockService;
@@ -67,9 +68,9 @@ class LobbyEvictionServiceTest {
     }
 
     @Test
-    void evictsAPlayerWhosePresenceHasGoneStale() {
+    void evictsALobbyPlayerWhoHasAbandonedTheirSeat() {
         givenLobbyIsScannedAndLoadable();
-        when(userPresenceService.isUserStale("stale-id")).thenReturn(true);
+        when(userPresenceService.isUserAbandoned("stale-id")).thenReturn(true);
 
         evictionService.evictOfflineLobbyPlayers();
 
@@ -79,11 +80,45 @@ class LobbyEvictionServiceTest {
     @Test
     void leavesAPlayerWhoIsStillPresent() {
         givenLobbyIsScannedAndLoadable();
-        when(userPresenceService.isUserStale("stale-id")).thenReturn(false);
+        when(userPresenceService.isUserAbandoned("stale-id")).thenReturn(false);
 
         evictionService.evictOfflineLobbyPlayers();
 
         verify(lobbyService, never()).evictPlayer(anyString(), any(Lobby.class));
+    }
+
+    /**
+     * The case the grace exists for: the player tabbed away to send the invite link. They stopped
+     * answering half a minute ago, which is enough to show them offline, and nowhere near enough
+     * to take their table away.
+     */
+    @Test
+    void keepsTheSeatOfALobbyPlayerWhoIsMerelyStale() {
+        givenLobbyIsScannedAndLoadable();
+        when(userPresenceService.isUserStale("stale-id")).thenReturn(true);
+        when(userPresenceService.isUserAbandoned("stale-id")).thenReturn(false);
+
+        evictionService.evictOfflineLobbyPlayers();
+
+        verify(lobbyService, never()).evictPlayer(anyString(), any(Lobby.class));
+    }
+
+    /**
+     * A game in progress does not get the grace. Three other players are waiting on this one, so
+     * the short question is the right one to ask.
+     */
+    @Test
+    void evictsAStalePlayerFromAGameWithoutWaitingOutTheGrace() {
+        lobby.setStatus(LobbyStatus.IN_GAME);
+        lobby.setGameId("game-id");
+        givenLobbyIsScannedAndLoadable();
+        when(userPresenceService.isUserStale("stale-id")).thenReturn(true);
+        when(userPresenceService.isUserAbandoned("stale-id")).thenReturn(false);
+
+        evictionService.evictOfflineLobbyPlayers();
+
+        verify(gameEvictionService).dropGame("game-id");
+        verify(lobbyService).evictPlayer("stale-id", lobby);
     }
 
     @Test
@@ -92,7 +127,7 @@ class LobbyEvictionServiceTest {
         // a scan that deletes lobbies in parallel with the first.
         lockStore.tryAcquire(SWEEP_LOCK_KEY, "another-instance", Duration.ofSeconds(30));
         givenLobbyIsScannedAndLoadable();
-        when(userPresenceService.isUserStale("stale-id")).thenReturn(true);
+        when(userPresenceService.isUserAbandoned("stale-id")).thenReturn(true);
 
         evictionService.evictOfflineLobbyPlayers();
 
@@ -104,7 +139,7 @@ class LobbyEvictionServiceTest {
     void sweepsAgainOnceTheOtherInstanceIsDone() {
         // Declining a tick must not leave the key held, or the sweep would stop for good.
         givenLobbyIsScannedAndLoadable();
-        when(userPresenceService.isUserStale("stale-id")).thenReturn(true);
+        when(userPresenceService.isUserAbandoned("stale-id")).thenReturn(true);
 
         evictionService.evictOfflineLobbyPlayers();
 
