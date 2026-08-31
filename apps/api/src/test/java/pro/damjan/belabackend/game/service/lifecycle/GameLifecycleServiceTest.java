@@ -143,7 +143,7 @@ class GameLifecycleServiceTest {
         }
         verify(gameAccessService).save(game);
         verify(gamePublisher).roundStarted(game);
-        verify(gamePublisher).trumpChoosingStarted(game, 10L);
+        verify(gamePublisher).trumpChoosingStarted(game, TrumpPhaseService.TRUMP_CHOICE_TIMEOUT.toSeconds());
         verify(trumpPhaseService).chooseBotTrumpOrSchedule(game);
     }
 

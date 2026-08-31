@@ -53,7 +53,7 @@ function Side({
     nameOf: (seat: number) => string;
 }) {
     return (
-        <div className="flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl bg-baize-deep px-2 py-2 text-center shadow-[0_4px_14px_-6px_rgb(0_0_0_/_0.5)] sm:px-3 sm:py-3">
+        <div className="flex min-w-0 flex-1 flex-col items-center gap-1.5 rounded-xl bg-baize-deep px-3 py-3 text-center shadow-[0_4px_14px_-6px_rgb(0_0_0_/_0.5)] sm:px-4 sm:py-4">
             <span className="truncate text-[9px] font-bold tracking-wide text-mint/70 uppercase sm:text-[11px]">
                 {label}
             </span>
@@ -69,7 +69,7 @@ function Side({
                 declarations={declarations}
                 typeNames={typeNames}
                 nameOf={nameOf}
-                className="mt-0.5 items-center [@media(max-height:700px)]:hidden"
+                className="mt-1 items-center [@media(max-height:700px)]:hidden"
             />
         </div>
     );

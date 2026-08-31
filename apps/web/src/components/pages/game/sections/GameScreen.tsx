@@ -1,5 +1,6 @@
 "use client";
 
+import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
@@ -19,6 +20,7 @@ import GameSeat from "@/components/pages/game/blocks/table/GameSeat";
 import GameTableStage from "@/components/pages/game/blocks/table/GameTableStage";
 import TrickPile from "@/components/pages/game/blocks/table/TrickPile";
 import GameOverPanel from "@/components/pages/game/blocks/status/GameOverPanel";
+import LeaveMatchDialog from "@/components/pages/game/blocks/status/LeaveMatchDialog";
 import DealCountdown from "@/components/pages/game/blocks/status/DealCountdown";
 import ScoreBoard from "@/components/pages/game/blocks/status/ScoreBoard";
 import TurnTimer from "@/components/pages/game/blocks/status/TurnTimer";
@@ -28,14 +30,14 @@ import {
     type GamePhase,
     type RoundView,
 } from "@/context/game-context";
-import { SNAPSHOT_GRACE_MS } from "@/context/lobby-context";
+import { SNAPSHOT_GRACE_MS, useLobbyActions } from "@/context/lobby-context";
 import { useSocketStatus } from "@/context/socket-context";
 import type { Dictionary } from "@/dictionaries";
 import { cn } from "@/lib/ui/cn";
 import { canDeclareBela, declarationPoints } from "@/lib/game/rules";
 import type { Locale } from "@/lib/i18n/config";
 import { homePath } from "@/lib/navigation/routes";
-import { appGutters } from "@/lib/ui/styles";
+import { appGutters, focusRing } from "@/lib/ui/styles";
 
 /* The screen's own frame: the viewport, safe areas included, at every size —
    the play route's wrapper is `h-dvh overflow-hidden`, so anything this lays out
@@ -58,7 +60,11 @@ const screenClass = [
 /* The score sits over the screen rather than in its flow, so the table keeps
    the height. `scoreSpacerClass` is what reserves the row it covers. */
 const scoreDockClass = [
-    "pointer-events-none fixed z-30 flex justify-center",
+    // A column now, not just the board: the leave control hangs under it, in the
+    // dock's own right-hand gutter. Only the board's height is reserved by
+    // `scoreSpacerClass`, so what hangs below overlays the felt — which is the
+    // point, it is furniture rather than a row of its own.
+    "pointer-events-none fixed z-30 flex flex-col gap-2 desk:gap-2.5",
     "top-[max(0.75rem,env(safe-area-inset-top))]",
     "left-[max(0.75rem,env(safe-area-inset-left))] right-[max(0.75rem,env(safe-area-inset-right))]",
     "flat:top-[max(0.375rem,env(safe-area-inset-top))]",
@@ -166,6 +172,7 @@ export default function GameScreen({
         declineDeclarations,
         leaveGame,
     } = useGameActions();
+    const { forget } = useLobbyActions();
     const status = useSocketStatus();
     const router = useRouter();
 
@@ -176,6 +183,31 @@ export default function GameScreen({
     const [showDeclarations, setShowDeclarations] = useState<
         "us" | "them" | null
     >(null);
+
+    /** Whether the leave button has been pressed and is waiting on an answer. */
+    const [confirmingLeave, setConfirmingLeave] = useState(false);
+
+    /**
+     * Walking out of a hand, which is three separate things.
+     *
+     * `game:leave` on a game still in progress is an abandonment: the backend
+     * drops it, hands the other three back to their tables, and takes this
+     * player's seat. The lobby is then cleared *locally* — no `lobby:leave`
+     * behind it, which would be a second command racing that cleanup — because
+     * the snapshot we are still holding says IN_GAME, and `TableScreen` reads
+     * that as "you belong at a table" and would send us straight back to the
+     * game we just left.
+     *
+     * The navigation is `replace`: the table that is being abandoned is not
+     * somewhere Back should be able to return to. `TableScreen` mounts fresh on
+     * the other side of it — this screen unmounts, so its one-attempt-per-session
+     * ref is new — and opens a table with nothing in it.
+     */
+    const leaveMatch = () => {
+        leaveGame();
+        forget();
+        router.replace(homePath(locale));
+    };
 
     // The "I am on the game screen" handshake. The fourth one deals the first
     // round. Safe to repeat — `GameLifecycleService.onLoaded` returns early
@@ -364,6 +396,36 @@ export default function GameScreen({
                     showDeclarationsLabel={copy.declarations.show}
                     onShowDeclarations={setShowDeclarations}
                 />
+
+                {/* The only way off this screen, and it has to be here: the play
+                    route hides the navigation frame, so there is no chrome to
+                    hang it from. Under the score rather than beside it — the bar
+                    is as wide as the table, and squeezing a control in next to
+                    it took room off the one thing on screen that is read every
+                    trick.
+
+                    Built like the bar it hangs from rather than like a lobby
+                    button: same surface, same corner, same drop shadow, and a
+                    hover that only warms the glyph. An ink border and a hard
+                    shadow out here would be the loudest thing over the felt.
+
+                    `pointer-events-auto` opts back in: the dock is inert so the
+                    felt underneath stays reachable. */}
+                <button
+                    type="button"
+                    onClick={() => setConfirmingLeave(true)}
+                    aria-label={copy.leave.action}
+                    title={copy.leave.action}
+                    className={cn(
+                        "pointer-events-auto grid cursor-pointer place-items-center self-end",
+                        "size-10 rounded-2xl bg-baize-deep text-mint desk:size-11",
+                        "shadow-[0_6px_20px_-8px_rgb(0_0_0_/_0.5)]",
+                        "transition-colors hover:text-cream",
+                        focusRing,
+                    )}
+                >
+                    <LogOut aria-hidden size={17} strokeWidth={3} />
+                </button>
             </div>
             <div className={scoreSpacerClass} aria-hidden="true" />
 
@@ -499,6 +561,14 @@ export default function GameScreen({
                     declareLabel={copy.bela.declare}
                     skipLabel={copy.bela.skip}
                     onAnswer={answerBela}
+                />
+            )}
+
+            {confirmingLeave && (
+                <LeaveMatchDialog
+                    copy={copy.leave}
+                    onConfirm={leaveMatch}
+                    onClose={() => setConfirmingLeave(false)}
                 />
             )}
 

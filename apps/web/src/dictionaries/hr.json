@@ -338,7 +338,8 @@
                 "other": "Kreneš li sad, {count} prazna mjesta popunjavaju botovi."
             },
             "copied": "Kopirano",
-            "unknownPlayer": "Igrač"
+            "unknownPlayer": "Igrač",
+            "leave": "Napusti stol"
         },
         "join": {
             "heading": "Pridruži se kodom",
@@ -439,6 +440,13 @@
             "won": "Pobijedili ste",
             "lost": "Izgubili ste",
             "score": "{us} — {them}"
+        },
+        "leave": {
+            "action": "Napusti partiju",
+            "heading": "Napustiti ovu partiju?",
+            "body": "Dijeljenje ovdje završava za sve četvero. Nitko se ne boduje i svi se vraćaju za stol.",
+            "confirm": "Napusti partiju",
+            "close": "Ostani za stolom"
         }
     },
     "profile": {

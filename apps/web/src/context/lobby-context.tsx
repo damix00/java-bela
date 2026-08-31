@@ -75,7 +75,27 @@ type LobbyActions = {
     clearError: () => void;
     create: () => void;
     joinByCode: (inviteCode: string) => void;
+    /**
+     * Gives up the table, and stays table-less.
+     *
+     * For a caller with somewhere else to be — `JoinScreen`, which leaves one
+     * table on its way into another. A player who is *staying* on the lobby
+     * wants `leaveTable`, or they are left looking at the opening skeleton.
+     */
     leave: () => void;
+    /** `leave`, and a new table opened in the old one's place. */
+    leaveTable: () => void;
+    /**
+     * Drops the table we hold without telling the backend, because it already knows.
+     *
+     * The one caller is the match leave: `game:leave` on a game still in progress
+     * takes the player's seat as part of ending the game, so a `lobby:leave`
+     * behind it would be a second command racing that cleanup. Skipping the
+     * clear is not an option either — `TableScreen` reads a held-over IN_GAME
+     * snapshot as "you belong at a table" and sends the player back to the game
+     * they just walked out of.
+     */
+    forget: () => void;
     setReady: (ready: boolean) => void;
     swapSeat: (seat: number) => void;
     /**
@@ -388,8 +408,7 @@ export function LobbyProvider({
         [send],
     );
 
-    const leave = useCallback(() => {
-        send("lobby:leave");
+    const forget = useCallback(() => {
         // Leaving on purpose is the player saying they do not want this table
         // back, which is the one thing a silent rejoin must not override.
         forgetLobby();
@@ -397,7 +416,30 @@ export function LobbyProvider({
         // before it broadcasts, so we are never told about our own departure.
         setLobby(null);
         setError(null);
-    }, [send]);
+    }, []);
+
+    const leave = useCallback(() => {
+        send("lobby:leave");
+        forget();
+    }, [send, forget]);
+
+    /**
+     * The lobby is the front door, so leaving a table means being given another.
+     *
+     * The new table is asked for outright rather than left to `TableScreen`'s
+     * create-on-arrival, which cannot help here: that effect spends one attempt
+     * per socket session and the screen stays mounted across this, so its
+     * attempt is long gone and it would sit under the opening skeleton forever.
+     *
+     * Two sends, in this order, on one connection — `GameWebSocketHandler`
+     * dispatches a session's frames as they arrive, so the seat is given up
+     * before the next table is asked for. Reversed, the create would be refused
+     * with "already in lobby".
+     */
+    const leaveTable = useCallback(() => {
+        leave();
+        create();
+    }, [leave, create]);
 
     const setReady = useCallback(
         (ready: boolean) => send("lobby:ready", { ready }),
@@ -440,6 +482,8 @@ export function LobbyProvider({
             create,
             joinByCode,
             leave,
+            leaveTable,
+            forget,
             setReady,
             swapSeat,
             setMatchType,
@@ -449,6 +493,8 @@ export function LobbyProvider({
             create,
             joinByCode,
             leave,
+            leaveTable,
+            forget,
             setReady,
             swapSeat,
             setMatchType,

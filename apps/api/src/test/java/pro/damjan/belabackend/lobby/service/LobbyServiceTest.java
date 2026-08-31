@@ -223,6 +223,45 @@ class LobbyServiceTest {
     }
 
     @Test
+    void abandoningAGameResetsTheTableAndTakesTheLeaverOutOfIt() {
+        givenLobbyInGame();
+        givenLobbyIsLoadable();
+
+        lobbyService.leaveAbandonedLobby("lobby-id", "host-id");
+
+        // The reset is what clears the dead game id, and the leaver is gone rather than seated.
+        assertThat(lobby.getStatus()).isEqualTo(LobbyStatus.IN_LOBBY);
+        assertThat(lobby.getGameId()).isNull();
+        assertThat(lobby.findPlayerById("host-id")).isEmpty();
+        assertThat(lobby.findPlayerById("guest-id")).isPresent();
+        verify(userPresenceService).cleanUpUser("host-id");
+        verify(lobbyEventPublisher).playerLeft(lobby, "host-id");
+    }
+
+    @Test
+    void abandoningAGamePlayedAloneAgainstBotsLeavesNothingToKeep() {
+        // resetAfterGame drops the bots, so the last human out empties the table.
+        givenLobbyInGame();
+        givenLobbyIsLoadable();
+        lobby.removePlayer("guest-id");
+
+        lobbyService.leaveAbandonedLobby("lobby-id", "host-id");
+
+        assertThat(lobby.getPlayerCount()).isZero();
+        verify(lobbyRepository).delete(lobby);
+    }
+
+    @Test
+    void abandoningAGameWhoseLobbyIsAlreadyGoneReleasesThePlayerInstead() {
+        when(lobbyRepository.findById("lobby-id")).thenReturn(Optional.empty());
+
+        lobbyService.leaveAbandonedLobby("lobby-id", "host-id");
+
+        verify(userPresenceService).cleanUpUser("host-id");
+        verify(lobbyEventPublisher, never()).playerLeft(any(Lobby.class), anyString());
+    }
+
+    @Test
     void aSeatSwapIsDecidedFromTheLobbyAsItIsWhenTheLockIsTaken() {
         // The point of locking before loading: the service must read the lobby itself rather than
         // act on a copy fetched earlier, or a concurrent change is silently overwritten.

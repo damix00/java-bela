@@ -3,8 +3,10 @@ package pro.damjan.belabackend.game.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import pro.damjan.belabackend.game.events.GameAbandonedEvent;
 import pro.damjan.belabackend.game.events.PlayerLeftGameEvent;
 import pro.damjan.belabackend.game.model.BeloteGame;
+import pro.damjan.belabackend.game.model.GameStatus;
 import pro.damjan.belabackend.game.model.config.GameConfiguration;
 import pro.damjan.belabackend.game.model.player.GamePlayer;
 import pro.damjan.belabackend.game.model.card.Rank;
@@ -117,7 +119,14 @@ public class BeloteGameService {
     }
 
     /**
-     * Takes a player out of a finished game and announces it so their lobby can take them back.
+     * Takes a player out of the game they are in, which means two different things.
+     *
+     * A finished game is the ordinary way out: the player steps off the scoreboard, the lobby takes
+     * them back, and the game is dropped once the last of them has gone. A game still in progress is
+     * an abandonment, and it ends the game for everyone — which is not a policy invented here, it is
+     * what {@code LobbyEvictionService} already does the moment any player goes stale for thirty
+     * seconds. Doing it on purpose only makes it immediate, and lets the leaver be told what it costs
+     * before they commit.
      *
      * The announcement is made outside the game lock — the listener does its own Redis work on the
      * lobby and has no business holding a game lock while it does. A player with no game left (they
@@ -126,6 +135,20 @@ public class BeloteGameService {
      */
     public void leaveGame(String userId) {
         String gameId = gameAccessService.getUserGameId(userId);
+        BeloteGame game = gameId == null ? null : gameAccessService.findGameById(gameId);
+
+        if (game != null && game.getStatus() != GameStatus.FINISHED) {
+            // Read before the drop. `dropGame` deletes the game, so the seating is gone by the time
+            // the listener runs and would have nobody left to hand back to their lobby.
+            List<String> humanUserIds = game.getPlayers().stream()
+                    .filter(player -> !player.isBot())
+                    .map(GamePlayer::getUserId)
+                    .toList();
+
+            gameLockService.withGameLock(gameId, () -> gameLifecycleService.dropGame(gameId));
+            applicationEventPublisher.publishEvent(new GameAbandonedEvent(userId, humanUserIds));
+            return;
+        }
 
         if (gameId != null) {
             gameLockService.withGameLock(gameId, () -> gameLifecycleService.leaveFinishedGame(userId, gameId));

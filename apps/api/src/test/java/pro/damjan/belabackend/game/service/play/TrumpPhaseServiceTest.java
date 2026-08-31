@@ -102,7 +102,7 @@ class TrumpPhaseServiceTest {
 
         assertThat(game.getCurrentRound().getCurrentTurnIndex()).isEqualTo(1);
         verify(gameAccessService).save(game);
-        verify(gamePublisher).trumpChoiceSkipped(game, 0, 10L);
+        verify(gamePublisher).trumpChoiceSkipped(game, 0, TrumpPhaseService.TRUMP_CHOICE_TIMEOUT.toSeconds());
         verify(scheduledTaskRegistry).registerTask(org.mockito.ArgumentMatchers.argThat(task ->
                 task.getType() == ScheduledTaskType.CHOOSING_TRUMP_TIMEOUT_TASK
                         && task.getRequiredIntParameter("roundNumber") == 0
@@ -136,7 +136,7 @@ class TrumpPhaseServiceTest {
 
         assertThat(game.getCurrentRound().getCurrentTurnIndex()).isEqualTo(2);
         verify(gameAccessService).save(game);
-        verify(gamePublisher).trumpChoiceSkipped(game, 1, 10L);
+        verify(gamePublisher).trumpChoiceSkipped(game, 1, TrumpPhaseService.TRUMP_CHOICE_TIMEOUT.toSeconds());
         verify(scheduledTaskRegistry).registerTask(org.mockito.ArgumentMatchers.argThat(task ->
                 task.getType() == ScheduledTaskType.CHOOSING_TRUMP_TIMEOUT_TASK
                         && task.getRequiredIntParameter("roundNumber") == 0

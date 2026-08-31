@@ -30,6 +30,7 @@ import pro.damjan.belabackend.user.User;
 import pro.damjan.belabackend.user.auth.Role;
 
 import java.security.SecureRandom;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -317,6 +318,38 @@ public class LobbyService {
             userPresenceService.setUserLobby(userId, lobby.getId());
 
             lobbyEventPublisher.sendSnapshot(lobby, userId);
+        });
+    }
+
+    /**
+     * Takes the player who abandoned a game out of the table they abandoned it from.
+     *
+     * The reset is why this is not simply {@link #leaveLobby}. Everyone still at the table is handed
+     * back by {@code returnToLobby}, which resets on whoever gets there first — but a player alone
+     * against three bots has nobody to do that for them, and their lobby would be left saying
+     * IN_GAME behind a game id that no longer resolves until its TTL ran out. {@code resetAfterGame}
+     * also clears the bots, which is what lets {@code applyLeave} then see an empty table and delete it.
+     *
+     * Called after the others have had their snapshots, so the {@code lobby:playerLeft} this
+     * broadcasts lands on clients that already have a table to apply it to. Reversed, the seat would
+     * be emptied on a table they had not been given yet, and then filled back in by the snapshot.
+     */
+    public void leaveAbandonedLobby(String lobbyId, String userId) {
+        lobbyLockService.withLobbyLock(lobbyId, () -> {
+            Lobby lobby = lobbyRepository.findById(lobbyId).orElse(null);
+
+            // Already swept, or the last player out deleted it. Nothing to be taken out of.
+            if (lobby == null) {
+                userPresenceService.cleanUpUser(userId);
+                return;
+            }
+
+            if (lobby.getStatus() == LobbyStatus.IN_GAME) {
+                lobby.resetAfterGame();
+                lobbyRepository.save(lobby);
+            }
+
+            applyLeave(lobby, userId);
         });
     }
 

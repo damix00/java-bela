@@ -338,7 +338,8 @@
                 "other": "Starting now fills the {count} open seats with bots."
             },
             "copied": "Copied",
-            "unknownPlayer": "Player"
+            "unknownPlayer": "Player",
+            "leave": "Leave table"
         },
         "join": {
             "heading": "Join with a code",
@@ -439,6 +440,13 @@
             "won": "You won",
             "lost": "You lost",
             "score": "{us} — {them}"
+        },
+        "leave": {
+            "action": "Leave the match",
+            "heading": "Leave this match?",
+            "body": "The hand ends here for all four of you. Nobody is scored, and everyone goes back to the table.",
+            "confirm": "Leave the match",
+            "close": "Stay at the table"
         }
     },
     "profile": {

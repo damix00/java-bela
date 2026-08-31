@@ -1,5 +1,6 @@
 "use client";
 
+import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { LobbyStatus } from "@bela/protocol";
 import { useEffect, useRef } from "react";
@@ -27,7 +28,7 @@ import type { Locale } from "@/lib/i18n/config";
 import { forgetLobby, recallLobby } from "@/lib/game/last-lobby";
 import { isAlreadyInLobby, localiseLobbyError } from "@/lib/game/lobby-errors";
 import { playPath } from "@/lib/navigation/routes";
-import { appGutters } from "@/lib/ui/styles";
+import { appGutters, focusRing, pressSm } from "@/lib/ui/styles";
 
 /** How often to re-ask for a table the backend thinks we are already at. */
 const STALE_LOBBY_RETRY_MS = 3000;
@@ -108,7 +109,7 @@ export default function TableScreen({
     signUpHref,
 }: TableScreenProps) {
     const { lobby, seats, me, playerCount, isSearching, error } = useLobby();
-    const { create, joinByCode, swapSeat } = useLobbyActions();
+    const { create, joinByCode, swapSeat, leaveTable } = useLobbyActions();
     const status = useSocketStatus();
     const openedAt = useSocketSession();
     const { reconnect } = useSocketCommands();
@@ -213,7 +214,11 @@ export default function TableScreen({
     useEffect(() => {
         if (lobby || status !== "connected") return;
         if (attempt.current !== "rejoining") return;
-        if (!error || !isSilentRejoinError(error) || isRecoverableError(error)) {
+        if (
+            !error ||
+            !isSilentRejoinError(error) ||
+            isRecoverableError(error)
+        ) {
             return;
         }
 
@@ -260,10 +265,58 @@ export default function TableScreen({
 
             <main
                 className={cn(
-                    "flex flex-1 flex-col justify-center py-4 portrait-sm:py-2 desk:py-8 desk-md:py-10",
+                    "relative flex flex-1 flex-col justify-center py-4 portrait-sm:py-2 desk:py-8 desk-md:py-10",
                     appGutters,
+                )}>
+                {/* The way out of a table somebody else opened.
+                    
+                    An icon and no label: leaving is not what this screen is for,
+                    and a worded button in the band competed with the one thing
+                    it wants pressed. It sits directly under the profile control
+                    and shares its gutter, so the two account-level gestures line
+                    up in the same column rather than the leave floating loose
+                    over the felt.
+
+                    Drawn in the lobby's own language — ink border, hard shadow,
+                    press physics — rather than the flatter one the game screen's
+                    copy uses. Over there it is docked into the scoreboard and
+                    has to match it; here it is a block on baize like every other
+                    block on this page, and the soft treatment read as disabled.
+
+                    Only offered once somebody else is here. Alone, leaving
+                    hands back a table of one and opens another table of one —
+                    the invite code changes and nothing else does, which is a
+                    control that appears to do nothing. The case it exists for
+                    is a table you arrived at by invite link and want out of, and
+                    that case always has at least two people in it.
+
+                    Never while the table is queued, either: those seats are
+                    locked for as long as the search runs, and the band's own
+                    button is already the way out of that. */}
+                {playerCount > 1 && !isSearching && (
+                    <button
+                        type="button"
+                        onClick={leaveTable}
+                        aria-label={t.leave}
+                        title={t.leave}
+                        className={cn(
+                            "grid size-11 cursor-pointer place-items-center desk:size-12",
+                            "border-[3px] border-ink bg-baize-deep text-cream shadow-hard-sm",
+                            pressSm,
+                            focusRing,
+                            // After `pressSm`, which carries a `relative` of its
+                            // own for its hit-area pseudo-element — and
+                            // tailwind-merge gives the last one the position, so
+                            // anything set before it is silently dropped.
+                            "absolute top-4 z-20",
+                            // `appGutters` as `right`, so this and the profile
+                            // control above it share an edge at every width.
+                            "right-4 sm:right-8 md:right-28 lg:right-48 xl:right-72",
+                        )}>
+                        <LogOut aria-hidden size={18} strokeWidth={3} />
+                    </button>
                 )}
-            >
+
                 <div className="flex min-w-0 flex-col gap-5 portrait-sm:gap-3 desk:gap-8 desk-lg:gap-10">
                     <LobbyTable
                         copy={copy}
@@ -290,8 +343,7 @@ export default function TableScreen({
                       !isSilentRejoinError(error) ? (
                         <p
                             role="status"
-                            className="mx-auto text-center text-[13px] font-semibold text-mint/75 sm:text-[14px]"
-                        >
+                            className="mx-auto text-center text-[13px] font-semibold text-mint/75 sm:text-[14px]">
                             {localiseLobbyError(error, copy.lobbyErrors)}
                         </p>
                     ) : (
