@@ -21,12 +21,12 @@ export default function StrengthMeter({
                     key={index}
                     aria-hidden
                     className={cn(
-                        "h-3.5 flex-1 border-[3px] border-ink",
-                        index < filled ? "bg-forest" : "bg-canvas",
+                        "h-3.5 flex-1 rounded-full",
+                        index < filled ? "bg-mint" : "bg-mint/15",
                     )}
                 />
             ))}
-            <span className="pl-2 text-[12px] font-semibold text-forest">
+            <span className="pl-2 text-[12px] font-semibold text-mint">
                 {label}
             </span>
         </div>

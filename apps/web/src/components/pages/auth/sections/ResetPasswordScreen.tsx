@@ -46,10 +46,12 @@ export default function ResetPasswordScreen({
 
     return (
         <AuthCard className="mx-auto max-w-[560px]">
-            <Heading as="h1" size="cardHero">
+            <Heading surface="felt" as="h1" size="cardHero">
                 {copy.heading}
             </Heading>
-            <Text size="md">{copy.body}</Text>
+            <Text surface="felt" size="md">
+                {copy.body}
+            </Text>
 
             <form
                 noValidate
@@ -57,6 +59,7 @@ export default function ResetPasswordScreen({
                 className="contents"
             >
                 <Field
+                    surface="felt"
                     htmlFor="new-password"
                     label={copy.label}
                     error={errors.password?.message}
@@ -73,6 +76,7 @@ export default function ResetPasswordScreen({
                     }
                 >
                     <PasswordInput
+                        surface="felt"
                         id="new-password"
                         autoComplete="new-password"
                         showLabel={common.show}
@@ -83,6 +87,7 @@ export default function ResetPasswordScreen({
                 </Field>
 
                 <Button
+                    surface="felt"
                     type="submit"
                     tone="forest"
                     size="lg"

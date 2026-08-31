@@ -1,11 +1,14 @@
 import type { ComponentProps } from "react";
 
 import { cn } from "@/lib/ui/cn";
+import type { Surface } from "@/lib/ui/styles";
 
 const tones = {
     stone: "text-stone",
     forest: "text-forest",
     cream: "text-cream",
+    /** The felt's annotation: quieter than the copy beside it, still legible. */
+    mint: "text-mint/80",
 } as const;
 
 // `ref` is dropped: the four tags this renders as have incompatible element
@@ -13,6 +16,8 @@ const tones = {
 type EyebrowProps = Omit<ComponentProps<"span">, "ref"> & {
     as?: "span" | "div" | "label" | "p";
     tone?: keyof typeof tones;
+    /** Default tone for the surface: `stone` on cream, `mint` on the felt. */
+    surface?: Surface;
     /** Only meaningful with `as="label"`. */
     htmlFor?: string;
 };
@@ -24,7 +29,8 @@ type EyebrowProps = Omit<ComponentProps<"span">, "ref"> & {
  */
 export default function Eyebrow({
     as: Tag = "span",
-    tone = "stone",
+    surface = "brut",
+    tone = surface === "felt" ? "mint" : "stone",
     className,
     ...props
 }: EyebrowProps) {

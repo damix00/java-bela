@@ -39,14 +39,21 @@ export default function GuestBanner({ copy, user, locale }: GuestBannerProps) {
     const [before, after] = copy.deadline.split("{time}");
 
     return (
-        <Card tone="rust" padding="md" className="gap-4">
-            <Heading as="h2" size="card" tone="cream" className="max-w-[24ch]">
+        <Card surface="felt" tone="rust" padding="md" className="gap-4">
+            <Heading
+                surface="felt"
+                as="h2"
+                size="card"
+                tone="cream"
+                className="max-w-[24ch]"
+            >
                 {copy.heading}
             </Heading>
 
             {/* The one sentence with a number in it, sized above the list under it:
                 a countdown is only pressure if it is the thing you read first. */}
             <Text
+                surface="felt"
                 size="lg"
                 tone="cream"
                 weight="medium"
@@ -71,7 +78,7 @@ export default function GuestBanner({ copy, user, locale }: GuestBannerProps) {
                             aria-hidden
                             className="mt-[6px] size-[14px] shrink-0 border-[3px] border-ink/70"
                         />
-                        <Text as="span" size="xs" tone="ember">
+                        <Text surface="felt" as="span" size="xs" tone="ember">
                             {loss}
                         </Text>
                     </li>
@@ -79,12 +86,17 @@ export default function GuestBanner({ copy, user, locale }: GuestBannerProps) {
             </ul>
 
             <div className="mt-1 flex flex-wrap items-center gap-x-5 gap-y-3">
-                <ButtonLink href={authPath(locale, "signUp")} tone="cream">
+                <ButtonLink
+                    surface="felt"
+                    href={authPath(locale, "signUp")}
+                    tone="cream"
+                >
                     {copy.action}
                 </ButtonLink>
-                <Text size="xs" tone="ember">
+                <Text surface="felt" size="xs" tone="ember">
                     {copy.keepsPrompt}{" "}
                     <TextLink
+                        surface="felt"
                         href={authPath(locale, "signIn")}
                         tone="ash"
                         weight="semibold"

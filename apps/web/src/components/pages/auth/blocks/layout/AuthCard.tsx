@@ -14,6 +14,7 @@ export default function AuthCard({
 }: ComponentProps<typeof Card>) {
     return (
         <Card
+            surface="felt"
             padding="none"
             className={cn("gap-5 p-8 sm:p-10 lg:p-11", className)}
             {...props}

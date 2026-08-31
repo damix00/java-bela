@@ -3,9 +3,16 @@ import type { ComponentProps, ReactNode } from "react";
 import Card from "@/components/ui/surfaces/Card";
 import { cn } from "@/lib/ui/cn";
 
+/**
+ * The promotional half's fill, which has to differ from the form half beside
+ * it — and the form half is the card's own `baize-deep`. `forest` is the block
+ * colour a shade warmer than the table; `sage` was the light neutral on the
+ * cream page and becomes `baize`, the felt itself, one step lighter than the
+ * panel rather than one step darker.
+ */
 const asideTones = {
     forest: "bg-forest",
-    sage: "bg-sage",
+    sage: "bg-baize",
 } as const;
 
 type AuthSplitProps = {
@@ -54,23 +61,27 @@ export default function AuthSplit({
 }: AuthSplitProps) {
     return (
         <Card
+            surface="felt"
             padding="none"
             shadow={shadow}
-            className={cn("w-full lg:grid lg:min-h-[600px]", columns)}
+            className={cn(
+                "w-full overflow-hidden lg:grid lg:min-h-[600px]",
+                columns,
+            )}
         >
             <div
                 className={cn(
-                    "flex flex-col gap-8 border-ink p-8 sm:p-10 lg:px-10 lg:py-11",
+                    "flex flex-col gap-8 border-mint/15 p-8 sm:p-10 lg:px-10 lg:py-11",
                     stackOrder === "asideFirst"
-                        ? "border-b-4 lg:border-b-0"
-                        : "order-last border-t-4 lg:border-t-0",
+                        ? "border-b lg:border-b-0"
+                        : "order-last border-t lg:border-t-0",
                     asideAlign === "between"
                         ? "justify-between"
                         : "justify-center",
                     asideTones[asideTone],
                     asideSide === "left"
-                        ? "lg:order-first lg:border-r-4"
-                        : "lg:order-2 lg:border-l-4",
+                        ? "lg:order-first lg:border-r"
+                        : "lg:order-2 lg:border-l",
                 )}
             >
                 {aside}

@@ -47,20 +47,25 @@ export default function SeatPreview({
 
     return (
         <div className="flex flex-col gap-3">
-            <Eyebrow tone="cream" className="font-normal">
+            <Eyebrow surface="felt" tone="cream" className="font-normal">
                 {label}
             </Eyebrow>
 
-            <Card padding="none" className="overflow-hidden">
+            <Card surface="felt" padding="none" className="overflow-hidden">
                 <div className="flex items-center gap-3 px-5 py-4">
                     <UserAvatar
                         username={username}
                         avatarUrl={avatarUrl}
                         size="lg"
-                        className="border-ink"
+                        className="border-mint/30"
                     />
                     <span className="flex min-w-0 items-center gap-2">
-                        <Heading as="p" size="label" className="min-w-0 truncate">
+                        <Heading
+                            surface="felt"
+                            as="p"
+                            size="label"
+                            className="min-w-0 truncate"
+                        >
                             {username}
                         </Heading>
                         {/* Labelled, unlike the flag on the profile banner:
@@ -75,8 +80,12 @@ export default function SeatPreview({
                     </span>
                 </div>
 
-                <div className="border-t-4 border-ink px-5 py-4">
-                    <Text size="sm" tone={line ? "ink" : "muted"}>
+                <div className="border-t border-mint/15 px-5 py-4">
+                    <Text
+                        surface="felt"
+                        size="sm"
+                        tone={line ? "mintSoft" : "mint"}
+                    >
                         {line || bioEmpty}
                     </Text>
                 </div>

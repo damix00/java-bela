@@ -33,15 +33,23 @@ export default function SessionSupersededModal({
 
     return (
         <Modal
+            surface="felt"
             closeLabel={copy.close}
             dismissible={false}
             className="max-w-[520px]"
         >
-            <Card padding="lg" className="gap-4">
-                <Heading as="h2" size="card" className="max-w-[20ch]">
+            <Card surface="felt" padding="lg" className="gap-4">
+                <Heading
+                    surface="felt"
+                    as="h2"
+                    size="card"
+                    className="max-w-[20ch]"
+                >
                     {copy.heading}
                 </Heading>
-                <Text size="sm">{copy.body}</Text>
+                <Text surface="felt" size="sm">
+                    {copy.body}
+                </Text>
             </Card>
         </Modal>
     );

@@ -1,6 +1,7 @@
 import type { ComponentProps } from "react";
 
 import { cn } from "@/lib/ui/cn";
+import type { Surface } from "@/lib/ui/styles";
 
 const sizes = {
     xl: "text-[21px] leading-[1.6]",
@@ -28,13 +29,16 @@ type TextProps = ComponentProps<"p"> & {
     as?: "p" | "span" | "div";
     size?: keyof typeof sizes;
     tone?: keyof typeof tones;
+    /** Default body tone for the surface: `moss` on cream, `mint` on the felt. */
+    surface?: Surface;
     weight?: "normal" | "medium";
 };
 
 export default function Text({
     as: Tag = "p",
     size = "sm",
-    tone = "muted",
+    surface = "brut",
+    tone = surface === "felt" ? "mint" : "muted",
     weight = "normal",
     className,
     ...props

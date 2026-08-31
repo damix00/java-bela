@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/ui/cn";
-import { focusRing } from "@/lib/ui/styles";
+import { focusRing, type Surface } from "@/lib/ui/styles";
 import {
     LOCALE_COOKIE,
     type Locale,
@@ -27,6 +27,7 @@ type LanguageSwitcherProps = {
      * switching language would reopen the page as a modal over itself.
      */
     hardNavigation?: boolean;
+    surface?: Surface;
     className?: string;
 };
 
@@ -39,16 +40,21 @@ export default function LanguageSwitcher({
     current,
     label,
     hardNavigation = false,
+    surface = "brut",
     className,
 }: LanguageSwitcherProps) {
     const pathname = usePathname();
     const Tag = hardNavigation ? "a" : Link;
+    const felt = surface === "felt";
 
     return (
         <nav
             aria-label={label}
             className={cn(
-                "flex border-[3px] border-ink bg-cream font-display text-[13px]",
+                "flex font-display text-[13px]",
+                felt
+                    ? "overflow-hidden rounded-full bg-baize-deep ring-1 ring-mint/20"
+                    : "border-[3px] border-ink bg-cream",
                 className,
             )}
         >
@@ -68,10 +74,17 @@ export default function LanguageSwitcher({
                             focusRing,
                             // Divider between the two halves rather than a border on each,
                             // so the pair reads as one boxed control.
-                            "border-l-[3px] border-ink px-3 py-1.5 no-underline uppercase first:border-l-0",
+                            "px-3 py-1.5 no-underline uppercase first:border-l-0",
+                            felt
+                                ? "border-l border-mint/15"
+                                : "border-l-[3px] border-ink",
                             isCurrent
-                                ? "bg-ink font-bold text-cream"
-                                : "text-moss hover:bg-sage",
+                                ? felt
+                                    ? "bg-mint/15 font-bold text-cream"
+                                    : "bg-ink font-bold text-cream"
+                                : felt
+                                  ? "text-mint hover:bg-mint/5"
+                                  : "text-moss hover:bg-sage",
                         )}
                     >
                         {locale}

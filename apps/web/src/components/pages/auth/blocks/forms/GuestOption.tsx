@@ -31,6 +31,7 @@ export default function GuestOption({
 
             <div className="flex flex-wrap items-center gap-4">
                 <Button
+                    surface="felt"
                     tone="cream"
                     size="sm"
                     disabled={pending}
@@ -39,7 +40,7 @@ export default function GuestOption({
                 >
                     {copy.guest}
                 </Button>
-                <Text size="xs" className="max-w-[30ch]">
+                <Text surface="felt" size="xs" className="max-w-[30ch]">
                     {copy.guestNote}
                 </Text>
             </div>

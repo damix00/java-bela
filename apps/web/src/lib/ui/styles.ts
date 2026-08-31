@@ -183,3 +183,126 @@ export const appGutters = "px-4 sm:px-8 md:px-28 lg:px-48 xl:px-72";
  */
 export const felt =
     "bg-baize bg-[repeating-linear-gradient(45deg,rgb(255_255_255_/_0.014)_0_2px,transparent_2px_4px),repeating-linear-gradient(-45deg,rgb(0_0_0_/_0.02)_0_2px,transparent_2px_4px)]";
+
+// The felt's own idiom, which the game route worked out first and kept to
+// itself: for a long time these were string literals copy-pasted between
+// `pages/game/**`, and the identical `0 12px 36px -10px` shadow lived in three
+// separate files. They are named here because the rest of the app now speaks
+// this language too, and two halves of one idiom drift the moment they are
+// written down twice.
+//
+// The whole system is one surface (`felt`), one block colour laid on it
+// (`baize-deep`), and three weights of the same soft shadow. Nothing here draws
+// a frame: the neo-brutalist half of the app is built from 4px ink borders, and
+// this half is built from the absence of them — a block on the felt is told
+// apart from the felt by being darker and by casting a shadow, the way a card
+// lying on a table is.
+
+/**
+ * Which of the two visual languages a block is drawn in.
+ *
+ * `brut` is the marketing page's: cream on ink, a 4px frame, a hard offset
+ * shadow, and a press that slides the block against it. `felt` is the game
+ * table's: a darker block on the baize, no frame at all, a soft shadow, and a
+ * press that dips.
+ *
+ * `brut` stays every primitive's default, so the documents and the landing page
+ * keep what they have without passing anything; every signed-in surface asks
+ * for `felt`.
+ */
+export type Surface = "brut" | "felt";
+
+// Concentric corners.
+//
+// A rounded block sitting inside another one has to take the outer radius
+// *minus* the padding between them. Give both the same radius and the two
+// curves run at different rates: along the edges the gap is the padding, and at
+// the corner it opens up to roughly 1.4× that, so the inner block reads as
+// floating away from the corner it is supposed to be nested into. Give the
+// inner one more than the outer and it visibly pokes out of the turn.
+//
+// So the outer radius is derived, not chosen: pick the radius the inner block
+// wants, add the padding, and that is what the wrapper gets. Where the padding
+// steps at a breakpoint the radius has to step with it, which is why the
+// wrappers below spell out a radius per breakpoint rather than taking `panel`'s.
+//
+// A circle is exempt — `rounded-full` is concentric with anything — which is
+// why the pills and the avatars can sit in any of these without arithmetic.
+//
+// It only binds where the nesting is tight: the lobby band's 12px padding
+// around 12px blocks, the stage's 6px around its felt. Once the padding is
+// wider than the radius — a form at `p-5`, an auth card at `p-10` — the corners
+// are far enough apart that the eye stops pairing them, and the arithmetic
+// starts asking for a 40px radius on a panel that wants to look like paper.
+// Those keep `panel`'s own 16px.
+
+/**
+ * A block laid on the felt: the top bar, a seat, a tray, a card.
+ *
+ * The mid shadow, which is what most things want. `panelNested` is for a block
+ * inside one of these — it is already sitting on `baize-deep`, so it needs less
+ * shadow to lift off it — and `panelRaised` is for anything that has to read as
+ * being over the whole screen rather than on it.
+ */
+export const panel =
+    "rounded-2xl bg-baize-deep shadow-[0_6px_20px_-8px_rgb(0_0_0_/_0.5)]";
+
+/** A block inside a `panel`. Smaller corner, shorter shadow. */
+export const panelNested =
+    "rounded-xl bg-baize-deep shadow-[0_4px_14px_-6px_rgb(0_0_0_/_0.5)]";
+
+/** A block over the screen: a dialog, the game-over verdict. */
+export const panelRaised =
+    "rounded-2xl bg-baize-deep shadow-[0_12px_36px_-10px_rgb(0_0_0_/_0.6)]";
+
+/**
+ * The rule between two rows of one block.
+ *
+ * A hairline, not the 4px ink rule the documents use: on the felt the rows are
+ * already the same colour as each other and the block is already darker than
+ * the field, so the rule is only there to say where one row ends. Anything
+ * heavier reads as two blocks that happen to be touching.
+ */
+export const hairline = "border-mint/15";
+
+/**
+ * The quiet outline — a field's edge, a chip, anything that needs to be found
+ * without being announced. A ring rather than a border so it costs no layout
+ * and can be thickened on focus without the block resizing.
+ */
+export const edge = "ring-1 ring-mint/20";
+
+/** The dim behind a dialog, and the grid that centres it. */
+export const scrim = "fixed inset-0 z-50 grid place-items-center bg-ink/70";
+
+/**
+ * The felt's press, and the counterpart to `pressSm`/`pressMd`/`pressLg`.
+ *
+ * Those slide a block against its own hard shadow, which needs a hard shadow to
+ * slide against. Nothing here has one, so a press dips instead: the block
+ * shrinks fractionally under the finger and comes back. Same 100ms, same
+ * two-state feel, no silhouette to preserve.
+ */
+export const dip =
+    "transition-transform duration-100 active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100";
+
+// Fields on the felt, mirroring `inputBox`/`inputFrame`/`inputBare` above one
+// for one so a control can be moved between the two surfaces by swapping which
+// trio it reaches for.
+//
+// The frame is a ring in mint rather than a border in ink, and it thickens on
+// focus instead of changing colour — on a dark field a colour change is most of
+// what a border can say, and it is already being spent on the rejected state.
+const feltInputType =
+    "rounded-xl font-sans text-[17px] text-cream placeholder:text-mint/40 outline-none";
+const feltInvalidRing = "aria-invalid:ring-rust";
+const feltInvalidRingWithin = "has-aria-invalid:ring-rust";
+
+/** Field that draws its own edge. */
+export const feltInputBox = `${feltInputType} ${edge} ${feltInvalidRing} w-full bg-baize-deep px-5 py-4 focus:ring-2 focus:ring-mint/50`;
+
+/** Edge around a field plus whatever sits next to it. */
+export const feltInputFrame = `${edge} ${feltInvalidRingWithin} flex items-center rounded-xl bg-baize-deep focus-within:ring-2 focus-within:ring-mint/50`;
+
+/** Field inside a `feltInputFrame` — the edge is already drawn around it. */
+export const feltInputBare = `${feltInputType} w-full min-w-0 bg-transparent px-5 py-4`;

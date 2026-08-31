@@ -19,7 +19,7 @@ import Eyebrow from "@/components/ui/typography/Eyebrow";
 import Heading from "@/components/ui/typography/Heading";
 import Text from "@/components/ui/typography/Text";
 import type { Dictionary } from "@/dictionaries";
-import { focusRing, inputBare, inputFrame } from "@/lib/ui/styles";
+import { feltInputBare, feltInputFrame, focusRing } from "@/lib/ui/styles";
 import { usernameSchema, type UsernameValues } from "@/lib/validation/schemas";
 
 type ChooseUsernameScreenProps = {
@@ -65,7 +65,7 @@ export default function ChooseUsernameScreen({
             columns="lg:grid-cols-[56%_44%]"
             aside={
                 <>
-                    <Eyebrow>{copy.previewLabel}</Eyebrow>
+                    <Eyebrow surface="felt">{copy.previewLabel}</Eyebrow>
                     <LadderPreview
                         rows={[
                             {
@@ -81,15 +81,15 @@ export default function ChooseUsernameScreen({
                             },
                         ]}
                     />
-                    <Text size="xs" className="max-w-[30ch]">
+                    <Text surface="felt" size="xs" className="max-w-[30ch]">
                         {copy.note}
                     </Text>
                 </>
             }
         >
             <div className="flex flex-col gap-2">
-                <Eyebrow>{copy.step}</Eyebrow>
-                <Heading as="h1" size="cardHero">
+                <Eyebrow surface="felt">{copy.step}</Eyebrow>
+                <Heading surface="felt" as="h1" size="cardHero">
                     {copy.heading}
                 </Heading>
             </div>
@@ -100,16 +100,17 @@ export default function ChooseUsernameScreen({
                 className="contents"
             >
                 <Field
+                    surface="felt"
                     htmlFor="username"
                     label={copy.label}
                     hint={copy.hint}
                     error={errors.username?.message}
                 >
-                    <div className={inputFrame}>
+                    <div className={feltInputFrame}>
                         <input
                             id="username"
                             autoComplete="nickname"
-                            className={`${focusRing} ${inputBare}`}
+                            className={`${focusRing} ${feltInputBare}`}
                             {...invalidProps("username", errors.username)}
                             {...register("username")}
                         />
@@ -119,7 +120,8 @@ export default function ChooseUsernameScreen({
                 about. */}
                         {username && !errors.username && (
                             <Eyebrow
-                                tone="forest"
+                                surface="felt"
+                                tone="mint"
                                 className="pr-4 tracking-[.08em]"
                             >
                                 {copy.available}
@@ -142,6 +144,7 @@ export default function ChooseUsernameScreen({
                 />
 
                 <Button
+                    surface="felt"
                     type="submit"
                     tone="forest"
                     size="lg"

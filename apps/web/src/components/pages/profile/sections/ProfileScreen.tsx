@@ -45,7 +45,7 @@ import { cn } from "@/lib/ui/cn";
 import type { CountryOption } from "@/lib/i18n/countries";
 import type { Locale } from "@/lib/i18n/config";
 import { settingsPath } from "@/lib/navigation/routes";
-import { focusRing, inputBox } from "@/lib/ui/styles";
+import { feltInputBox, focusRing, panel } from "@/lib/ui/styles";
 import {
     BIO_MAX,
     profileSchema,
@@ -173,6 +173,7 @@ export default function ProfileScreen({
                 locale={locale}
                 action={
                     <ButtonLink
+                        surface="felt"
                         href={settingsPath(locale)}
                         tone="cream"
                         size="sm"
@@ -194,23 +195,25 @@ export default function ProfileScreen({
             <form
                 noValidate
                 onSubmit={handleSubmit(onSubmit)}
-                className="flex flex-col gap-6 border-4 border-ink bg-cream p-5 shadow-hard sm:p-7"
+                className={cn(panel, "flex flex-col gap-6 p-5 sm:p-7")}
             >
-                <Heading as="h2" size="label">
+                <Heading surface="felt" as="h2" size="label" tone="cream">
                     {copy.editHeading}
                 </Heading>
 
                 {status?.tone === "error" && (
-                    <FormError>{status.message}</FormError>
+                    <FormError surface="felt">{status.message}</FormError>
                 )}
 
                 <Field
+                    surface="felt"
                     htmlFor="username"
                     label={copy.usernameLabel}
                     hint={copy.usernameHint}
                     error={fieldErrors.username?.message}
                 >
                     <Input
+                        surface="felt"
                         id="username"
                         autoComplete="nickname"
                         {...invalidProps("username", fieldErrors.username)}
@@ -219,10 +222,11 @@ export default function ProfileScreen({
                 </Field>
 
                 <Field
+                    surface="felt"
                     htmlFor="bio"
                     label={copy.bioLabel}
                     action={
-                        <Eyebrow aria-live="polite">
+                        <Eyebrow surface="felt" tone="mint" aria-live="polite">
                             {remaining} {copy.bioRemaining}
                         </Eyebrow>
                     }
@@ -233,13 +237,17 @@ export default function ProfileScreen({
                         id="bio"
                         rows={3}
                         placeholder={copy.bioPlaceholder}
-                        className={cn(focusRing, inputBox, "resize-y bg-white")}
+                        className={cn(focusRing, feltInputBox, "resize-none")}
                         {...invalidProps("bio", fieldErrors.bio)}
                         {...register("bio")}
                     />
                 </Field>
 
-                <Field htmlFor="countryCode" label={copy.countryLabel}>
+                <Field
+                    surface="felt"
+                    htmlFor="countryCode"
+                    label={copy.countryLabel}
+                >
                     {/* The one field that isn't an `<input>`, so the one that
                         needs `Controller` — `register` has no element to attach
                         to. */}
@@ -248,6 +256,7 @@ export default function ProfileScreen({
                         name="countryCode"
                         render={({ field }) => (
                             <CountrySelect
+                                surface="felt"
                                 id="countryCode"
                                 value={field.value}
                                 onChange={field.onChange}
@@ -262,6 +271,7 @@ export default function ProfileScreen({
 
                 <div className="flex flex-wrap items-center gap-4">
                     <Button
+                        surface="felt"
                         type="submit"
                         tone="rust"
                         size="lg"
@@ -270,7 +280,12 @@ export default function ProfileScreen({
                         {copy.submit}
                     </Button>
                     {status?.tone === "ok" && (
-                        <Text size="sm" role="status" className="text-forest">
+                        <Text
+                            surface="felt"
+                            size="sm"
+                            role="status"
+                            className="text-forest"
+                        >
                             {status.message}
                         </Text>
                     )}

@@ -51,18 +51,21 @@ export default function ForgotPasswordScreen({
     return (
         <AuthCard className="mx-auto max-w-[560px]">
             <TextLink
+                surface="felt"
                 href={authPath(locale, "signIn")}
                 weight="semibold"
                 className="flex items-center gap-2 self-start text-[12px] tracking-[.06em] uppercase"
             >
-                <Icon glyph={ArrowLeft} size="sm" />
+                <Icon glyph={ArrowLeft} size="sm" tone="mint" />
                 {common.backToSignIn}
             </TextLink>
 
-            <Heading as="h1" size="cardHero">
+            <Heading surface="felt" as="h1" size="cardHero">
                 {copy.heading}
             </Heading>
-            <Text size="md">{copy.body}</Text>
+            <Text surface="felt" size="md">
+                {copy.body}
+            </Text>
 
             <form
                 noValidate
@@ -70,11 +73,13 @@ export default function ForgotPasswordScreen({
                 className="contents"
             >
                 <Field
+                    surface="felt"
                     htmlFor="email"
                     label={common.email}
                     error={errors.email?.message}
                 >
                     <Input
+                        surface="felt"
                         id="email"
                         type="email"
                         autoComplete="email"
@@ -85,6 +90,7 @@ export default function ForgotPasswordScreen({
                 </Field>
 
                 <Button
+                    surface="felt"
                     type="submit"
                     tone="forest"
                     size="lg"

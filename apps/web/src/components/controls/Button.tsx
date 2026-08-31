@@ -2,7 +2,14 @@ import Link from "next/link";
 import type { ComponentProps } from "react";
 
 import { cn } from "@/lib/ui/cn";
-import { focusRing, hitAreaJoined, pressMd, pressSm } from "@/lib/ui/styles";
+import {
+    edge,
+    focusRing,
+    hitAreaJoined,
+    pressMd,
+    pressSm,
+    type Surface,
+} from "@/lib/ui/styles";
 
 const tones = {
     rust: "bg-rust text-cream hover:text-cream",
@@ -10,6 +17,12 @@ const tones = {
     ink: "bg-ink text-cream hover:text-cream",
     /** The quieter half of a pair — same block, no fill. */
     cream: "bg-cream text-ink hover:text-ink",
+    /**
+     * The felt's quiet half. Cream is the light block on a dark table and reads
+     * as loud out there, so a pair on a panel is rust and this: the panel's own
+     * colour, found by its edge rather than its fill.
+     */
+    mint: `bg-baize-deep text-mint hover:text-cream ${edge}`,
 } as const;
 
 const sizes = {
@@ -40,6 +53,13 @@ type ButtonVariants = {
      * blocks reads as furniture from another screen.
      */
     soft?: boolean;
+    /**
+     * Which visual language the button is drawn in. `felt` is the name the rest
+     * of the app asks for; it is `soft` under a name that matches every other
+     * primitive, and the game route's existing `soft` call sites keep working
+     * untouched.
+     */
+    surface?: Surface;
 };
 
 // The press is subtractive: `soft` has to undo the border width and the shadow
@@ -51,8 +71,11 @@ function buttonClass({
     tone = "rust",
     size = "md",
     joined,
-    soft,
+    soft: softProp,
+    surface = "brut",
 }: ButtonVariants) {
+    const soft = softProp || surface === "felt";
+
     return cn(
         soft ? null : joined ? hitAreaJoined : presses[size],
         focusRing,
@@ -71,6 +94,7 @@ export function Button({
     size,
     joined,
     soft,
+    surface,
     type = "button",
     className,
     ...props
@@ -80,7 +104,7 @@ export function Button({
             type={type}
             className={cn(
                 "cursor-pointer",
-                buttonClass({ tone, size, joined, soft }),
+                buttonClass({ tone, size, joined, soft, surface }),
                 className,
             )}
             {...props}
@@ -94,12 +118,16 @@ export function ButtonLink({
     size,
     joined,
     soft,
+    surface,
     className,
     ...props
 }: ComponentProps<typeof Link> & ButtonVariants) {
     return (
         <Link
-            className={cn(buttonClass({ tone, size, joined, soft }), className)}
+            className={cn(
+                buttonClass({ tone, size, joined, soft, surface }),
+                className,
+            )}
             {...props}
         />
     );

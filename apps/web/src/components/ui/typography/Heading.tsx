@@ -1,6 +1,7 @@
 import type { ComponentProps } from "react";
 
 import { cn } from "@/lib/ui/cn";
+import type { Surface } from "@/lib/ui/styles";
 
 const sizes = {
     /** Page-opening headline. */
@@ -29,12 +30,20 @@ type HeadingProps = ComponentProps<"h2"> & {
     as?: "h1" | "h2" | "h3" | "h4" | "p";
     size?: keyof typeof sizes;
     tone?: keyof typeof tones;
+    /**
+     * Picks the default tone for the surface the heading is standing on: ink on
+     * the cream page, cream on the felt. An explicit `tone` still wins — this
+     * only saves every call site on a dark screen from spelling out the one
+     * colour a heading can be there.
+     */
+    surface?: Surface;
 };
 
 export default function Heading({
     as: Tag = "h2",
     size = "section",
-    tone = "ink",
+    surface = "brut",
+    tone = surface === "felt" ? "cream" : "ink",
     className,
     ...props
 }: HeadingProps) {

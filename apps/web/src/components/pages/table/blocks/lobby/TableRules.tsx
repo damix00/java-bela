@@ -14,7 +14,7 @@ import {
 } from "@/context/lobby-context";
 import type { Dictionary } from "@/dictionaries";
 import { cn } from "@/lib/ui/cn";
-import { focusRing, pressSm } from "@/lib/ui/styles";
+import { dip, focusRing } from "@/lib/ui/styles";
 
 type TableRulesProps = {
     copy: Dictionary["table"];
@@ -72,7 +72,7 @@ function TargetScorePicker({
                         }}
                         onKeyDown={(event) => event.stopPropagation()}
                         className={cn(
-                            "min-w-14 cursor-pointer border-[3px] border-ink px-2.5 py-1.5 text-center font-display text-[13px] font-extrabold tracking-[-.01em]",
+                            "min-w-14 cursor-pointer rounded-full px-2.5 py-1.5 text-center font-display text-[13px] font-extrabold tracking-[-.01em]",
                             // Not the shared `focusRing`: that one is rust, and
                             // these are the only controls on the screen sitting
                             // *on* rust — the selected row they belong to. It
@@ -82,7 +82,7 @@ function TargetScorePicker({
                             "focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-cream",
                             current
                                 ? "bg-ink text-cream"
-                                : "bg-cream text-ink hover:bg-paper",
+                                : "bg-cream/90 text-ink hover:bg-cream",
                         )}
                     >
                         {points}
@@ -342,7 +342,7 @@ export default function TableRules({
     // drawn as one. Same block, same place, no affordance.
     if (!isHost) {
         return (
-            <div className="flex min-h-14 portrait-sm:min-h-12 w-full items-center border-[3px] border-ink bg-baize px-4 py-3 desk:min-h-16">
+            <div className="flex min-h-14 portrait-sm:min-h-12 w-full items-center rounded-xl bg-baize px-4 py-3 ring-1 ring-mint/20 desk:min-h-16">
                 {face}
             </div>
         );
@@ -383,8 +383,8 @@ export default function TableRules({
                 onClick={() => (open ? closeListbox() : openListbox())}
                 onKeyDown={handleTriggerKeyDown}
                 className={cn(
-                    "flex min-h-14 portrait-sm:min-h-12 w-full cursor-pointer items-center justify-between gap-3 border-[3px] border-ink bg-baize px-4 py-3 text-left shadow-hard-sm desk:min-h-16",
-                    pressSm,
+                    "flex min-h-14 portrait-sm:min-h-12 w-full cursor-pointer items-center justify-between gap-3 rounded-xl bg-baize px-4 py-3 text-left ring-1 ring-mint/20 desk:min-h-16",
+                    dip,
                     focusRing,
                 )}
             >
@@ -409,7 +409,7 @@ export default function TableRules({
                     aria-label={copy.rulesLabel}
                     aria-activedescendant={`${listboxId}-${rules[activeOption]!.type}`}
                     onKeyDown={handleListboxKeyDown}
-                    className="absolute bottom-full left-0 z-40 mb-3 w-full border-4 border-ink bg-cream shadow-hard outline-none sm:w-[360px]"
+                    className="absolute bottom-full left-0 z-40 mb-3 w-full overflow-hidden rounded-2xl bg-baize-deep shadow-[0_12px_36px_-10px_rgb(0_0_0_/_0.6)] outline-none sm:w-[360px]"
                 >
                     {rules.map((rule, index) => {
                         const isSelected = index === selectedIndex;
@@ -425,10 +425,10 @@ export default function TableRules({
                                 aria-selected={isSelected}
                                 onClick={() => selectRule(index)}
                                 className={cn(
-                                    "flex w-full cursor-pointer items-center gap-3 border-ink px-4 py-3 text-left not-first:border-t-[3px]",
+                                    "flex w-full cursor-pointer items-center gap-3 border-mint/15 px-4 py-3 text-left not-first:border-t",
                                     isActive
                                         ? "bg-rust text-cream"
-                                        : "bg-cream text-ink hover:bg-paper",
+                                        : "bg-baize-deep text-cream hover:bg-mint/10",
                                 )}
                             >
                                 <span className="min-w-0 flex-1">
@@ -440,7 +440,7 @@ export default function TableRules({
                                             "mt-0.5 block text-[12px] font-semibold",
                                             isActive
                                                 ? "text-cream/85"
-                                                : "text-moss",
+                                                : "text-mint/70",
                                         )}
                                     >
                                         {rule.note}

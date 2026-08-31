@@ -7,6 +7,8 @@ import { Button } from "@/components/controls/Button";
 import DeclarationList from "@/components/pages/game/blocks/controls/DeclarationList";
 import { declarationPoints } from "@/lib/game/rules";
 import type { Declaration, Type } from "@bela/protocol";
+import { cn } from "@/lib/ui/cn";
+import { panelRaised, scrim } from "@/lib/ui/styles";
 
 type DeclarationsDialogProps = {
     heading: string;
@@ -57,7 +59,7 @@ export default function DeclarationsDialog({
             role="dialog"
             aria-modal="true"
             aria-label={heading}
-            className="fixed inset-0 z-50 grid place-items-center bg-ink/70 p-4"
+            className={cn(scrim, "p-4")}
             onClick={onClose}
         >
             <motion.div
@@ -68,7 +70,10 @@ export default function DeclarationsDialog({
                 // The panel is inside the backdrop's click target, so it has to
                 // stop the click that would otherwise close it.
                 onClick={(event) => event.stopPropagation()}
-                className="flex max-h-[80dvh] w-full max-w-[440px] flex-col gap-4 overflow-y-auto rounded-2xl bg-baize-deep p-5 shadow-[0_12px_36px_-10px_rgb(0_0_0_/_0.6)]"
+                className={cn(
+                    panelRaised,
+                    "flex max-h-[80dvh] w-full max-w-[440px] flex-col gap-4 overflow-y-auto p-5",
+                )}
             >
                 <div className="flex items-baseline justify-between gap-3 border-b border-mint/15 pb-2">
                     <p className="font-display text-[19px] font-extrabold tracking-[-.02em] text-cream">

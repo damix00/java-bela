@@ -40,11 +40,16 @@ export default function AccountPage({
                 {heading && (
                     <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
                         <div className="flex min-w-0 flex-col gap-2">
-                            <Heading as="h1" size="cardHero" tone="cream">
+                            <Heading
+                                surface="felt"
+                                as="h1"
+                                size="cardHero"
+                                tone="cream"
+                            >
                                 {heading}
                             </Heading>
                             {intro && (
-                                <Text size="sm" tone="mint">
+                                <Text surface="felt" size="sm" tone="mint">
                                     {intro}
                                 </Text>
                             )}

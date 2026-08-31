@@ -22,33 +22,31 @@ export default function LadderPreview({ rows, className }: LadderPreviewProps) {
     const [own, next] = rows;
 
     return (
-        <DividedPanel
-            className={cn("w-full bg-cream shadow-hard-lg", className)}
-        >
-            <div className="flex items-center gap-3.5 bg-paper px-[18px] py-4">
-                <span className="w-[34px] font-display text-[18px] font-extrabold text-ink">
+        <DividedPanel surface="felt" className={cn("w-full", className)}>
+            <div className="flex items-center gap-3.5 bg-mint/10 px-[18px] py-4">
+                <span className="w-[34px] font-display text-[18px] font-extrabold text-cream">
                     {own.rank}
                 </span>
                 <span
                     aria-hidden
-                    className="grid size-[38px] shrink-0 place-items-center border-[3px] border-ink bg-rust text-[19px] text-cream"
+                    className="grid size-[38px] shrink-0 place-items-center rounded-full bg-rust text-[19px] text-cream"
                 >
                     {own.glyph}
                 </span>
-                <span className="mr-auto text-[17px] font-bold text-ink">
+                <span className="mr-auto text-[17px] font-bold text-cream">
                     {own.name}
                 </span>
-                <span className="text-[15px] font-semibold text-ink">
+                <span className="text-[15px] font-semibold text-cream">
                     {own.rating}
                 </span>
             </div>
-            <div className="flex items-center gap-3.5 px-[18px] py-3.5 text-stone">
+            <div className="flex items-center gap-3.5 px-[18px] py-3.5 text-mint/60">
                 <span className="w-[34px] font-display text-[16px] font-extrabold">
                     {next.rank}
                 </span>
                 <span
                     aria-hidden
-                    className="size-[34px] shrink-0 border-[3px] border-ash bg-sage"
+                    className="size-[34px] shrink-0 rounded-full bg-mint/15"
                 />
                 <span className="mr-auto text-[16px] font-semibold">
                     {next.name}

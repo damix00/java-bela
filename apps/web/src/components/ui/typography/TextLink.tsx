@@ -2,14 +2,19 @@ import Link from "next/link";
 import type { ComponentProps } from "react";
 
 import { cn } from "@/lib/ui/cn";
+import type { Surface } from "@/lib/ui/styles";
 
 const tones = {
     ink: "text-ink hover:text-ink",
     ash: "text-ash hover:text-cream",
+    /** On the felt, where a link brightens to cream rather than darkening. */
+    mint: "text-mint hover:text-cream",
 } as const;
 
 type TextLinkProps = ComponentProps<typeof Link> & {
     tone?: keyof typeof tones;
+    /** Default tone for the surface: `ink` on cream, `mint` on the felt. */
+    surface?: Surface;
     weight?: "normal" | "semibold";
     /**
      * Renders a plain anchor instead of a routed link, forcing a full page load.
@@ -29,7 +34,8 @@ type TextLinkProps = ComponentProps<typeof Link> & {
  * these goes through the router. In-page anchors work through it unchanged.
  */
 export default function TextLink({
-    tone = "ink",
+    surface = "brut",
+    tone = surface === "felt" ? "mint" : "ink",
     weight = "normal",
     hardNavigation = false,
     replace = false,

@@ -39,7 +39,7 @@ export default function GameNavigation({
         <>
             <header
                 className={cn(
-                    "sticky top-0 z-20 border-b-4 border-ink bg-ink py-2 portrait-sm:py-1 desk:py-3",
+                    "sticky top-0 z-20 border-b border-mint/15 bg-baize-deep py-2 portrait-sm:py-1 desk:py-3",
                     appGutters,
                 )}
             >

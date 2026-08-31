@@ -97,27 +97,33 @@ export default function JoinScreen({ copy, locale, code }: JoinScreenProps) {
             )}
         >
             <Card
+                surface="felt"
                 padding="lg"
                 className="w-full max-w-[440px] gap-4 text-center"
             >
-                <Heading as="h1" size="card">
+                <Heading surface="felt" as="h1" size="card" tone="cream">
                     {t.heading}
                 </Heading>
 
                 {/* Wide tracking rather than a monospaced face — the code is
                     six characters to read, not a snippet of anything. */}
-                <p className="m-0 font-display text-[26px] font-extrabold tracking-[.22em] text-ink">
+                <p className="m-0 font-display text-[26px] font-extrabold tracking-[.22em] text-cream">
                     {wanted}
                 </p>
 
-                <Text size="xs" aria-live="polite">
+                <Text surface="felt" size="xs" tone="mint" aria-live="polite">
                     {error
                         ? localiseLobbyError(error, copy.lobbyErrors)
                         : t.joining}
                 </Text>
 
                 {error && (
-                    <ButtonLink tone="rust" size="md" href={homePath(locale)}>
+                    <ButtonLink
+                        surface="felt"
+                        tone="rust"
+                        size="md"
+                        href={homePath(locale)}
+                    >
                         {t.back}
                     </ButtonLink>
                 )}

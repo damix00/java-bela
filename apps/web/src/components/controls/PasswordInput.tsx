@@ -3,7 +3,14 @@
 import { useState, type ComponentProps } from "react";
 
 import { cn } from "@/lib/ui/cn";
-import { focusRing, inputBare, inputFrame } from "@/lib/ui/styles";
+import {
+    feltInputBare,
+    feltInputFrame,
+    focusRing,
+    inputBare,
+    inputFrame,
+    type Surface,
+} from "@/lib/ui/styles";
 import { Eye, EyeOff } from "lucide-react";
 
 type PasswordInputProps = Omit<ComponentProps<"input">, "type"> & {
@@ -11,6 +18,7 @@ type PasswordInputProps = Omit<ComponentProps<"input">, "type"> & {
     /** Toggle copy — "show" / "hide", already localised. */
     showLabel: string;
     hideLabel: string;
+    surface?: Surface;
     /** Goes on the wrapper; the input keeps the rest of the props. */
     className?: string;
 };
@@ -28,19 +36,21 @@ export default function PasswordInput({
     id,
     showLabel,
     hideLabel,
+    surface = "brut",
     className,
     autoComplete = "current-password",
     ...props
 }: PasswordInputProps) {
     const [revealed, setRevealed] = useState(false);
+    const felt = surface === "felt";
 
     return (
-        <div className={cn(inputFrame, className)}>
+        <div className={cn(felt ? feltInputFrame : inputFrame, className)}>
             <input
                 id={id}
                 type={revealed ? "text" : "password"}
                 autoComplete={autoComplete}
-                className={inputBare}
+                className={felt ? feltInputBare : inputBare}
                 {...props}
             />
             <button
@@ -52,7 +62,13 @@ export default function PasswordInput({
                 onClick={() => setRevealed((current) => !current)}
                 className={cn(
                     focusRing,
-                    "cursor-pointer self-stretch border-l-4 border-ink bg-sage px-4 text-[11px] font-semibold tracking-[.08em] text-ink uppercase",
+                    "cursor-pointer self-stretch px-4 text-[11px] font-semibold tracking-[.08em] uppercase",
+                    // The welded toggle is told apart from the field by a rule
+                    // on the felt too — a hairline, since a 4px ink one out
+                    // here would be the only hard edge on the screen.
+                    felt
+                        ? "rounded-r-xl border-l border-mint/15 text-mint hover:text-cream"
+                        : "border-l-4 border-ink bg-sage text-ink",
                 )}
             >
                 {revealed ? <EyeOff /> : <Eye />}

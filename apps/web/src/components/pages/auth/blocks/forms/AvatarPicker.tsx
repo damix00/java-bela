@@ -1,6 +1,6 @@
 import Eyebrow from "@/components/ui/typography/Eyebrow";
 import { cn } from "@/lib/ui/cn";
-import { focusRing, pressSm } from "@/lib/ui/styles";
+import { dip, focusRing } from "@/lib/ui/styles";
 
 /** The suits, plus a star for anyone who doesn't want to declare one. */
 export const AVATAR_GLYPHS = ["♠", "♥", "♦", "♣", "★"] as const;
@@ -31,10 +31,10 @@ export default function AvatarPicker({
     return (
         <div className="flex flex-col gap-3">
             <div className="flex items-baseline gap-3">
-                <Eyebrow id="avatar-label" className="mr-auto">
+                <Eyebrow surface="felt" id="avatar-label" className="mr-auto">
                     {label}
                 </Eyebrow>
-                {badge && <Eyebrow>{badge}</Eyebrow>}
+                {badge && <Eyebrow surface="felt">{badge}</Eyebrow>}
             </div>
             <div
                 role="radiogroup"
@@ -54,11 +54,11 @@ export default function AvatarPicker({
                             onClick={() => onChange(index)}
                             className={cn(
                                 focusRing,
-                                picked && pressSm,
-                                "grid size-12 cursor-pointer place-items-center rounded-none border-4 border-ink font-display text-[21px] leading-none sm:size-14 sm:text-[24px]",
+                                dip,
+                                "grid size-12 cursor-pointer place-items-center rounded-full font-display text-[21px] leading-none sm:size-14 sm:text-[24px]",
                                 picked
-                                    ? "bg-rust text-cream shadow-hard-sm"
-                                    : "bg-white text-ink",
+                                    ? "bg-rust text-cream ring-2 ring-cream/60"
+                                    : "bg-mint/10 text-cream hover:bg-mint/20",
                             )}
                         >
                             <span aria-hidden>{glyph}</span>

@@ -36,19 +36,32 @@ export default function RankedGate({
 }: RankedGateProps) {
     return (
         <Modal
+            surface="felt"
             closeLabel={closeLabel}
             onClose={onClose}
             className="max-w-[520px]"
         >
-            <Card padding="lg" className="gap-4">
-                <Heading as="h2" size="card" className="max-w-[20ch]">
+            <Card surface="felt" padding="lg" className="gap-4">
+                <Heading
+                    surface="felt"
+                    as="h2"
+                    size="card"
+                    className="max-w-[20ch]"
+                >
                     {copy.heading}
                 </Heading>
-                <Text size="sm">{copy.body}</Text>
+                <Text surface="felt" size="sm">
+                    {copy.body}
+                </Text>
                 {/* One way forward and one way out, and the way out is the plain
                     close control this dialog already carries — a second dismiss
                     button beside the CTA would give equal weight to doing nothing. */}
-                <ButtonLink href={href} tone="rust" className="mt-1 self-start">
+                <ButtonLink
+                    surface="felt"
+                    href={href}
+                    tone="rust"
+                    className="mt-1 self-start"
+                >
                     {copy.action}
                 </ButtonLink>
             </Card>

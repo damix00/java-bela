@@ -87,6 +87,7 @@ export default function SettingsScreen({
                 // link anyway would send them to a page that only bounces.
                 guest ? null : (
                     <ButtonLink
+                        surface="felt"
                         href={profilePath(locale)}
                         tone="cream"
                         size="sm"
@@ -97,12 +98,13 @@ export default function SettingsScreen({
                 )
             }
         >
-            <DividedPanel className="shadow-hard">
+            <DividedPanel surface="felt">
                 <SettingsRow
                     heading={copy.language.heading}
                     body={copy.language.body}
                     action={
                         <LanguageSwitcher
+                            surface="felt"
                             current={locale}
                             label={copy.language.label}
                             className="shrink-0"
@@ -116,6 +118,7 @@ export default function SettingsScreen({
                     action={
                         guest ? (
                             <ButtonLink
+                                surface="felt"
                                 href={authPath(locale, "signUp")}
                                 tone="rust"
                                 size="sm"
@@ -125,8 +128,9 @@ export default function SettingsScreen({
                             </ButtonLink>
                         ) : (
                             <Text
+                                surface="felt"
                                 size="sm"
-                                tone="ink"
+                                tone="mintSoft"
                                 className="max-w-full min-w-0 truncate font-medium"
                             >
                                 {user.email}
@@ -143,7 +147,8 @@ export default function SettingsScreen({
                     body={copy.signOut.body}
                     action={
                         <Button
-                            tone="forest"
+                            surface="felt"
+                            tone="mint"
                             size="sm"
                             onClick={endThisSession}
                             disabled={pending}
@@ -164,7 +169,8 @@ export default function SettingsScreen({
                         action={
                             confirming ? null : (
                                 <Button
-                                    tone="forest"
+                                    surface="felt"
+                                    tone="mint"
                                     size="sm"
                                     onClick={() => setConfirming(true)}
                                     className="shrink-0"
@@ -174,17 +180,19 @@ export default function SettingsScreen({
                             )
                         }
                     >
-                        {error && <FormError>{error}</FormError>}
+                        {error && <FormError surface="felt">{error}</FormError>}
                         {confirming && (
-                            <div className="flex flex-wrap items-center gap-4 border-4 border-ink bg-sage p-4">
+                            <div className="flex flex-wrap items-center gap-4 rounded-xl bg-forest p-4">
                                 <Text
+                                    surface="felt"
                                     size="sm"
-                                    tone="ink"
+                                    tone="cream"
                                     className="mr-auto font-medium"
                                 >
                                     {copy.signOutAll.confirm}
                                 </Text>
                                 <Button
+                                    surface="felt"
                                     tone="cream"
                                     size="sm"
                                     onClick={() => setConfirming(false)}
@@ -193,6 +201,7 @@ export default function SettingsScreen({
                                     {copy.signOutAll.cancel}
                                 </Button>
                                 <Button
+                                    surface="felt"
                                     tone="rust"
                                     size="sm"
                                     onClick={endEverySession}

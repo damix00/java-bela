@@ -45,7 +45,7 @@ export default function ProfileFacts({
         : copy.countryNone;
 
     return (
-        <DividedPanel className="shadow-hard">
+        <DividedPanel surface="felt">
             <Row label={copy.emailLabel}>{email}</Row>
             <Row label={copy.countryLabel} flag={countryCode}>
                 {country}
@@ -66,11 +66,18 @@ function Row({
     children: string | null;
 }) {
     return (
-        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 bg-cream px-5 py-4 sm:px-6">
-            <Eyebrow>{label}</Eyebrow>
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 px-5 py-4 sm:px-6">
+            <Eyebrow surface="felt" tone="mint">
+                {label}
+            </Eyebrow>
             <div className="flex min-w-0 items-center gap-2">
                 {flag && <Flag code={flag} />}
-                <Text size="sm" tone="ink" className="min-w-0 truncate">
+                <Text
+                    surface="felt"
+                    size="sm"
+                    tone="cream"
+                    className="min-w-0 truncate"
+                >
                     {children}
                 </Text>
             </div>

@@ -38,19 +38,35 @@ export default function SettingsRow({
     return (
         <div
             className={cn(
-                "flex flex-col gap-4 bg-cream p-5 sm:p-6",
-                soon && "bg-cream/70",
+                // No fill of its own: the panel around it already paints
+                // `baize-deep`, and a row repeating it would be a second block
+                // the same colour as the first.
+                "flex flex-col gap-4 p-5 sm:p-6",
+                soon && "opacity-70",
             )}
         >
             <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
                 <div className="flex min-w-0 flex-col gap-1.5">
                     <div className="flex items-baseline gap-3">
-                        <Heading as="h2" size="label">
+                        <Heading
+                            surface="felt"
+                            as="h2"
+                            size="label"
+                            tone="cream"
+                        >
                             {heading}
                         </Heading>
-                        {soon && <Eyebrow>{soon}</Eyebrow>}
+                        {soon && (
+                            <Eyebrow surface="felt" tone="mint">
+                                {soon}
+                            </Eyebrow>
+                        )}
                     </div>
-                    <Text size="sm" tone={soon ? "muted" : "ink"}>
+                    <Text
+                        surface="felt"
+                        size="sm"
+                        tone={soon ? "mint" : "mintSoft"}
+                    >
                         {body}
                     </Text>
                 </div>

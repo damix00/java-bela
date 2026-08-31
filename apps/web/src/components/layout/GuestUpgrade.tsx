@@ -43,11 +43,11 @@ export default function GuestUpgrade({
                 </span>
             )} */}
             <ButtonLink
+                surface="felt"
                 href={authPath(locale, "signUp")}
                 tone="rust"
                 size="sm"
                 className={cn(
-                    "border-2",
                     compact
                         ? "px-3 py-[6px] text-[12px]"
                         : "px-4 py-[7px] text-[13px]",

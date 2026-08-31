@@ -28,7 +28,7 @@ import type { Locale } from "@/lib/i18n/config";
 import { forgetLobby, recallLobby } from "@/lib/game/last-lobby";
 import { isAlreadyInLobby, localiseLobbyError } from "@/lib/game/lobby-errors";
 import { playPath } from "@/lib/navigation/routes";
-import { appGutters, focusRing, pressSm } from "@/lib/ui/styles";
+import { appGutters, focusRing } from "@/lib/ui/styles";
 
 /** How often to re-ask for a table the backend thinks we are already at. */
 const STALE_LOBBY_RETRY_MS = 3000;
@@ -267,7 +267,8 @@ export default function TableScreen({
                 className={cn(
                     "relative flex flex-1 flex-col justify-center py-4 portrait-sm:py-2 desk:py-8 desk-md:py-10",
                     appGutters,
-                )}>
+                )}
+            >
                 {/* The way out of a table somebody else opened.
                     
                     An icon and no label: leaving is not what this screen is for,
@@ -301,18 +302,18 @@ export default function TableScreen({
                         title={t.leave}
                         className={cn(
                             "grid size-11 cursor-pointer place-items-center desk:size-12",
-                            "border-[3px] border-ink bg-baize-deep text-cream shadow-hard-sm",
-                            pressSm,
+                            // Drawn exactly like the game's own leave control,
+                            // because it is the same gesture one screen earlier:
+                            // same surface, same corner, same drop shadow.
+                            "rounded-2xl bg-baize-deep text-mint shadow-[0_6px_20px_-8px_rgb(0_0_0_/_0.5)]",
+                            "transition-colors hover:text-cream",
                             focusRing,
-                            // After `pressSm`, which carries a `relative` of its
-                            // own for its hit-area pseudo-element — and
-                            // tailwind-merge gives the last one the position, so
-                            // anything set before it is silently dropped.
                             "absolute top-4 z-20",
                             // `appGutters` as `right`, so this and the profile
                             // control above it share an edge at every width.
                             "right-4 sm:right-8 md:right-28 lg:right-48 xl:right-72",
-                        )}>
+                        )}
+                    >
                         <LogOut aria-hidden size={18} strokeWidth={3} />
                     </button>
                 )}
@@ -343,7 +344,8 @@ export default function TableScreen({
                       !isSilentRejoinError(error) ? (
                         <p
                             role="status"
-                            className="mx-auto text-center text-[13px] font-semibold text-mint/75 sm:text-[14px]">
+                            className="mx-auto text-center text-[13px] font-semibold text-mint/75 sm:text-[14px]"
+                        >
                             {localiseLobbyError(error, copy.lobbyErrors)}
                         </p>
                     ) : (

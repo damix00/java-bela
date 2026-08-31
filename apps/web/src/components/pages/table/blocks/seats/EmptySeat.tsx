@@ -2,7 +2,7 @@ import { ArrowLeftRight, UserRound } from "lucide-react";
 
 import MockLabel from "@/components/pages/table/blocks/shared/MockLabel";
 import { cn } from "@/lib/ui/cn";
-import { focusRing, pressSm, swapRing } from "@/lib/ui/styles";
+import { dip, focusRing, swapRing } from "@/lib/ui/styles";
 
 type EmptySeatProps = {
     label: string;
@@ -46,14 +46,17 @@ export default function EmptySeat({
 }: EmptySeatProps) {
     const shell = cn(
         "flex flex-col items-center justify-center gap-3 p-2",
-        "border-4 border-dashed md:gap-4 md:p-4",
+        // Two rather than four: the chair is the one dashed thing on the felt
+        // and does not have to match a 4px frame that is no longer anywhere
+        // else on the screen.
+        "rounded-xl border-2 border-dashed md:gap-4 md:p-4",
         onClick && !disabled
             ? [
                   // A live chair is drawn warmer than an inert one — with no
                   // label to read on a phone, the dash weight is the only thing
                   // there is room to say it with.
                   "cursor-pointer border-mint/60 hover:border-mint hover:bg-mint/5",
-                  pressSm,
+                  dip,
                   focusRing,
               ]
             : "border-mint/35",

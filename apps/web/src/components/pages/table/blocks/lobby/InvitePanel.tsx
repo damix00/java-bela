@@ -69,13 +69,19 @@ export default function InvitePanel({
     }
 
     return (
-        <Modal closeLabel={t.close} onClose={onClose} className="max-w-[440px]">
-            <Card padding="lg" className="w-full gap-5">
-                <Heading as="h2" size="card">
+        <Modal
+            surface="felt"
+            closeLabel={t.close}
+            onClose={onClose}
+            className="max-w-[440px]"
+        >
+            <Card surface="felt" padding="lg" className="w-full gap-5">
+                <Heading surface="felt" as="h2" size="card">
                     {t.heading}
                 </Heading>
 
                 <Button
+                    surface="felt"
                     tone="rust"
                     size="md"
                     onClick={copyInvite}
@@ -89,7 +95,9 @@ export default function InvitePanel({
                     {copied ? copy.lobby.copied : copy.copyInvite}
                 </Button>
 
-                <Text size="xs">{t.linkNote}</Text>
+                <Text surface="felt" size="xs">
+                    {t.linkNote}
+                </Text>
             </Card>
         </Modal>
     );

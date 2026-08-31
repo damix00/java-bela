@@ -6,7 +6,11 @@ import ProfileScreen from "@/components/pages/profile/sections/ProfileScreen";
 import { localePage } from "@/dictionaries";
 import { countryOptions } from "@/lib/i18n/countries";
 import { localeMetadata } from "@/lib/i18n/metadata";
-import { homePath, profilePath, signInPathWithReturn } from "@/lib/navigation/routes";
+import {
+    homePath,
+    profilePath,
+    signInPathWithReturn,
+} from "@/lib/navigation/routes";
 
 // One player's own page, and nobody else's business — the same `noindex` the
 // lobby carries, for the same reason.

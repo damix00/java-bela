@@ -62,7 +62,8 @@ export default async function RootLayout({
     return (
         <html
             lang={lang}
-            className={`${bricolage.variable} ${publicSans.variable} h-full antialiased`}>
+            className={`${bricolage.variable} ${publicSans.variable} h-full antialiased`}
+        >
             <head>
                 {/* <Script
                     src="//unpkg.com/react-scan/dist/auto.global.js"

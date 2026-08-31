@@ -81,9 +81,21 @@ export default function TableStage({
                 data-game-table=""
                 animate={{ scale: settling && !reduceMotion ? 0.985 : 1 }}
                 transition={feltTransition}
-                className="col-start-2 row-start-2 aspect-[6/5] w-full overflow-hidden border-4 border-ink bg-baize-deep p-1.5 shadow-hard-lg portrait-sm:aspect-[5/3] desk:aspect-square desk:p-2 desk-lg:p-[10px]"
+                className="col-start-2 row-start-2 aspect-[6/5] w-full overflow-hidden rounded-2xl bg-baize-deep p-1.5 shadow-[0_6px_20px_-8px_rgb(0_0_0_/_0.5)] portrait-sm:aspect-[5/3] desk:aspect-square desk:p-2 desk-lg:p-[10px]"
             >
-                <div className="flex size-full min-h-0 flex-col items-center justify-center gap-1.5 overflow-hidden border-2 border-mint/20 bg-baize p-1.5 desk:gap-3 desk:p-4">
+                {/* The playing surface, as a well sunk into the block around
+                    it rather than a box drawn on it. The mint frame that used
+                    to do this job was the last hard rectangle on the table —
+                    square corners inside a rounded panel, which is exactly the
+                    thing this screen no longer says anywhere else. The step
+                    from `baize-deep` to `baize` is already the edge; an inset
+                    shadow along the top is what makes it read as depth rather
+                    than as a lighter patch.
+
+                    The radius is the stage's own minus its padding, per the
+                    concentric-corner rule in `lib/ui/styles` — and it has to
+                    step wherever that padding does: 16−6, 16−8, 16−10. */}
+                <div className="flex size-full min-h-0 flex-col items-center justify-center gap-1.5 overflow-hidden rounded-[10px] bg-baize p-1.5 shadow-[inset_0_2px_10px_-4px_rgb(0_0_0_/_0.45)] desk:gap-3 desk:rounded-lg desk:p-4 desk-lg:rounded-md">
                     {centre}
                 </div>
             </motion.div>

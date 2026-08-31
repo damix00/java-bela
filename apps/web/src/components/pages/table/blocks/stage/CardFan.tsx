@@ -32,7 +32,7 @@ export default function CardFan() {
                     key={card.suit}
                     className={cn(
                         "absolute grid h-[48px] w-[34px] place-items-center portrait-sm:h-[38px] portrait-sm:w-[28px] desk:h-[90px] desk:w-[64px]",
-                        "border-[3px] border-ink bg-paper text-[18px] leading-none shadow-hard-sm desk:text-[27px]",
+                        "rounded-[4px] bg-cream text-[18px] leading-none shadow-[0_2px_6px_rgb(0_0_0_/_0.35)] desk:text-[27px]",
                         card.red ? "text-rust" : "text-ink",
                         positions[index],
                     )}

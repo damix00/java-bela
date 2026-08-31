@@ -3,7 +3,7 @@ import { cn } from "@/lib/ui/cn";
 
 // One square per perk, cycling through the palette in order. The colour says
 // nothing — it keeps three stacked lines from reading as one grey block.
-const swatches = ["bg-forest", "bg-rust", "bg-ink"] as const;
+const swatches = ["bg-mint", "bg-rust", "bg-cream"] as const;
 
 type PerkListProps = {
     items: string[];
@@ -19,11 +19,11 @@ export default function PerkList({ items, className }: PerkListProps) {
                     <span
                         aria-hidden
                         className={cn(
-                            "mt-[3px] size-[18px] shrink-0 border-[3px] border-ink",
+                            "mt-[3px] size-[18px] shrink-0 rounded-full",
                             swatches[index % swatches.length],
                         )}
                     />
-                    <Text as="span" size="sm" tone="ink">
+                    <Text surface="felt" as="span" size="sm" tone="cream">
                         {item}
                     </Text>
                 </li>

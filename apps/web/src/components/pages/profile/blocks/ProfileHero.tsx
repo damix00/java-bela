@@ -5,6 +5,8 @@ import Flag from "@/components/ui/graphics/Flag";
 import Heading from "@/components/ui/typography/Heading";
 import Text from "@/components/ui/typography/Text";
 import type { Dictionary } from "@/dictionaries";
+import { cn } from "@/lib/ui/cn";
+import { panel } from "@/lib/ui/styles";
 import { countryName } from "@/lib/i18n/countries";
 import type { Locale } from "@/lib/i18n/config";
 
@@ -60,28 +62,33 @@ export default function ProfileHero({
     const country = countryCode ? countryName(locale, countryCode) : null;
 
     return (
-        <section className="border-4 border-ink bg-cream shadow-hard-lg">
-            <div className="h-3 border-b-4 border-ink bg-rust" />
-
+        // The rust cover strip is gone with the frame it belonged to. On the
+        // cream page it was the block's one accent and the thing that told a
+        // square slab from the sheet under it; on a rounded panel with a soft
+        // shadow it has nothing left to do, and a 12px band across the top of a
+        // card reads as a stray border rather than as a cover.
+        <section className={cn(panel, "overflow-hidden")}>
             <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-start sm:gap-6 sm:p-7">
                 <UserAvatar
                     username={username}
                     avatarUrl={avatarUrl}
                     size="lg"
-                    className="size-20 shrink-0 border-4 border-ink text-[32px] sm:size-24 sm:text-[38px]"
+                    className="size-20 shrink-0 border-[3px] border-mint/30 text-[32px] sm:size-24 sm:text-[38px]"
                 />
 
                 <div className="flex min-w-0 flex-1 flex-col gap-3">
                     <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-3">
                         <div className="flex min-w-0 items-center gap-3">
                             <Heading
+                                surface="felt"
                                 as="h1"
                                 size="cardHero"
+                                tone="cream"
                                 className="min-w-0 truncate"
                             >
                                 {username}
                             </Heading>
-            {/* Decoration beside a name the rail spells out in
+                            {/* Decoration beside a name the rail spells out in
                                 words — a screen reader saying "flag: Croatia"
                                 here would be the country said twice. */}
                             <Flag code={countryCode} size="md" />
@@ -92,7 +99,11 @@ export default function ProfileHero({
                     {/* The line under the name, which is the player's to write.
                         Empty, it is a prompt rather than a gap: the box that
                         fills it is a few centimetres further down the page. */}
-                    <Text size="sm" tone={bio ? "ink" : "muted"}>
+                    <Text
+                        surface="felt"
+                        size="sm"
+                        tone={bio ? "mintSoft" : "mint"}
+                    >
                         {bio || copy.bioEmpty}
                     </Text>
                 </div>
@@ -103,8 +114,10 @@ export default function ProfileHero({
                 and setting a month and a country in tracked-out capitals turns
                 two ordinary facts about a person into machine output. */}
             <Text
+                surface="felt"
                 size="xs"
-                className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t-4 border-ink px-5 py-3 sm:px-7"
+                tone="mint"
+                className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-mint/15 px-5 py-3 sm:px-7"
             >
                 <span>
                     {copy.memberSince} {joined}

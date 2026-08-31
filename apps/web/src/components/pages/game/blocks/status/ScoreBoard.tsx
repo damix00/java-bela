@@ -2,7 +2,7 @@ import Image from "next/image";
 
 import { HUNGARIAN_SUIT_ASSETS } from "@/lib/game/card-assets";
 import { cn } from "@/lib/ui/cn";
-import { focusRing } from "@/lib/ui/styles";
+import { focusRing, panel } from "@/lib/ui/styles";
 import type { Suite } from "@bela/protocol";
 
 type ScoreBoardProps = {
@@ -119,7 +119,8 @@ export default function ScoreBoard({
         <section
             aria-label={targetLabel.replace("{target}", String(target))}
             className={cn(
-                "mx-auto grid w-full max-w-[560px] shrink-0 grid-cols-[1fr_auto_1fr] items-center rounded-2xl bg-baize-deep px-3 shadow-[0_6px_20px_-8px_rgb(0_0_0_/_0.5)] sm:px-5 lg:max-w-[1000px]",
+                panel,
+                "mx-auto grid w-full max-w-[560px] shrink-0 grid-cols-[1fr_auto_1fr] items-center px-3 sm:px-5 lg:max-w-[1000px]",
                 // A height, not padding around whatever is inside. The trump
                 // caller's line only appears once somebody has called, and a
                 // bar that grew a row mid-hand shifted the whole table under

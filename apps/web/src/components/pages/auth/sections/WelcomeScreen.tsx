@@ -22,7 +22,7 @@ import type { CountryOption } from "@/lib/i18n/countries";
 import type { Locale } from "@/lib/i18n/config";
 import { homePath } from "@/lib/navigation/routes";
 import { cn } from "@/lib/ui/cn";
-import { focusRing, inputBox } from "@/lib/ui/styles";
+import { feltInputBox, focusRing } from "@/lib/ui/styles";
 import {
     BIO_MAX,
     welcomeProfileSchema,
@@ -168,6 +168,7 @@ export default function WelcomeScreen({
             aside={
                 <>
                     <Heading
+                        surface="felt"
                         as="h1"
                         size="cardHero"
                         tone="cream"
@@ -175,7 +176,12 @@ export default function WelcomeScreen({
                     >
                         {copy.heading} {username}
                     </Heading>
-                    <Text size="md" tone="mint" className="max-w-[36ch]">
+                    <Text
+                        surface="felt"
+                        size="md"
+                        tone="mint"
+                        className="max-w-[36ch]"
+                    >
                         {copy.body}
                     </Text>
                     <SeatPreview
@@ -190,7 +196,7 @@ export default function WelcomeScreen({
                 </>
             }
         >
-            <Heading as="h2" size="label">
+            <Heading surface="felt" as="h2" size="label">
                 {copy.formHeading}
             </Heading>
 
@@ -199,13 +205,14 @@ export default function WelcomeScreen({
                 onSubmit={handleSubmit(onSubmit)}
                 className="contents"
             >
-                {error && <FormError>{error}</FormError>}
+                {error && <FormError surface="felt">{error}</FormError>}
 
                 <Field
+                    surface="felt"
                     htmlFor="bio"
                     label={profile.bioLabel}
                     action={
-                        <Eyebrow aria-live="polite">
+                        <Eyebrow surface="felt" aria-live="polite">
                             {remaining} {profile.bioRemaining}
                         </Eyebrow>
                     }
@@ -216,13 +223,17 @@ export default function WelcomeScreen({
                         id="bio"
                         rows={3}
                         placeholder={profile.bioPlaceholder}
-                        className={cn(focusRing, inputBox, "resize-y bg-white")}
+                        className={cn(focusRing, feltInputBox, "resize-none")}
                         {...invalidProps("bio", fieldErrors.bio)}
                         {...register("bio")}
                     />
                 </Field>
 
-                <Field htmlFor="countryCode" label={profile.countryLabel}>
+                <Field
+                    surface="felt"
+                    htmlFor="countryCode"
+                    label={profile.countryLabel}
+                >
                     {/* The one field that isn't an `<input>`, so the one that
                         needs `Controller`. */}
                     <Controller
@@ -230,6 +241,7 @@ export default function WelcomeScreen({
                         name="countryCode"
                         render={({ field }) => (
                             <CountrySelect
+                                surface="felt"
                                 id="countryCode"
                                 value={field.value}
                                 onChange={field.onChange}
@@ -244,6 +256,7 @@ export default function WelcomeScreen({
 
                 <div className="flex flex-wrap items-center gap-4">
                     <Button
+                        surface="felt"
                         type="submit"
                         tone="rust"
                         size="lg"
@@ -257,6 +270,7 @@ export default function WelcomeScreen({
                         alongside the save so the two cannot race each other to
                         the lobby. */}
                     <Button
+                        surface="felt"
                         type="button"
                         tone="cream"
                         size="lg"

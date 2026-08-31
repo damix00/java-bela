@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, type ReactNode } from "react";
 
 import { cn } from "@/lib/ui/cn";
-import { focusRing } from "@/lib/ui/styles";
+import { edge, focusRing, type Surface } from "@/lib/ui/styles";
 
 type ModalProps = {
     children: ReactNode;
@@ -25,6 +25,12 @@ type ModalProps = {
      * the same way.
      */
     onClose?: () => void;
+    /**
+     * Which language the shell's own furniture is drawn in. The panel inside is
+     * whatever the caller puts there; this is only the close button, which is
+     * the one thing the shell draws itself.
+     */
+    surface?: Surface;
     className?: string;
 };
 
@@ -66,6 +72,7 @@ export default function Modal({
     closeLabel,
     dismissible = true,
     onClose,
+    surface = "brut",
     className,
 }: ModalProps) {
     const router = useRouter();
@@ -208,7 +215,10 @@ export default function Modal({
                         aria-label={closeLabel}
                         className={cn(
                             focusRing,
-                            "absolute top-3 right-3 z-10 cursor-pointer border-[3px] border-ink bg-cream p-1.5 text-ink",
+                            "absolute top-3 right-3 z-10 cursor-pointer p-1.5",
+                            surface === "felt"
+                                ? `rounded-full bg-baize-deep text-mint hover:text-cream ${edge}`
+                                : "border-[3px] border-ink bg-cream text-ink",
                         )}
                     >
                         <X size={18} strokeWidth={3} aria-hidden />

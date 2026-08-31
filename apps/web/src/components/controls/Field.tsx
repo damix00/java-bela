@@ -4,6 +4,7 @@ import FieldError from "@/components/controls/FieldError";
 import Eyebrow from "@/components/ui/typography/Eyebrow";
 import Text from "@/components/ui/typography/Text";
 import { cn } from "@/lib/ui/cn";
+import type { Surface } from "@/lib/ui/styles";
 
 type FieldProps = {
     /** Must match the `id` of the control passed as `children`. */
@@ -20,6 +21,7 @@ type FieldProps = {
      */
     error?: string;
     children: ReactNode;
+    surface?: Surface;
     className?: string;
 };
 
@@ -50,12 +52,20 @@ export default function Field({
     hint,
     error,
     children,
+    surface = "brut",
     className,
 }: FieldProps) {
+    const felt = surface === "felt";
+
     return (
         <div className={cn("flex flex-col gap-[7px]", className)}>
             <div className="flex items-baseline gap-3">
-                <Eyebrow as="label" htmlFor={htmlFor} className="mr-auto">
+                <Eyebrow
+                    as="label"
+                    htmlFor={htmlFor}
+                    tone={felt ? "mint" : "stone"}
+                    className="mr-auto"
+                >
                     {label}
                 </Eyebrow>
                 {action}
@@ -64,9 +74,13 @@ export default function Field({
             {/* A string gets the standard hint treatment; a node — the password
           rule, the strength meter — is trusted to style itself. */}
             {error ? (
-                <FieldError id={errorId(htmlFor)}>{error}</FieldError>
+                <FieldError id={errorId(htmlFor)} surface={surface}>
+                    {error}
+                </FieldError>
             ) : typeof hint === "string" ? (
-                <Text size="xs">{hint}</Text>
+                <Text size="xs" tone={felt ? "mint" : "muted"}>
+                    {hint}
+                </Text>
             ) : (
                 hint
             )}

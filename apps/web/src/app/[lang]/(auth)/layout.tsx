@@ -3,7 +3,8 @@ import Link from "next/link";
 import LanguageSwitcher from "@/components/controls/LanguageSwitcher";
 import Logo from "@/components/ui/brand/Logo";
 import { localePage } from "@/dictionaries";
-import { focusRing } from "@/lib/ui/styles";
+import { cn } from "@/lib/ui/cn";
+import { felt, focusRing } from "@/lib/ui/styles";
 import { homePath } from "@/lib/navigation/routes";
 
 /**
@@ -24,18 +25,29 @@ export default async function AuthLayout({
     const { lang, dict } = await localePage(params);
 
     return (
-        <main className="flex min-h-dvh flex-col gap-10 px-5 py-8 sm:px-8 sm:py-12">
+        // `data-felt` is the marker the root layout's `has-` variant looks for,
+        // and it is what keeps the body green past the ends of the scroll. The
+        // credential screens used to be the one part of the signed-in journey
+        // still standing on cream, so arriving at the lobby changed worlds.
+        <main
+            data-felt=""
+            className={cn(
+                felt,
+                "flex min-h-dvh flex-col gap-10 px-5 py-8 sm:px-8 sm:py-12",
+            )}
+        >
             <div className="mx-auto flex w-full max-w-[1080px] items-center gap-4">
                 <Link
                     href={homePath(lang)}
                     className={`${focusRing} no-underline`}
                 >
-                    <Logo />
+                    <Logo tone="cream" />
                 </Link>
                 {/* Hard navigation: these pages have intercepting twins under
                     `@modal`, and a routed language swap would reopen the very
                     screen you are on as a modal stacked over itself. */}
                 <LanguageSwitcher
+                    surface="felt"
                     current={lang}
                     label={dict.nav.languageLabel}
                     hardNavigation

@@ -80,12 +80,12 @@ export function DesktopNavLinks({
             {destinations.map((destination) => {
                 const current = active === destination.key;
                 const className = cn(
-                    "border-b-[3px] pb-[3px] font-sans text-[12px] font-bold tracking-[.14em] uppercase",
-                    !destination.available && "border-transparent text-ash/80",
+                    "border-b-2 pb-[3px] font-sans text-[12px] font-bold tracking-[.14em] uppercase",
+                    !destination.available && "border-transparent text-mint/40",
                     destination.available &&
                         (current
                             ? "border-rust text-cream"
-                            : "border-transparent text-ash hover:text-cream"),
+                            : "border-transparent text-mint hover:text-cream"),
                 );
 
                 return destination.available ? (
@@ -147,7 +147,7 @@ export function MobileNavLinks({
         <nav
             aria-label={label}
             className={cn(
-                "fixed inset-x-0 bottom-0 z-30 grid border-t-4 border-ink bg-ink pb-[env(safe-area-inset-bottom)] sm:hidden",
+                "fixed inset-x-0 bottom-0 z-30 grid border-t border-mint/15 bg-baize-deep pb-[env(safe-area-inset-bottom)] sm:hidden",
                 user ? "grid-cols-5" : "grid-cols-4",
             )}
         >
@@ -165,12 +165,16 @@ export function MobileNavLinks({
                 );
                 const className = cn(
                     barItem,
-                    "border-t-4",
-                    !destination.available && "border-transparent text-ash/70",
+                    // The current tile is marked by a rust rule along its top
+                    // edge, thinner than the 4px it used to be: on the felt it
+                    // is the only hard line in the bar, and it only has to say
+                    // which tile, not shout it.
+                    "border-t-2",
+                    !destination.available && "border-transparent text-mint/40",
                     destination.available &&
                         (current
                             ? "border-rust text-cream"
-                            : "border-transparent text-ash"),
+                            : "border-transparent text-mint"),
                 );
 
                 return destination.available ? (
@@ -202,10 +206,10 @@ export function MobileNavLinks({
                     aria-current={active === "account" ? "page" : undefined}
                     className={cn(
                         barItem,
-                        "border-t-4 focus-visible:outline-4 focus-visible:outline-inset focus-visible:outline-rust",
+                        "border-t-2 focus-visible:outline-4 focus-visible:outline-inset focus-visible:outline-rust",
                         active === "account"
                             ? "border-rust text-cream"
-                            : "border-transparent text-ash",
+                            : "border-transparent text-mint",
                     )}
                 >
                     <UserAvatar
@@ -215,7 +219,7 @@ export function MobileNavLinks({
                         className={cn(
                             active === "account"
                                 ? "border-cream"
-                                : "border-ash/70 opacity-80",
+                                : "border-mint/50 opacity-80",
                         )}
                     />
                     <span>{accountLabel}</span>

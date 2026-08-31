@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/ui/cn";
+import type { Surface } from "@/lib/ui/styles";
 
 const sizes = {
     sm: "size-[18px]",
@@ -57,6 +58,7 @@ type IconBadgeProps = Omit<IconProps, "tone"> & {
     /** Box fill. The glyph tone follows from it unless overridden. */
     tone?: keyof typeof badgeTones;
     glyphTone?: keyof typeof tones;
+    surface?: Surface;
 };
 
 const badgeGlyphTones: Record<keyof typeof badgeTones, keyof typeof tones> = {
@@ -67,26 +69,37 @@ const badgeGlyphTones: Record<keyof typeof badgeTones, keyof typeof tones> = {
     ink: "cream",
 };
 
-/** Icon in its own boxed tile — the ornament version, for cards and lists. */
+/**
+ * Icon in its own boxed tile — the ornament version, for cards and lists.
+ *
+ * On the felt the tile keeps the idea and drops the box: a mint wash and a
+ * round corner, since an ink-framed square is the one shape nothing else out
+ * there has.
+ */
 export function IconBadge({
     glyph,
     size = "md",
     tone = "cream",
     glyphTone,
+    surface = "brut",
     className,
 }: IconBadgeProps) {
+    const felt = surface === "felt";
+
     return (
         <span
             className={cn(
-                "grid size-11 shrink-0 place-items-center border-[3px] border-ink",
-                badgeTones[tone],
+                "grid size-11 shrink-0 place-items-center",
+                felt
+                    ? "rounded-2xl bg-mint/10"
+                    : ["border-[3px] border-ink", badgeTones[tone]],
                 className,
             )}
         >
             <Icon
                 glyph={glyph}
                 size={size}
-                tone={glyphTone ?? badgeGlyphTones[tone]}
+                tone={glyphTone ?? (felt ? "mint" : badgeGlyphTones[tone])}
             />
         </span>
     );

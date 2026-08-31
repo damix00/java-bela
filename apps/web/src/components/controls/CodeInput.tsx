@@ -3,7 +3,7 @@
 import { useRef, type ClipboardEvent, type KeyboardEvent } from "react";
 
 import { cn } from "@/lib/ui/cn";
-import { focusRing } from "@/lib/ui/styles";
+import { edge, focusRing, type Surface } from "@/lib/ui/styles";
 
 type CodeInputProps = {
     /** The digits typed so far, shorter than `length` while incomplete. */
@@ -16,6 +16,7 @@ type CodeInputProps = {
     invalid?: boolean;
     /** Error line to point at, when there is one. */
     describedBy?: string;
+    surface?: Surface;
     className?: string;
 };
 
@@ -36,8 +37,10 @@ export default function CodeInput({
     digitLabel,
     invalid = false,
     describedBy,
+    surface = "brut",
     className,
 }: CodeInputProps) {
+    const felt = surface === "felt";
     const boxes = useRef<(HTMLInputElement | null)[]>([]);
     // A held-open gap reads back as an empty box, not as a box holding a space.
     const digits = Array.from({ length }, (_, index) =>
@@ -117,7 +120,10 @@ export default function CodeInput({
                     {index === length / 2 && (
                         <span
                             aria-hidden
-                            className="h-1 w-3.5 shrink-0 bg-ink"
+                            className={cn(
+                                "h-1 w-3.5 shrink-0",
+                                felt ? "bg-mint/40" : "bg-ink",
+                            )}
                         />
                     )}
                     <input
@@ -139,7 +145,10 @@ export default function CodeInput({
                         maxLength={1}
                         className={cn(
                             focusRing,
-                            "w-full min-w-0 rounded-none border-4 border-ink bg-white py-3 text-center font-display text-[26px] font-extrabold text-ink outline-none aria-invalid:border-rust sm:w-[60px] sm:py-[14px] sm:text-[30px]",
+                            "w-full min-w-0 py-3 text-center font-display text-[26px] font-extrabold outline-none sm:w-[60px] sm:py-[14px] sm:text-[30px]",
+                            felt
+                                ? `rounded-xl bg-baize-deep text-cream aria-invalid:ring-rust focus:ring-2 focus:ring-mint/50 ${edge}`
+                                : "rounded-none border-4 border-ink bg-white text-ink aria-invalid:border-rust",
                         )}
                     />
                 </div>

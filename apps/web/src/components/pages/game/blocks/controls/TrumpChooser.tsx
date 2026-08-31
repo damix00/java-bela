@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Button } from "@/components/controls/Button";
 import { HUNGARIAN_SUIT_ASSETS } from "@/lib/game/card-assets";
 import { cn } from "@/lib/ui/cn";
-import { focusRing } from "@/lib/ui/styles";
+import { focusRing, panel } from "@/lib/ui/styles";
 import { Suite } from "@bela/protocol";
 
 type TrumpChooserProps = {
@@ -48,7 +48,7 @@ export default function TrumpChooser({
             className={cn(
                 "flex items-center",
                 tray
-                    ? "w-full flex-col gap-2 rounded-2xl bg-baize-deep px-3 py-2 shadow-[0_6px_20px_-8px_rgb(0_0_0_/_0.5)] [@media(max-height:560px)]:flex-row [@media(max-height:560px)]:gap-3 [@media(max-height:560px)]:py-1.5"
+                    ? `${panel} w-full flex-col gap-2 px-3 py-2 [@media(max-height:560px)]:flex-row [@media(max-height:560px)]:gap-3 [@media(max-height:560px)]:py-1.5`
                     : "flex-col gap-1.5 sm:gap-3",
             )}
         >

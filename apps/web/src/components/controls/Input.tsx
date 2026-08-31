@@ -1,7 +1,12 @@
 import type { ComponentProps } from "react";
 
 import { cn } from "@/lib/ui/cn";
-import { focusRing, inputBox } from "@/lib/ui/styles";
+import {
+    feltInputBox,
+    focusRing,
+    inputBox,
+    type Surface,
+} from "@/lib/ui/styles";
 
 const tones = {
     white: "bg-white",
@@ -10,6 +15,7 @@ const tones = {
 
 export type InputProps = ComponentProps<"input"> & {
     tone?: keyof typeof tones;
+    surface?: Surface;
 };
 
 /**
@@ -17,8 +23,14 @@ export type InputProps = ComponentProps<"input"> & {
  * that. Split out so both labelling styles (a plain inline label, and the
  * stacked caps label of the auth screens) can share one field.
  */
+/**
+ * On the felt the field draws no frame and `tone` has nothing to choose
+ * between: white and cream were the two lights a field could be on a cream
+ * page, and out here there is one, the panel's own `baize-deep`.
+ */
 export default function Input({
     tone = "white",
+    surface = "brut",
     type = "text",
     className,
     ...props
@@ -26,7 +38,11 @@ export default function Input({
     return (
         <input
             type={type}
-            className={cn(focusRing, inputBox, tones[tone], className)}
+            className={cn(
+                focusRing,
+                surface === "felt" ? feltInputBox : [inputBox, tones[tone]],
+                className,
+            )}
             {...props}
         />
     );

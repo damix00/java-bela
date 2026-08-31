@@ -23,7 +23,7 @@ export default function SwapBadge({ size = "md", className }: SwapBadgeProps) {
         <span
             aria-hidden
             className={cn(
-                "grid shrink-0 place-items-center border-[3px] border-ink bg-paper text-ink",
+                "grid shrink-0 place-items-center rounded-full bg-cream text-ink",
                 size === "md" ? "size-9" : "size-6",
                 className,
             )}

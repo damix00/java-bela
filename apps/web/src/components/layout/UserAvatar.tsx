@@ -2,6 +2,12 @@ import Image from "next/image";
 
 import { cn } from "@/lib/ui/cn";
 
+// Round, at every size and on every screen that uses one — this component is
+// app-only, and the app is the felt. A square avatar was the cream page's
+// shape, matching the 4px frames around it; on the felt it is the one hard
+// corner left, and it sits inside rounded blocks whose corners it cannot be
+// made concentric with at any radius. `GameSeat` has drawn its faces round all
+// along.
 const sizes = {
     /** Bottom-bar scale: an avatar standing in for a nav glyph. */
     sm: { box: "size-6 border-2", text: "text-[11px]", px: 24 },
@@ -36,7 +42,7 @@ export default function UserAvatar({
                 height={scale.px}
                 unoptimized
                 className={cn(
-                    "shrink-0 border-cream object-cover",
+                    "shrink-0 rounded-full border-cream object-cover",
                     scale.box,
                     className,
                 )}
@@ -48,11 +54,12 @@ export default function UserAvatar({
         <span
             aria-hidden="true"
             className={cn(
-                "grid shrink-0 place-items-center border-cream bg-rust font-display font-extrabold uppercase text-cream",
+                "grid shrink-0 place-items-center rounded-full border-cream bg-rust font-display font-extrabold uppercase text-cream",
                 scale.box,
                 scale.text,
                 className,
-            )}>
+            )}
+        >
             {username.charAt(0)}
         </span>
     );

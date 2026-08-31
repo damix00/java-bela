@@ -16,14 +16,14 @@ export default function RuleLine({ children, met = false }: RuleLineProps) {
         <p
             className={cn(
                 "m-0 flex items-center gap-[9px] pt-[3px] text-[12px]",
-                met ? "text-forest" : "text-stone",
+                met ? "text-mint" : "text-mint/50",
             )}
         >
             <span
                 aria-hidden
                 className={cn(
-                    "size-3.5 shrink-0 border-[3px] border-ink",
-                    met ? "bg-forest" : "bg-canvas",
+                    "size-3.5 shrink-0 rounded-full",
+                    met ? "bg-mint" : "bg-mint/15",
                 )}
             />
             {children}

@@ -20,13 +20,14 @@ export default function PlacementCard({
     className,
 }: PlacementCardProps) {
     const count = (
-        <span className="font-display text-[38px] leading-none font-extrabold tracking-[-.04em] text-ink sm:text-[56px]">
+        <span className="font-display text-[38px] leading-none font-extrabold tracking-[-.04em] text-cream sm:text-[56px]">
             {played} / {total}
         </span>
     );
 
     return (
         <Card
+            surface="felt"
             padding="none"
             shadow="ink"
             className={cn("px-[30px] py-[26px]", className)}
@@ -34,11 +35,15 @@ export default function PlacementCard({
             {layout === "inline" ? (
                 <span className="flex flex-wrap items-baseline gap-3">
                     {count}
-                    <Eyebrow className="font-normal">{label}</Eyebrow>
+                    <Eyebrow surface="felt" className="font-normal">
+                        {label}
+                    </Eyebrow>
                 </span>
             ) : (
                 <>
-                    <Eyebrow className="font-normal">{label}</Eyebrow>
+                    <Eyebrow surface="felt" className="font-normal">
+                        {label}
+                    </Eyebrow>
                     {count}
                 </>
             )}
@@ -48,8 +53,8 @@ export default function PlacementCard({
                         key={index}
                         aria-hidden
                         className={cn(
-                            "h-3 w-[22px] border-[3px] border-ink",
-                            index < played ? "bg-forest" : "bg-canvas",
+                            "h-3 w-[22px] rounded-full",
+                            index < played ? "bg-mint" : "bg-mint/15",
                         )}
                     />
                 ))}

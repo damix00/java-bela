@@ -20,22 +20,42 @@ type CheckEmailScreenProps = {
 export default function CheckEmailScreen({ copy }: CheckEmailScreenProps) {
     return (
         <AuthCard tone="sage" className="mx-auto max-w-[560px]">
-            <IconBadge glyph={Mail} size="lg" className="size-16" />
+            <IconBadge
+                glyph={Mail}
+                size="lg"
+                surface="felt"
+                className="size-16"
+            />
 
-            <Heading as="h1" size="cardHero">
+            <Heading surface="felt" as="h1" size="cardHero">
                 {copy.heading}
             </Heading>
-            <Text size="md" tone="ink" className="max-w-[34ch]">
+            <Text
+                surface="felt"
+                size="md"
+                tone="mintSoft"
+                className="max-w-[34ch]"
+            >
                 {copy.bodyLead}{" "}
                 <strong className="font-bold">{demoAccount.email}</strong>{" "}
                 {copy.bodyRest}
             </Text>
 
             <div className="flex flex-wrap items-center gap-[18px]">
-                <Button tone="cream" size="sm" className="text-[16px]">
+                <Button
+                    surface="felt"
+                    tone="cream"
+                    size="sm"
+                    className="text-[16px]"
+                >
                     {copy.resend}
                 </Button>
-                <Text as="span" size="xs" className="text-[12px] text-stone">
+                <Text
+                    surface="felt"
+                    as="span"
+                    size="xs"
+                    className="text-[12px] text-mint/60"
+                >
                     {copy.timer}
                 </Text>
             </div>

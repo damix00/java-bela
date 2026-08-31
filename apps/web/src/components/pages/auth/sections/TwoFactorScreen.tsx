@@ -55,10 +55,10 @@ export default function TwoFactorScreen({
 
     return (
         <AuthCard shadow="rust" className="mx-auto max-w-[560px] gap-[22px]">
-            <Heading as="h1" size="cardHero">
+            <Heading surface="felt" as="h1" size="cardHero">
                 {copy.heading}
             </Heading>
-            <Text size="md" className="max-w-[36ch]">
+            <Text surface="felt" size="md" className="max-w-[36ch]">
                 {copy.body}
             </Text>
 
@@ -73,6 +73,7 @@ export default function TwoFactorScreen({
                         control={control}
                         render={({ field }) => (
                             <CodeInput
+                                surface="felt"
                                 value={field.value}
                                 onChange={field.onChange}
                                 onBlur={field.onBlur}
@@ -84,17 +85,18 @@ export default function TwoFactorScreen({
                         )}
                     />
                     {errors.code?.message && (
-                        <FieldError id={errorId("code")}>
+                        <FieldError surface="felt" id={errorId("code")}>
                             {errors.code.message}
                         </FieldError>
                     )}
                 </div>
 
                 <div className="flex flex-wrap items-center gap-5">
-                    <Button type="submit" tone="ink" size="lg">
+                    <Button surface="felt" type="submit" tone="rust" size="lg">
                         {copy.submit}
                     </Button>
                     <TextLink
+                        surface="felt"
                         href={authPath(locale, "signIn")}
                         weight="semibold"
                     >

@@ -101,7 +101,11 @@ export default function SignUpScreen({
             shadow="rust"
             aside={
                 <>
-                    <Heading size="card" className="max-w-[18ch]">
+                    <Heading
+                        surface="felt"
+                        size="card"
+                        className="max-w-[18ch]"
+                    >
                         {copy.perksHeading}
                     </Heading>
                     <PerkList items={copy.perks} />
@@ -109,12 +113,13 @@ export default function SignUpScreen({
             }
         >
             <div className="flex flex-col gap-2">
-                <Heading as="h1" size="cardHero">
+                <Heading surface="felt" as="h1" size="cardHero">
                     {copy.heading}
                 </Heading>
-                <Text size="md">
+                <Text surface="felt" size="md">
                     {copy.already}{" "}
                     <TextLink
+                        surface="felt"
                         replace
                         href={authLink(locale, "signIn", {
                             returnTo,
@@ -149,7 +154,7 @@ export default function SignUpScreen({
                 )}
                 className="contents"
             >
-                {error && <FormError>{error}</FormError>}
+                {error && <FormError surface="felt">{error}</FormError>}
 
                 {/* The account needs a name up front: the API's register call writes a
             NOT NULL UNIQUE username, so there is no later step to defer it to.
@@ -157,11 +162,13 @@ export default function SignUpScreen({
             email, and a password manager saves whatever the `username` field
             holds as the identifier it offers back. */}
                 <Field
+                    surface="felt"
                     htmlFor="username"
                     label={common.username}
                     error={errors.username?.message}
                 >
                     <Input
+                        surface="felt"
                         id="username"
                         autoComplete="nickname"
                         {...invalidProps("username", errors.username)}
@@ -170,11 +177,13 @@ export default function SignUpScreen({
                 </Field>
 
                 <Field
+                    surface="felt"
                     htmlFor="email"
                     label={common.email}
                     error={errors.email?.message}
                 >
                     <Input
+                        surface="felt"
                         id="email"
                         type="email"
                         autoComplete="username"
@@ -185,12 +194,14 @@ export default function SignUpScreen({
                 </Field>
 
                 <Field
+                    surface="felt"
                     htmlFor="password"
                     label={common.password}
                     error={errors.password?.message}
                     hint={<RuleLine met={ruleMet}>{copy.rule}</RuleLine>}
                 >
                     <PasswordInput
+                        surface="felt"
                         id="password"
                         autoComplete="new-password"
                         showLabel={common.show}
@@ -204,11 +215,13 @@ export default function SignUpScreen({
             agreement is the thing being rejected, not the button. */}
                 <div className="flex flex-col gap-[7px]">
                     <Checkbox
+                        surface="felt"
                         {...invalidProps("terms", errors.terms)}
                         {...register("terms")}
                     >
                         {copy.agreeLead}{" "}
                         <TextLink
+                            surface="felt"
                             hardNavigation
                             href={legalPath(locale, "terms")}
                             weight="semibold"
@@ -217,6 +230,7 @@ export default function SignUpScreen({
                         </TextLink>{" "}
                         {copy.agreeMid}{" "}
                         <TextLink
+                            surface="felt"
                             hardNavigation
                             href={legalPath(locale, "privacy")}
                             weight="semibold"
@@ -226,13 +240,14 @@ export default function SignUpScreen({
                         .
                     </Checkbox>
                     {errors.terms?.message && (
-                        <FieldError id={errorId("terms")}>
+                        <FieldError surface="felt" id={errorId("terms")}>
                             {errors.terms.message}
                         </FieldError>
                     )}
                 </div>
 
                 <Button
+                    surface="felt"
                     type="submit"
                     tone="rust"
                     size="lg"

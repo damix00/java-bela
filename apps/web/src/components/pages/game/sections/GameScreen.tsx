@@ -37,7 +37,7 @@ import { cn } from "@/lib/ui/cn";
 import { canDeclareBela, declarationPoints } from "@/lib/game/rules";
 import type { Locale } from "@/lib/i18n/config";
 import { homePath } from "@/lib/navigation/routes";
-import { appGutters, focusRing } from "@/lib/ui/styles";
+import { appGutters, focusRing, panel } from "@/lib/ui/styles";
 
 /* The screen's own frame: the viewport, safe areas included, at every size —
    the play route's wrapper is `h-dvh overflow-hidden`, so anything this lays out
@@ -418,8 +418,8 @@ export default function GameScreen({
                     title={copy.leave.action}
                     className={cn(
                         "pointer-events-auto grid cursor-pointer place-items-center self-end",
-                        "size-10 rounded-2xl bg-baize-deep text-mint desk:size-11",
-                        "shadow-[0_6px_20px_-8px_rgb(0_0_0_/_0.5)]",
+                        panel,
+                        "size-10 text-mint desk:size-11",
                         "transition-colors hover:text-cream",
                         focusRing,
                     )}
@@ -766,7 +766,12 @@ function RoundAction({
     if (variant === "table") return panel;
 
     return (
-        <div className="w-full rounded-2xl bg-baize-deep px-3 py-2 shadow-[0_6px_20px_-8px_rgb(0_0_0_/_0.5)] [@media(max-height:560px)]:py-1.5">
+        <div
+            className={cn(
+                panel,
+                "w-full px-3 py-2 [@media(max-height:560px)]:py-1.5",
+            )}
+        >
             {panel}
         </div>
     );

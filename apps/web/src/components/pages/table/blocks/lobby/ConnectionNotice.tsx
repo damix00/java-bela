@@ -62,10 +62,11 @@ export default function ConnectionNotice({
             className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--spacing-bottom-bar)+0.75rem+env(safe-area-inset-bottom))] z-30 flex justify-center px-4 sm:bottom-6"
         >
             {!settled && (
-                <p className="pointer-events-auto m-0 flex flex-wrap items-center justify-center gap-3 border-4 border-ink bg-ink px-4 py-3 text-center text-[13px] font-semibold text-cream shadow-hard-sm">
+                <p className="pointer-events-auto m-0 flex flex-wrap items-center justify-center gap-3 rounded-xl bg-ink px-4 py-3 text-center text-[13px] font-semibold text-cream shadow-[0_4px_14px_-6px_rgb(0_0_0_/_0.5)]">
                     {expired ? copy.expired : copy.reconnecting}
                     {expired && (
                         <ButtonLink
+                            surface="felt"
                             tone="cream"
                             size="sm"
                             href={authPath(locale, "signIn")}

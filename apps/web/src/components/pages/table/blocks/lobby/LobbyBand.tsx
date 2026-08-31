@@ -16,7 +16,7 @@ import { cn } from "@/lib/ui/cn";
 import type { Locale } from "@/lib/i18n/config";
 import { localiseLobbyError } from "@/lib/game/lobby-errors";
 import { joinUrl } from "@/lib/navigation/routes";
-import { focusRing, pressSm } from "@/lib/ui/styles";
+import { dip, focusRing } from "@/lib/ui/styles";
 
 type LobbyBandProps = {
     copy: Dictionary["table"];
@@ -103,7 +103,7 @@ export default function LobbyBand({
     return (
         <section
             aria-label={t.heading}
-            className="mx-auto flex w-full max-w-[760px] flex-col gap-2.5 border-4 border-ink bg-baize-deep p-3 shadow-hard-lg portrait-sm:gap-2 portrait-sm:p-2 desk:gap-3 desk:p-4"
+            className="mx-auto flex w-full max-w-[760px] flex-col gap-2.5 rounded-[24px] bg-baize-deep p-3 shadow-[0_6px_20px_-8px_rgb(0_0_0_/_0.5)] portrait-sm:gap-2 portrait-sm:rounded-[20px] portrait-sm:p-2 desk:gap-3 desk:rounded-[28px] desk:p-4"
         >
             <div className="grid gap-2.5 portrait-sm:gap-2 desk:grid-cols-[minmax(150px,0.9fr)_minmax(190px,1.2fr)_minmax(160px,auto)] desk:gap-4">
                 <TableRules copy={copy} signUpHref={signUpHref} guest={guest} />
@@ -114,12 +114,12 @@ export default function LobbyBand({
                     type="button"
                     onClick={() => setInviteOpen(true)}
                     className={cn(
-                        "flex min-h-14 portrait-sm:min-h-12 w-full cursor-pointer items-center gap-3 border-[3px] border-ink bg-baize px-4 py-2 text-left shadow-hard-sm desk:min-h-16",
-                        pressSm,
+                        "flex min-h-14 portrait-sm:min-h-12 w-full cursor-pointer items-center gap-3 rounded-xl bg-baize px-4 py-2 text-left ring-1 ring-mint/20 desk:min-h-16",
+                        dip,
                         focusRing,
                     )}
                 >
-                    <span className="grid size-11 shrink-0 place-items-center border-[3px] border-ink bg-cream text-ink">
+                    <span className="grid size-11 shrink-0 place-items-center rounded-full bg-cream text-ink">
                         <UserPlus aria-hidden size={18} strokeWidth={3} />
                     </span>
                     <span className="min-w-0">
@@ -133,7 +133,10 @@ export default function LobbyBand({
                 </button>
 
                 <Button
-                    tone={isSearching || (!starts && isReady) ? "cream" : "rust"}
+                    surface="felt"
+                    tone={
+                        isSearching || (!starts && isReady) ? "cream" : "rust"
+                    }
                     size="lg"
                     onClick={() => setReady(!isReady)}
                     className="min-h-14 portrait-sm:min-h-12 w-full py-3 text-center text-[18px] tracking-[-.02em] desk:min-h-16 desk:py-4 desk:text-[19px]"
@@ -141,7 +144,8 @@ export default function LobbyBand({
                     {isSearching
                         ? searchLabel
                         : starts
-                          ? lobby.gameConfiguration.matchType == MatchType.PRIVATE
+                          ? lobby.gameConfiguration.matchType ==
+                            MatchType.PRIVATE
                               ? t.startWithBots
                               : t.play
                           : isReady
@@ -164,7 +168,7 @@ export default function LobbyBand({
             </p>
 
             {error && (
-                <FormError>
+                <FormError surface="felt">
                     {localiseLobbyError(error, copy.lobbyErrors)}
                 </FormError>
             )}

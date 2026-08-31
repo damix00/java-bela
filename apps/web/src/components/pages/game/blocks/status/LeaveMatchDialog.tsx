@@ -33,17 +33,30 @@ export default function LeaveMatchDialog({
     onClose,
 }: LeaveMatchDialogProps) {
     return (
+        // The one thing on the felt that used to be drawn as a poster: a cream
+        // card with a 4px ink frame and a hard shadow, over a table that has
+        // neither. It borrowed `Modal` and `Card` at their defaults, which were
+        // the marketing page's; asking for the felt is the whole fix.
         <Modal
             closeLabel={copy.close}
             onClose={onClose}
+            surface="felt"
             className="max-w-[520px]"
         >
-            <Card padding="lg" className="gap-4">
-                <Heading as="h2" size="card" className="max-w-[20ch]">
+            <Card surface="felt" padding="lg" className="gap-4">
+                <Heading
+                    surface="felt"
+                    as="h2"
+                    size="card"
+                    className="max-w-[20ch]"
+                >
                     {copy.heading}
                 </Heading>
-                <Text size="sm">{copy.body}</Text>
+                <Text surface="felt" size="sm">
+                    {copy.body}
+                </Text>
                 <Button
+                    surface="felt"
                     tone="rust"
                     onClick={onConfirm}
                     className="mt-1 self-start"

@@ -2,9 +2,11 @@ import { Check } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 
 import { cn } from "@/lib/ui/cn";
+import type { Surface } from "@/lib/ui/styles";
 
 type CheckboxProps = Omit<ComponentProps<"input">, "type" | "children"> & {
     children: ReactNode;
+    surface?: Surface;
 };
 
 /**
@@ -17,14 +19,18 @@ type CheckboxProps = Omit<ComponentProps<"input">, "type" | "children"> & {
  * the selector reaches down to the glyph it contains.
  */
 export default function Checkbox({
+    surface = "brut",
     className,
     children,
     ...props
 }: CheckboxProps) {
+    const felt = surface === "felt";
+
     return (
         <label
             className={cn(
-                "flex cursor-pointer items-start gap-[11px] text-[15px] leading-[1.5] text-moss",
+                "flex cursor-pointer items-start gap-[11px] text-[15px] leading-[1.5]",
+                felt ? "text-mint" : "text-moss",
                 className,
             )}
         >
@@ -33,7 +39,12 @@ export default function Checkbox({
                 aria-hidden
                 // The flag sits on the hidden input, so the box it draws has to reach
                 // back for it the same way it reaches for `:checked`.
-                className="grid size-[22px] shrink-0 place-items-center border-4 border-ink bg-white [&_svg]:hidden peer-checked:bg-forest peer-checked:[&_svg]:block peer-focus-visible:outline-4 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-rust peer-aria-invalid:border-rust"
+                className={cn(
+                    "grid size-[22px] shrink-0 place-items-center [&_svg]:hidden peer-checked:bg-forest peer-checked:[&_svg]:block peer-focus-visible:outline-4 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-rust",
+                    felt
+                        ? "rounded-md bg-baize-deep ring-1 ring-mint/20 peer-aria-invalid:ring-rust"
+                        : "border-4 border-ink bg-white peer-aria-invalid:border-rust",
+                )}
             >
                 <Check className="size-[14px] text-cream" strokeWidth={4} />
             </span>

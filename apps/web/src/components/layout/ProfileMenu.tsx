@@ -18,6 +18,7 @@ import { isGuest } from "@/api/types/user";
 import type { Dictionary } from "@/dictionaries";
 import { forgetLobby } from "@/lib/game/last-lobby";
 import { cn } from "@/lib/ui/cn";
+import { panel } from "@/lib/ui/styles";
 import type { Locale } from "@/lib/i18n/config";
 import { authPath, profilePath, settingsPath } from "@/lib/navigation/routes";
 import Icon from "@/components/ui/graphics/Icon";
@@ -137,22 +138,25 @@ export default function ProfileMenu({
                 <div
                     role="menu"
                     aria-label={copy.trigger}
-                    className="absolute top-[calc(100%+14px)] right-0 z-40 w-[268px] border-4 border-ink bg-cream shadow-hard"
+                    className={cn(
+                        panel,
+                        "absolute top-[calc(100%+14px)] right-0 z-40 w-[268px] overflow-hidden",
+                    )}
                 >
                     {/* Who you are, before what you can do about it: the avatar repeats
                         at menu scale so the panel reads as belonging to the corner it
                         dropped out of. */}
-                    <div className="flex min-w-0 items-center gap-3 border-b-4 border-ink p-4">
+                    <div className="flex min-w-0 items-center gap-3 border-b border-mint/15 p-4">
                         <UserAvatar
                             username={user.username}
                             avatarUrl={user.avatarUrl}
-                            className="border-ink"
+                            className="border-mint/30"
                         />
                         <div className="min-w-0">
-                            <p className="truncate font-display text-[16px] font-extrabold tracking-[-.02em] text-ink">
+                            <p className="truncate font-display text-[16px] font-extrabold tracking-[-.02em] text-cream">
                                 {user.username}
                             </p>
-                            <p className="truncate font-sans text-[13px] text-moss">
+                            <p className="truncate font-sans text-[13px] text-mint/80">
                                 {user.email ?? copy.guestAccount}
                             </p>
                         </div>
@@ -221,16 +225,16 @@ function MenuItem({
 }: MenuItemProps) {
     const content = (
         <>
-            <Icon
-                glyph={glyph}
-                size="sm"
-                className={cn(emphasis && "text-cream")}
-            />
+            {/* `text-current` rather than a tone: the glyph then tracks the
+                row it is in — mint at rest, cream under the pointer, cream on
+                the one rust row — instead of standing at `Icon`'s own default,
+                which is ink and all but invisible on the panel. */}
+            <Icon glyph={glyph} size="sm" className="text-current" />
             <span className="mr-auto">{children}</span>
         </>
     );
     const className = cn(
-        "flex w-full items-center gap-3 border-b-[3px] border-ink/15 px-4 py-[13px] text-left font-display text-[15px] font-extrabold text-ink last:border-b-0",
+        "flex w-full items-center gap-3 border-b border-mint/15 px-4 py-[13px] text-left font-display text-[15px] font-extrabold text-mint last:border-b-0",
         emphasis && "bg-rust text-cream",
     );
     const interactive =
@@ -247,8 +251,8 @@ function MenuItem({
                     interactive,
                     "no-underline",
                     emphasis
-                        ? "hover:bg-rust/90 hover:text-cream focus-visible:outline-ink"
-                        : "hover:bg-sage focus-visible:bg-sage",
+                        ? "hover:bg-rust/90 hover:text-cream focus-visible:outline-cream"
+                        : "hover:bg-mint/10 hover:text-cream focus-visible:bg-mint/10",
                 )}
             >
                 {content}
@@ -265,7 +269,7 @@ function MenuItem({
             className={cn(
                 className,
                 interactive,
-                "hover:bg-sage focus-visible:bg-sage disabled:pointer-events-none disabled:opacity-60",
+                "hover:bg-mint/10 hover:text-cream focus-visible:bg-mint/10 disabled:pointer-events-none disabled:opacity-60",
             )}
         >
             {content}

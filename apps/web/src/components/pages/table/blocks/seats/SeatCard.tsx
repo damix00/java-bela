@@ -3,7 +3,7 @@ import SwapBadge from "@/components/pages/table/blocks/seats/SwapBadge";
 import UserAvatar from "@/components/layout/UserAvatar";
 import Card from "@/components/ui/surfaces/Card";
 import { cn } from "@/lib/ui/cn";
-import { pressSm, swapRing } from "@/lib/ui/styles";
+import { dip, swapRing } from "@/lib/ui/styles";
 
 /** A short mark on a seat — "You", "Host", "Ready". */
 export type SeatTag = {
@@ -35,8 +35,8 @@ type SeatCardProps = {
 };
 
 const tagTones: Record<NonNullable<SeatTag["tone"]>, string> = {
-    paper: "border-ink bg-paper text-ink",
-    ready: "border-ink bg-forest text-cream",
+    paper: "bg-mint/10 text-mint",
+    ready: "bg-forest text-cream",
 };
 
 /** A taken seat: who is in it, and what the table knows about them. */
@@ -57,14 +57,14 @@ export default function SeatCard({
                 username={name}
                 avatarUrl={avatarUrl}
                 size="lg"
-                className="border-ink"
+                className="border-mint/30"
             />
             <span className="mr-auto flex min-w-0 flex-col text-left">
-                <span className="truncate font-display text-[17px] font-extrabold tracking-[-.02em] text-ink">
+                <span className="truncate font-display text-[17px] font-extrabold tracking-[-.02em] text-cream">
                     {name}
                 </span>
                 {meta && (
-                    <span className="truncate font-sans text-[12px] font-medium text-stone">
+                    <span className="truncate font-sans text-[12px] font-medium text-mint/70">
                         {meta}
                     </span>
                 )}
@@ -73,7 +73,7 @@ export default function SeatCard({
                 <MockLabel
                     key={tag.label}
                     className={cn(
-                        "border-[3px] px-2 py-[6px] sm:px-3",
+                        "rounded-full px-2 py-[6px] sm:px-3",
                         tagTones[tag.tone ?? "paper"],
                     )}
                 >
@@ -85,14 +85,14 @@ export default function SeatCard({
     );
 
     const shell = cn(
-        "flex-row items-center gap-3 px-3 py-3 shadow-hard portrait-sm:py-2 desk:gap-4 desk:px-4 desk:py-[14px]",
+        "flex-row items-center gap-3 px-3 py-3 portrait-sm:py-2 desk:gap-4 desk:px-4 desk:py-[14px]",
         swapRing(status),
         className,
     );
 
     if (!onClick) {
         return (
-            <Card padding="none" className={shell}>
+            <Card surface="felt" padding="none" className={shell}>
                 {body}
             </Card>
         );
@@ -100,6 +100,7 @@ export default function SeatCard({
 
     return (
         <Card
+            surface="felt"
             as="button"
             type="button"
             padding="none"
@@ -107,7 +108,7 @@ export default function SeatCard({
             disabled={disabled}
             aria-label={actionLabel}
             aria-busy={status === "pending"}
-            className={cn(shell, "cursor-pointer text-left", pressSm)}
+            className={cn(shell, "cursor-pointer text-left", dip)}
         >
             {body}
         </Card>

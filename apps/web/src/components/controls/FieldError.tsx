@@ -1,9 +1,11 @@
 import { cn } from "@/lib/ui/cn";
+import type { Surface } from "@/lib/ui/styles";
 
 type FieldErrorProps = {
     /** The id the offending control points at with `aria-describedby`. */
     id: string;
     children: string;
+    surface?: Surface;
     className?: string;
 };
 
@@ -19,6 +21,7 @@ type FieldErrorProps = {
 export default function FieldError({
     id,
     children,
+    surface = "brut",
     className,
 }: FieldErrorProps) {
     return (
@@ -32,7 +35,12 @@ export default function FieldError({
         >
             <span
                 aria-hidden
-                className="size-3.5 shrink-0 border-[3px] border-ink bg-rust"
+                className={cn(
+                    "size-3.5 shrink-0 bg-rust",
+                    surface === "felt"
+                        ? "rounded-full"
+                        : "border-[3px] border-ink",
+                )}
             />
             {children}
         </p>

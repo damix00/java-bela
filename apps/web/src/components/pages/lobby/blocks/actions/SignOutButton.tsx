@@ -22,6 +22,7 @@ export default function SignOutButton({
 
     return (
         <Button
+            surface="felt"
             tone="cream"
             size="sm"
             disabled={pending}

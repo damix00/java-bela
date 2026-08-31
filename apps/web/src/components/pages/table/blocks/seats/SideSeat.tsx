@@ -1,7 +1,7 @@
 import MockLabel from "@/components/pages/table/blocks/shared/MockLabel";
 import SwapBadge from "@/components/pages/table/blocks/seats/SwapBadge";
 import { cn } from "@/lib/ui/cn";
-import { focusRing, pressSm, swapRing } from "@/lib/ui/styles";
+import { dip, focusRing, panelNested, swapRing } from "@/lib/ui/styles";
 import UserAvatar from "@/components/layout/UserAvatar";
 
 type SideSeatProps = {
@@ -49,9 +49,12 @@ export default function SideSeat({
     className,
 }: SideSeatProps) {
     const shell = cn(
-        "relative flex min-w-0 flex-col items-center justify-center gap-1.5 border-4 border-ink bg-cream p-1.5 shadow-hard desk:gap-2 desk:p-2 desk-md:p-3",
+        panelNested,
+        "relative flex min-w-0 flex-col items-center justify-center gap-1.5 p-1.5 desk:gap-2 desk:p-2 desk-md:p-3",
+        // Ready is the one state worth a colour of its own: forest is the only
+        // block on the felt that is neither the table nor a panel on it.
         ready && "bg-forest",
-        onClick && !disabled && ["cursor-pointer", pressSm, focusRing],
+        onClick && !disabled && ["cursor-pointer", dip, focusRing],
         swapRing(swapStatus),
         className,
     );
@@ -66,12 +69,12 @@ export default function SideSeat({
             <UserAvatar
                 username={name}
                 avatarUrl={avatarUrl}
-                className={ready ? "border-cream" : "border-ink"}
+                className={ready ? "border-cream" : "border-mint/30"}
             />
             <span
                 className={cn(
                     "w-full truncate text-center font-display text-[11px] font-extrabold tracking-[-.02em] desk:text-[13px]",
-                    ready ? "text-cream" : "text-ink",
+                    "text-cream",
                 )}
             >
                 {name}
@@ -80,7 +83,7 @@ export default function SideSeat({
                 <MockLabel
                     className={cn(
                         "hidden text-center text-[9px] tracking-[.1em] desk-lg:block",
-                        ready ? "text-cream/80" : "text-stone",
+                        ready ? "text-cream/80" : "text-mint/70",
                     )}
                 >
                     {note}

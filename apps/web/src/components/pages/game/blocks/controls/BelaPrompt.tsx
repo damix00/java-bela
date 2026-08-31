@@ -3,6 +3,8 @@
 import { Button } from "@/components/controls/Button";
 import PlayingCard from "@/components/pages/game/blocks/cards/PlayingCard";
 import type { Card } from "@bela/protocol";
+import { cn } from "@/lib/ui/cn";
+import { panelRaised, scrim } from "@/lib/ui/styles";
 
 type BelaPromptProps = {
     card: Card;
@@ -35,9 +37,14 @@ export default function BelaPrompt({
             role="dialog"
             aria-modal="true"
             aria-label={heading}
-            className="fixed inset-0 z-50 grid place-items-center bg-ink/70 p-6"
+            className={cn(scrim, "p-6")}
         >
-            <div className="flex w-full max-w-[400px] flex-col items-center gap-4 rounded-2xl bg-baize-deep p-6 shadow-[0_12px_36px_-10px_rgb(0_0_0_/_0.6)]">
+            <div
+                className={cn(
+                    panelRaised,
+                    "flex w-full max-w-[400px] flex-col items-center gap-4 p-6",
+                )}
+            >
                 <PlayingCard card={card} />
 
                 <p className="text-center font-display text-[20px] font-extrabold tracking-[-.02em] text-cream">

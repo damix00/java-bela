@@ -90,6 +90,7 @@ export default function SignInScreen({
                     <Logo tone="cream" />
                     <div className="flex flex-col gap-[26px]">
                         <Heading
+                            surface="felt"
                             size="cardHero"
                             tone="cream"
                             className="max-w-[16ch]"
@@ -101,12 +102,13 @@ export default function SignInScreen({
             }
         >
             <div className="flex flex-col gap-2">
-                <Heading as="h1" size="cardHero">
+                <Heading surface="felt" as="h1" size="cardHero">
                     {copy.heading}
                 </Heading>
-                <Text size="md">
+                <Text surface="felt" size="md">
                     {copy.noAccount}{" "}
                     <TextLink
+                        surface="felt"
                         replace
                         href={authLink(locale, "signUp", {
                             returnTo,
@@ -135,14 +137,16 @@ export default function SignInScreen({
                 )}
                 className="contents"
             >
-                {error && <FormError>{error}</FormError>}
+                {error && <FormError surface="felt">{error}</FormError>}
 
                 <Field
+                    surface="felt"
                     htmlFor="email"
                     label={common.email}
                     error={errors.email?.message}
                 >
                     <Input
+                        surface="felt"
                         id="email"
                         type="email"
                         autoComplete="username"
@@ -152,11 +156,13 @@ export default function SignInScreen({
                 </Field>
 
                 <Field
+                    surface="felt"
                     htmlFor="password"
                     label={common.password}
                     error={errors.password?.message}
                     action={
                         <TextLink
+                            surface="felt"
                             href={authPath(locale, "forgotPassword")}
                             weight="semibold"
                             className="text-[14px]"
@@ -166,6 +172,7 @@ export default function SignInScreen({
                     }
                 >
                     <PasswordInput
+                        surface="felt"
                         id="password"
                         showLabel={common.show}
                         hideLabel={common.hide}
@@ -179,6 +186,7 @@ export default function SignInScreen({
             only ever promise something already unconditionally true. */}
 
                 <Button
+                    surface="felt"
                     type="submit"
                     tone="forest"
                     size="lg"

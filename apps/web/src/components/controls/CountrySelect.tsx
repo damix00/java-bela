@@ -6,7 +6,13 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Flag from "@/components/ui/graphics/Flag";
 import type { CountryOption } from "@/lib/i18n/countries";
 import { cn } from "@/lib/ui/cn";
-import { focusRing, inputBox } from "@/lib/ui/styles";
+import {
+    feltInputBox,
+    focusRing,
+    inputBox,
+    panel,
+    type Surface,
+} from "@/lib/ui/styles";
 
 type CountrySelectProps = {
     id: string;
@@ -21,6 +27,7 @@ type CountrySelectProps = {
     searchLabel: string;
     /** Said when the filter matches nothing. */
     emptyLabel: string;
+    surface?: Surface;
 };
 
 /**
@@ -53,7 +60,9 @@ export default function CountrySelect({
     noneLabel,
     searchLabel,
     emptyLabel,
+    surface = "brut",
 }: CountrySelectProps) {
+    const felt = surface === "felt";
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState("");
     const [active, setActive] = useState(0);
@@ -63,13 +72,17 @@ export default function CountrySelect({
     const searchBox = useRef<HTMLInputElement>(null);
     const list = useRef<HTMLUListElement>(null);
 
-    const selected = countries.find((country) => country.code === value) ?? null;
+    const selected =
+        countries.find((country) => country.code === value) ?? null;
 
     // The empty choice is a row in the list rather than a cleared field: "rather
     // not say" is a thing a player chooses, and a picker you cannot un-pick
     // would make the country the one profile field that is permanent.
     const rows = useMemo(() => {
-        const all: CountryOption[] = [{ code: "", name: noneLabel }, ...countries];
+        const all: CountryOption[] = [
+            { code: "", name: noneLabel },
+            ...countries,
+        ];
         const needle = query.trim().toLocaleLowerCase();
         if (!needle) return all;
 
@@ -170,9 +183,10 @@ export default function CountrySelect({
                 onClick={() => (open ? setOpen(false) : openList())}
                 className={cn(
                     focusRing,
-                    inputBox,
-                    "flex cursor-pointer items-center gap-3 bg-white text-left",
-                    open && "bg-paper",
+                    "flex cursor-pointer items-center gap-3 text-left",
+                    felt
+                        ? feltInputBox
+                        : [inputBox, "bg-white", open && "bg-paper"],
                 )}
             >
                 {/* Fixed slot rather than a bare `Flag`, so the name starts in
@@ -197,8 +211,22 @@ export default function CountrySelect({
                 // Laid over the page rather than pushing it: the field sits in
                 // the middle of a form, and a panel that reflowed everything
                 // under it would move the save button out from under the cursor.
-                <div className="absolute top-[calc(100%+6px)] right-0 left-0 z-20 flex max-h-[320px] flex-col border-4 border-ink bg-paper shadow-hard">
-                    <div className="flex items-center gap-2 border-b-4 border-ink bg-cream px-4 py-3">
+                <div
+                    className={cn(
+                        "absolute top-[calc(100%+6px)] right-0 left-0 z-20 flex max-h-[320px] flex-col",
+                        felt
+                            ? `${panel} overflow-hidden`
+                            : "border-4 border-ink bg-paper shadow-hard",
+                    )}
+                >
+                    <div
+                        className={cn(
+                            "flex items-center gap-2 px-4 py-3",
+                            felt
+                                ? "border-b border-mint/15"
+                                : "border-b-4 border-ink bg-cream",
+                        )}
+                    >
                         <Search
                             aria-hidden="true"
                             strokeWidth={3}
@@ -228,7 +256,12 @@ export default function CountrySelect({
                                     : undefined
                             }
                             autoComplete="off"
-                            className="w-full min-w-0 border-none bg-transparent font-sans text-[16px] text-ink outline-none placeholder:text-stone/70"
+                            className={cn(
+                                "w-full min-w-0 border-none bg-transparent font-sans text-[16px] outline-none",
+                                felt
+                                    ? "text-cream placeholder:text-mint/40"
+                                    : "text-ink placeholder:text-stone/70",
+                            )}
                         />
                     </div>
 
@@ -255,11 +288,18 @@ export default function CountrySelect({
                                             role="option"
                                             aria-selected={picked}
                                             onClick={() => pick(country.code)}
-                                            onPointerMove={() => setActive(index)}
+                                            onPointerMove={() =>
+                                                setActive(index)
+                                            }
                                             className={cn(
-                                                "flex w-full cursor-pointer items-center gap-3 border-none px-4 py-[10px] text-left font-sans text-[16px] text-ink",
+                                                "flex w-full cursor-pointer items-center gap-3 border-none px-4 py-[10px] text-left font-sans text-[16px]",
+                                                felt
+                                                    ? "text-cream"
+                                                    : "text-ink",
                                                 index === activeRow
-                                                    ? "bg-sage"
+                                                    ? felt
+                                                        ? "bg-mint/10"
+                                                        : "bg-sage"
                                                     : "bg-transparent",
                                             )}
                                         >

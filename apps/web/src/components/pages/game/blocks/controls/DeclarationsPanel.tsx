@@ -7,6 +7,8 @@ import { Button } from "@/components/controls/Button";
 import DeclarationList from "@/components/pages/game/blocks/controls/DeclarationList";
 import { declarationPoints } from "@/lib/game/rules";
 import type { Declaration, Type } from "@bela/protocol";
+import { cn } from "@/lib/ui/cn";
+import { panelNested } from "@/lib/ui/styles";
 
 type DeclarationsPanelProps = {
     /** The server-resolved declarations currently credited to both teams. */
@@ -53,7 +55,12 @@ function Side({
     nameOf: (seat: number) => string;
 }) {
     return (
-        <div className="flex min-w-0 flex-1 flex-col items-center gap-1.5 rounded-xl bg-baize-deep px-3 py-3 text-center shadow-[0_4px_14px_-6px_rgb(0_0_0_/_0.5)] sm:px-4 sm:py-4">
+        <div
+            className={cn(
+                panelNested,
+                "flex min-w-0 flex-1 flex-col items-center gap-1.5 px-3 py-3 text-center sm:px-4 sm:py-4",
+            )}
+        >
             <span className="truncate text-[9px] font-bold tracking-wide text-mint/70 uppercase sm:text-[11px]">
                 {label}
             </span>

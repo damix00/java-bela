@@ -1,7 +1,9 @@
 import { cn } from "@/lib/ui/cn";
+import type { Surface } from "@/lib/ui/styles";
 
 type FormErrorProps = {
     children: string;
+    surface?: Surface;
     className?: string;
 };
 
@@ -15,12 +17,20 @@ type FormErrorProps = {
  * `role="alert"` for the same reason: it is the answer to a submit the player
  * just pressed.
  */
-export default function FormError({ children, className }: FormErrorProps) {
+export default function FormError({
+    children,
+    surface = "brut",
+    className,
+}: FormErrorProps) {
     return (
         <p
             role="alert"
             className={cn(
-                "m-0 border-4 border-ink bg-rust px-4 py-3 text-[13px] font-semibold text-cream",
+                "m-0 bg-rust px-4 py-3 text-[13px] font-semibold text-cream",
+                // Rust stays the alarm on both surfaces; only the frame around
+                // it goes, since on the felt the fill is already the loudest
+                // thing on the panel.
+                surface === "felt" ? "rounded-xl" : "border-4 border-ink",
                 className,
             )}
         >
