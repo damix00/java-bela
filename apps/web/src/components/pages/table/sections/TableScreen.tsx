@@ -260,11 +260,11 @@ export default function TableScreen({
 
             <main
                 className={cn(
-                    "flex flex-1 flex-col justify-center py-8 md:py-10",
+                    "flex flex-1 flex-col justify-center py-4 portrait-sm:py-2 desk:py-8 desk-md:py-10",
                     appGutters,
                 )}
             >
-                <div className="flex min-w-0 flex-col gap-8 sm:gap-10">
+                <div className="flex min-w-0 flex-col gap-5 portrait-sm:gap-3 desk:gap-8 desk-lg:gap-10">
                     <LobbyTable
                         copy={copy}
                         user={user}

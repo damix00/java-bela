@@ -34,7 +34,7 @@ export default function AppNavigationFrame({
                     "flex flex-1 flex-col",
                     playing
                         ? "h-dvh min-h-0 flex-none overflow-hidden overscroll-none"
-                        : "pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:pb-0",
+                        : "pb-[calc(var(--spacing-bottom-bar)+env(safe-area-inset-bottom))] sm:pb-0",
                 )}
             >
                 {children}

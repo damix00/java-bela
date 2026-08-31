@@ -59,7 +59,7 @@ export default async function AppLayout({
                     <GameProvider userId={user?.id ?? null}>
                         <div
                             data-felt=""
-                            className={cn(felt, "flex min-h-screen flex-col")}
+                            className={cn(felt, "flex min-h-dvh flex-col")}
                         >
                             <AppNavigationFrame
                                 locale={lang}

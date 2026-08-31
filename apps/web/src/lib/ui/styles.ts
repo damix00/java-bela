@@ -144,16 +144,20 @@ export const hatch =
  * The signed-in surfaces' horizontal frame, shared by the top bar, the lobby
  * and the tables.
  *
- * These are `Section`'s gutters, to the pixel and with no cap on top of them,
- * which is the whole point: the marketing page's bands stop at 288px from each
- * edge and stay there for ever, so anything that wants to line up with them has
- * to stop in the same place. A `max-width` centred inside the same padding
- * looks identical up to about 1480px and then quietly drifts inward — which is
- * exactly the width a 14" laptop opens at.
+ * These are `Section`'s gutters from `sm` up, to the pixel and with no cap on
+ * top of them, which is the whole point: the marketing page's bands stop at
+ * 288px from each edge and stay there for ever, so anything that wants to line
+ * up with them has to stop in the same place. A `max-width` centred inside the
+ * same padding looks identical up to about 1480px and then quietly drifts
+ * inward — which is exactly the width a 14" laptop opens at.
+ *
+ * The phone tier is the one place they part. `Section` sets bands of prose,
+ * where 32px a side is a margin; these screens set a table, where the same
+ * 32px is 18% of a 360px viewport taken off the seats before they are drawn.
  *
  * Blocks that shouldn't grow past a point cap themselves, at their own width.
  */
-export const appGutters = "px-8 md:px-28 lg:px-48 xl:px-72";
+export const appGutters = "px-4 sm:px-8 md:px-28 lg:px-48 xl:px-72";
 
 /**
  * The table's surface, under everything the lobby lays on it.

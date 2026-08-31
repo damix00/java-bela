@@ -28,7 +28,7 @@ const destinations = [
 ] as const;
 
 const barItem =
-    "flex min-w-0 flex-col items-center justify-center gap-1 px-1 py-3 font-sans text-[10px] font-bold tracking-[.08em] uppercase";
+    "flex min-w-0 flex-col items-center justify-center gap-1 px-1 py-3 font-sans text-[10px] font-bold tracking-[.08em] uppercase portrait-sm:gap-0.5 portrait-sm:py-2";
 
 /**
  * Which destination the current URL belongs to.

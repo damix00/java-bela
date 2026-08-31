@@ -85,7 +85,7 @@ export default function SeatCard({
     );
 
     const shell = cn(
-        "flex-row items-center gap-3 px-3 py-3 shadow-hard sm:gap-4 sm:px-4 sm:py-[14px]",
+        "flex-row items-center gap-3 px-3 py-3 shadow-hard portrait-sm:py-2 desk:gap-4 desk:px-4 desk:py-[14px]",
         swapRing(status),
         className,
     );

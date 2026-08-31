@@ -103,9 +103,9 @@ export default function LobbyBand({
     return (
         <section
             aria-label={t.heading}
-            className="mx-auto flex w-full max-w-[760px] flex-col gap-3 border-4 border-ink bg-baize-deep p-3 shadow-hard-lg sm:p-4"
+            className="mx-auto flex w-full max-w-[760px] flex-col gap-2.5 border-4 border-ink bg-baize-deep p-3 shadow-hard-lg portrait-sm:gap-2 portrait-sm:p-2 desk:gap-3 desk:p-4"
         >
-            <div className="grid gap-3 sm:grid-cols-[minmax(150px,0.9fr)_minmax(190px,1.2fr)_minmax(160px,auto)] sm:gap-4">
+            <div className="grid gap-2.5 portrait-sm:gap-2 desk:grid-cols-[minmax(150px,0.9fr)_minmax(190px,1.2fr)_minmax(160px,auto)] desk:gap-4">
                 <TableRules copy={copy} signUpHref={signUpHref} guest={guest} />
 
                 {/* Same footprint and the same press physics the code block
@@ -114,7 +114,7 @@ export default function LobbyBand({
                     type="button"
                     onClick={() => setInviteOpen(true)}
                     className={cn(
-                        "flex min-h-16 w-full cursor-pointer items-center gap-3 border-[3px] border-ink bg-baize px-4 py-2 text-left shadow-hard-sm",
+                        "flex min-h-14 portrait-sm:min-h-12 w-full cursor-pointer items-center gap-3 border-[3px] border-ink bg-baize px-4 py-2 text-left shadow-hard-sm desk:min-h-16",
                         pressSm,
                         focusRing,
                     )}
@@ -136,7 +136,7 @@ export default function LobbyBand({
                     tone={isSearching || (!starts && isReady) ? "cream" : "rust"}
                     size="lg"
                     onClick={() => setReady(!isReady)}
-                    className="min-h-16 w-full py-4 text-center text-[18px] tracking-[-.02em] sm:text-[19px]"
+                    className="min-h-14 portrait-sm:min-h-12 w-full py-3 text-center text-[18px] tracking-[-.02em] desk:min-h-16 desk:py-4 desk:text-[19px]"
                 >
                     {isSearching
                         ? searchLabel

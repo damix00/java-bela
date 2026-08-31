@@ -342,7 +342,7 @@ export default function TableRules({
     // drawn as one. Same block, same place, no affordance.
     if (!isHost) {
         return (
-            <div className="flex min-h-16 w-full items-center border-[3px] border-ink bg-baize px-4 py-3">
+            <div className="flex min-h-14 portrait-sm:min-h-12 w-full items-center border-[3px] border-ink bg-baize px-4 py-3 desk:min-h-16">
                 {face}
             </div>
         );
@@ -383,7 +383,7 @@ export default function TableRules({
                 onClick={() => (open ? closeListbox() : openListbox())}
                 onKeyDown={handleTriggerKeyDown}
                 className={cn(
-                    "flex min-h-16 w-full cursor-pointer items-center justify-between gap-3 border-[3px] border-ink bg-baize px-4 py-3 text-left shadow-hard-sm",
+                    "flex min-h-14 portrait-sm:min-h-12 w-full cursor-pointer items-center justify-between gap-3 border-[3px] border-ink bg-baize px-4 py-3 text-left shadow-hard-sm desk:min-h-16",
                     pressSm,
                     focusRing,
                 )}

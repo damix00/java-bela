@@ -24,11 +24,16 @@ type SideSeatProps = {
  * An opponent, in the square the table's side columns give them.
  *
  * The near and across seats are full-width rows and get the whole `SeatCard`;
- * these two get 60px on a phone, which is a tile and a half. So the same person
- * is drawn as the tile alone, gaining their name at `sm` and their role at `lg`
- * — the seat never disappears, it just says less. Dropping the side seats on a
- * narrow screen instead would take the shape of the table with them, and the
- * shape is what tells you what you are joining.
+ * these two get 88px on a phone, which is a tile with a name under it. That is
+ * the floor rather than the ideal: this used to be 48px, which held the tile
+ * alone — and not even that, since the avatar is 40px and the borders and
+ * padding left 24px for it, so it spilled out of its own box while the name was
+ * hidden outright. Two of the four people at the table were an unnamed smear.
+ *
+ * So the column pays for the name out of the felt, and the role still waits for
+ * `desk-lg`, where there is room to say it. Dropping the side seats on a narrow
+ * screen instead would take the shape of the table with them, and the shape is
+ * what tells you what you are joining.
  *
  * The name is always in the accessible name, whatever the width is showing.
  */
@@ -44,7 +49,7 @@ export default function SideSeat({
     className,
 }: SideSeatProps) {
     const shell = cn(
-        "relative flex flex-col items-center justify-center gap-2 border-4 border-ink bg-cream p-2 shadow-hard md:p-3",
+        "relative flex min-w-0 flex-col items-center justify-center gap-1.5 border-4 border-ink bg-cream p-1.5 shadow-hard desk:gap-2 desk:p-2 desk-md:p-3",
         ready && "bg-forest",
         onClick && !disabled && ["cursor-pointer", pressSm, focusRing],
         swapRing(swapStatus),
@@ -53,8 +58,8 @@ export default function SideSeat({
 
     const body = (
         <>
-            {/* Cornered rather than stacked: the square is 52px on a phone and
-                the tile plus the name already fill it. */}
+            {/* Cornered rather than stacked: the avatar and the name already
+                fill the square, and on a phone there is nothing spare. */}
             {onClick && (
                 <SwapBadge size="sm" className="absolute top-1 right-1" />
             )}
@@ -65,7 +70,7 @@ export default function SideSeat({
             />
             <span
                 className={cn(
-                    "hidden w-full truncate text-center font-display text-[13px] font-extrabold tracking-[-.02em] sm:block",
+                    "w-full truncate text-center font-display text-[11px] font-extrabold tracking-[-.02em] desk:text-[13px]",
                     ready ? "text-cream" : "text-ink",
                 )}
             >
@@ -74,7 +79,7 @@ export default function SideSeat({
             {note && (
                 <MockLabel
                     className={cn(
-                        "hidden text-center text-[9px] tracking-[.1em] lg:block",
+                        "hidden text-center text-[9px] tracking-[.1em] desk-lg:block",
                         ready ? "text-cream/80" : "text-stone",
                     )}
                 >

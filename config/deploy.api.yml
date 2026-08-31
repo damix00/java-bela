@@ -14,10 +14,15 @@
 service: bela-api
 image: damix00/bela-api
 
+# The origin IP is kept out of this file — the repo is public, and an origin address defeats
+# the point of proxying everything through Cloudflare. It comes from DEPLOY_HOST in the
+# deploying environment: a repository secret in CI, `export DEPLOY_HOST=...` in your shell for
+# a manual deploy. ENV.fetch, not ENV[], so a missing value fails loudly instead of deploying
+# to an empty host.
 servers:
   web:
     hosts:
-      - 62.238.122.182
+      - <%= ENV.fetch("DEPLOY_HOST") %>
     # Kamal names the container bela-api-web-<sha>, which changes every deploy, and adds no
     # alias of its own — so the web app's INTERNAL_API_URL of http://bela-api:8080 had nothing
     # to resolve and every server-rendered call failed with ENOTFOUND. A fixed alias gives the
@@ -98,7 +103,7 @@ env:
 accessories:
   postgres:
     image: postgres:16-alpine
-    host: 62.238.122.182
+    host: <%= ENV.fetch("DEPLOY_HOST") %>
     # No `port:` on purpose. Publishing 5432 to the host would expose the database to the
     # internet on a box whose firewall only means to allow 22, 80 and 443. The app reaches it
     # over the Docker network by container name instead.
@@ -113,7 +118,7 @@ accessories:
 
   redis:
     image: redis:7-alpine
-    host: 62.238.122.182
+    host: <%= ENV.fetch("DEPLOY_HOST") %>
     # --maxmemory-policy noeviction is the important one and is not the Redis default behaviour
     # people assume. Redis here is not a cache: it holds the authoritative lobby and game state,
     # plus the distributed locks that keep two API instances from corrupting it. Under an

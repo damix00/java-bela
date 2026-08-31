@@ -24,9 +24,10 @@ type EmptySeatProps = {
  * outline waiting to be filled rather than a card that happens to be empty.
  *
  * The two open seats sit either side of the felt at every width, because that
- * is where the players who fill them will sit. On a phone the column is only
- * wide enough for the tile, so the label goes to assistive tech alone rather
- * than wrapping into four lines of stacked letters.
+ * is where the players who fill them will sit. The chair is drawn at whatever
+ * size its slot is — filling the side column outright — and below `md` the
+ * label goes to assistive tech alone rather than wrapping into four lines of
+ * stacked letters.
  *
  * Pressing one moves the reader into it. That used to be refused, because the
  * chair's old "Invite / fill" label promised an invitation the click could not
@@ -48,9 +49,9 @@ export default function EmptySeat({
         "border-4 border-dashed md:gap-4 md:p-4",
         onClick && !disabled
             ? [
-                  // A live chair is drawn warmer than an inert one — at 52px on
-                  // a phone the dash weight is the only thing there is room to
-                  // say it with.
+                  // A live chair is drawn warmer than an inert one — with no
+                  // label to read on a phone, the dash weight is the only thing
+                  // there is room to say it with.
                   "cursor-pointer border-mint/60 hover:border-mint hover:bg-mint/5",
                   pressSm,
                   focusRing,

@@ -37,6 +37,13 @@
   --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
 
+  /* The phone's bottom bar, which is `fixed` and therefore out of flow: three
+     places have to know how tall it is — the bar's own reservation on the app
+     frame, and anything else pinned above it — and they used to hold three
+     copies of the same literal. Measured from the bar itself: 4px top border,
+     12px padding either side of a 24px glyph and its ~12px label. */
+  --spacing-bottom-bar: 4.5rem;
+
   /* hard neo-brutalist offsets — no blur, no spread */
   --shadow-hard-sm: 5px 5px 0 #16210f;
   --shadow-hard: 6px 6px 0 #16210f;
@@ -88,3 +95,13 @@
  *
  * Declared after `desk` so it wins over it. */
 @custom-variant felt-short (@media (max-height: 840px));
+
+/* The bar is shorter where there is no height to give it — see `barItem` in
+   `NavLinks` — and the space reserved for it has to shrink by the same amount,
+   or a phone that already has nothing to spare spends 12px on a strip of felt
+   nobody can see. Kept here beside the variant it mirrors. */
+@media (orientation: portrait) and (max-height: 720px) {
+  :root {
+    --spacing-bottom-bar: 3.75rem;
+  }
+}

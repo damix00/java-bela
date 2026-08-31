@@ -38,13 +38,13 @@ export default function LobbyBandSkeleton({ label }: LobbyBandSkeletonProps) {
             <span className="sr-only">{label}</span>
             <section
                 aria-hidden
-                className="mx-auto flex w-full max-w-[760px] flex-col gap-3 border-4 border-ink bg-baize-deep p-3 shadow-hard-lg sm:p-4"
+                className="mx-auto flex w-full max-w-[760px] flex-col gap-2.5 border-4 border-ink bg-baize-deep p-3 shadow-hard-lg portrait-sm:gap-2 portrait-sm:p-2 desk:gap-3 desk:p-4"
             >
-                <div className="grid gap-3 sm:grid-cols-[minmax(150px,0.9fr)_minmax(190px,1.2fr)_minmax(160px,auto)] sm:gap-4">
+                <div className="grid gap-2.5 portrait-sm:gap-2 desk:grid-cols-[minmax(150px,0.9fr)_minmax(190px,1.2fr)_minmax(160px,auto)] desk:gap-4">
                     {[0, 1, 2].map((cell) => (
                         <div
                             key={cell}
-                            className="relative min-h-16 overflow-hidden border-[3px] border-ink bg-baize"
+                            className="relative min-h-14 overflow-hidden portrait-sm:min-h-12 border-[3px] border-ink bg-baize desk:min-h-16"
                         >
                             <motion.div
                                 animate={sheen}

@@ -27,12 +27,19 @@ type TableStageProps = {
  * every width: the side seats narrow to their squares on a phone rather than
  * dropping out, so the shape of what is being joined survives down to 360px.
  *
- * The wide arrangement waits for `lg`. With the marketing page's gutters these
- * routes have ~544px to work with at `md`, and three columns in that is
- * narrower per seat than the phone layout it would be replacing.
+ * The side columns are 88px on a phone rather than the 48px they used to be,
+ * because 48px is not a seat. A seat is an avatar with a name under it, and at
+ * 48px there was room for neither — the tile burst its own box and the name was
+ * hidden outright, which left half the table anonymous on the screen most of
+ * these games are played on. 88px is the width at which both fit; the felt
+ * gives it up, and the felt only holds an ornament and two short lines.
+ *
+ * The steps are `desk`, not `sm`: a phone held sideways has width to spare and
+ * no height at all, and the roomier arrangement is taller, not just wider. This
+ * is the same reason the game screen sizes itself against both axes.
  *
  * Placement lives here and sizing lives on the children, which is what lets the
- * same grid hold a full `SeatCard` at the near edge and a 48px `SideSeat` in
+ * same grid hold a full `SeatCard` at the near edge and a square `SideSeat` in
  * the columns without either knowing where it has been put.
  */
 export default function TableStage({
@@ -52,17 +59,21 @@ export default function TableStage({
     return (
         <div
             className={cn(
-                "mx-auto grid w-full max-w-[560px] grid-cols-[48px_minmax(0,1fr)_48px] items-stretch gap-2",
-                "sm:grid-cols-[104px_minmax(0,1fr)_104px] sm:gap-4",
-                "lg:max-w-[1000px] lg:grid-cols-[minmax(0,1fr)_320px_minmax(0,1fr)] lg:gap-6 xl:gap-8",
+                "mx-auto grid w-full max-w-[560px] grid-cols-[88px_minmax(0,1fr)_88px] items-stretch gap-2",
+                // A phone laid flat has width to spare and none of the height
+                // the felt spends it on: uncapped, the middle column takes the
+                // full 560px and the square it makes is taller than the screen.
+                "flat:max-w-[380px]",
+                "desk:grid-cols-[104px_minmax(0,1fr)_104px] desk:gap-4",
+                "desk-lg:max-w-[1000px] desk-lg:grid-cols-[minmax(0,1fr)_320px_minmax(0,1fr)] desk-lg:gap-6 desk-xl:gap-8",
                 className,
             )}
         >
-            <div className="col-span-3 col-start-1 row-start-1 flex w-full lg:col-span-1 lg:col-start-2">
+            <div className="col-span-3 col-start-1 row-start-1 flex w-full desk-lg:col-span-1 desk-lg:col-start-2">
                 {across}
             </div>
 
-            <div className="col-start-1 row-start-2 flex aspect-square w-full self-center lg:mx-auto lg:max-w-[176px]">
+            <div className="col-start-1 row-start-2 flex aspect-square w-full self-center desk-lg:mx-auto desk-lg:max-w-[176px]">
                 {left}
             </div>
 
@@ -70,18 +81,18 @@ export default function TableStage({
                 data-game-table=""
                 animate={{ scale: settling && !reduceMotion ? 0.985 : 1 }}
                 transition={feltTransition}
-                className="col-start-2 row-start-2 aspect-square w-full overflow-hidden border-4 border-ink bg-baize-deep p-1.5 shadow-hard-lg sm:p-2 lg:p-[10px]"
+                className="col-start-2 row-start-2 aspect-[6/5] w-full overflow-hidden border-4 border-ink bg-baize-deep p-1.5 shadow-hard-lg portrait-sm:aspect-[5/3] desk:aspect-square desk:p-2 desk-lg:p-[10px]"
             >
-                <div className="flex size-full min-h-0 flex-col items-center justify-center gap-1.5 overflow-hidden border-2 border-mint/20 bg-baize p-1.5 sm:gap-3 sm:p-4">
+                <div className="flex size-full min-h-0 flex-col items-center justify-center gap-1.5 overflow-hidden border-2 border-mint/20 bg-baize p-1.5 desk:gap-3 desk:p-4">
                     {centre}
                 </div>
             </motion.div>
 
-            <div className="col-start-3 row-start-2 flex aspect-square w-full self-center lg:mx-auto lg:max-w-[176px]">
+            <div className="col-start-3 row-start-2 flex aspect-square w-full self-center desk-lg:mx-auto desk-lg:max-w-[176px]">
                 {right}
             </div>
 
-            <div className="col-span-3 col-start-1 row-start-3 flex w-full lg:col-span-1 lg:col-start-2">
+            <div className="col-span-3 col-start-1 row-start-3 flex w-full desk-lg:col-span-1 desk-lg:col-start-2">
                 {near}
             </div>
         </div>

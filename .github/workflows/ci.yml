@@ -173,6 +173,10 @@ jobs:
       # Minted per run and scoped to this repository, so there is no long-lived registry
       # credential to store or rotate.
       KAMAL_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      # The origin IP, kept out of the public repo. Every Kamal config reads it through ERB, so
+      # a missing secret fails the deploy at parse time rather than half-way through. Being a
+      # secret also means Actions masks it everywhere Kamal echoes a host in the logs.
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       INTERNAL_API_KEY: ${{ secrets.INTERNAL_API_KEY }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
@@ -208,7 +212,7 @@ jobs:
       - name: Trust the host key
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -t ed25519 62.238.122.182 >> ~/.ssh/known_hosts
+          ssh-keyscan -t ed25519 "$DEPLOY_HOST" >> ~/.ssh/known_hosts
 
       # API first: a schema migration has to be live before the client that depends on it.
       - name: Deploy API

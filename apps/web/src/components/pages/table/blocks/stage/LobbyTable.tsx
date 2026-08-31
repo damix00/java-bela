@@ -171,6 +171,11 @@ function TableSeat({
     }
 
     if (!player) {
+        // A vacancy is drawn at the size the seat that fills it will be. In the
+        // side columns that is the column itself, so the dashed square and the
+        // tile that replaces it have the same footprint and the swap animation
+        // has nothing to resize. The row slots have a whole width to spare and
+        // take a centred square instead, cut to the same measure.
         return (
             <EmptySeat
                 label={copy.openSeat}
@@ -178,7 +183,11 @@ function TableSeat({
                 actionLabel={copy.lobby.takeSeat}
                 swapStatus={status}
                 disabled={disabled}
-                className="mx-auto size-[52px] shrink-0 self-center sm:size-[80px] lg:size-[176px]"
+                className={
+                    variant === "side"
+                        ? "size-full"
+                        : "mx-auto size-[88px] shrink-0 self-center desk:size-[104px] desk-lg:size-[176px]"
+                }
             />
         );
     }
@@ -357,8 +366,13 @@ export default function LobbyTable({
                 centre={
                     <>
                         <CardFan />
+                        {/* The count goes when the felt is too short to hold
+                            the fan and a line of type at once. Nothing is lost:
+                            the band's own note under the button is the sentence
+                            that says how many seats are open, and it is the one
+                            with room to say it in words. */}
                         {openSeatCount !== null ? (
-                            <MockLabel className="text-center text-[12px] tracking-normal text-mint/75 normal-case sm:text-[13px]">
+                            <MockLabel className="text-center text-[12px] tracking-normal text-mint/75 normal-case portrait-sm:hidden desk:text-[13px]">
                                 {copy.seatsOpen.replace(
                                     "{count}",
                                     String(openSeatCount),
@@ -367,9 +381,13 @@ export default function LobbyTable({
                         ) : null}
                         {/* The seats carry a swap badge each, but a badge is a
                             hint and this is the sentence. The felt is the one
-                            place on the stage with room for it. */}
+                            place on the stage with room for it — and on a phone
+                            it isn't: the side seats take their width out of the
+                            middle column, and what is left holds the fan and
+                            the count and nothing more. The badges and the empty
+                            chairs' own arrows carry it alone there. */}
                         {hasTable && !seatsLocked ? (
-                            <MockLabel className="text-center text-[11px] font-medium tracking-normal text-mint/50 normal-case sm:text-[12px]">
+                            <MockLabel className="hidden text-center text-[11px] font-medium tracking-normal text-mint/50 normal-case desk:block desk:text-[12px]">
                                 {copy.lobby.moveHint}
                             </MockLabel>
                         ) : null}

@@ -10,9 +10,14 @@
 service: bela-web
 image: damix00/bela-web
 
+# The origin IP is kept out of this file — the repo is public, and an origin address defeats
+# the point of proxying everything through Cloudflare. It comes from DEPLOY_HOST in the
+# deploying environment: a repository secret in CI, `export DEPLOY_HOST=...` in your shell for
+# a manual deploy. ENV.fetch, not ENV[], so a missing value fails loudly instead of deploying
+# to an empty host.
 servers:
   web:
-    - 62.238.122.182
+    - <%= ENV.fetch("DEPLOY_HOST") %>
 
 proxy:
   # A Cloudflare Origin Certificate rather than Let's Encrypt. Automatic certificates need an

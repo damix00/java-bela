@@ -59,7 +59,7 @@ export default function ConnectionNotice({
             // Nothing but the notice itself may catch a press: the wrapper spans
             // the width of the screen and sits above the seats along that whole
             // strip.
-            className="pointer-events-none fixed inset-x-0 bottom-[calc(4.5rem+0.75rem+env(safe-area-inset-bottom))] z-30 flex justify-center px-4 sm:bottom-6"
+            className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--spacing-bottom-bar)+0.75rem+env(safe-area-inset-bottom))] z-30 flex justify-center px-4 sm:bottom-6"
         >
             {!settled && (
                 <p className="pointer-events-auto m-0 flex flex-wrap items-center justify-center gap-3 border-4 border-ink bg-ink px-4 py-3 text-center text-[13px] font-semibold text-cream shadow-hard-sm">
