@@ -24,8 +24,7 @@ import pro.damjan.belabackend.matchmaking.MatchmakingService;
 import pro.damjan.belabackend.user.UserService;
 import pro.damjan.belabackend.user.presence.UserPresence;
 import pro.damjan.belabackend.user.presence.UserPresenceService;
-import pro.damjan.belabackend.user.presence.session.SessionService;
-import pro.damjan.belabackend.user.presence.session.exception.SessionLockException;
+import pro.damjan.belabackend.user.presence.session.SessionTakeoverService;
 
 import pro.damjan.belabackend.user.User;
 import pro.damjan.belabackend.user.auth.Role;
@@ -47,7 +46,7 @@ public class LobbyService {
     private final LobbyRepository lobbyRepository;
     private final UserPresenceService userPresenceService;
     private final LobbyEventPublisher lobbyEventPublisher;
-    private final SessionService sessionService;
+    private final SessionTakeoverService sessionTakeoverService;
     private final LobbyGameStarter lobbyGameStarter;
     private final MatchmakingService matchmakingService;
     private final UserService userService;
@@ -127,10 +126,6 @@ public class LobbyService {
     }
 
     public Lobby createLobby(String creatorId, String sessionId) {
-        if (sessionService.userHasActiveSession(creatorId)) {
-            throw new SessionLockException();
-        }
-
         if (getUserLobby(creatorId) != null) {
             throw new AlreadyInLobbyException();
         }
@@ -150,8 +145,8 @@ public class LobbyService {
         lobbyRepository.save(lobby);
         userPresenceService.setUserLobby(creatorId, lobby.getId());
 
-        // Lock the session
-        sessionService.lockSession(sessionId);
+        // This window is the one playing now; any older one is stood down.
+        sessionTakeoverService.takeOver(creatorId, sessionId);
 
         // Emit lobby joined event to player
         lobbyEventPublisher.sendSnapshot(lobby, creatorId);
@@ -160,14 +155,10 @@ public class LobbyService {
     }
 
     protected void joinLobby(String userId, String sessionId, Lobby lobby)
-            throws AlreadyInLobbyException, LobbyFullException, SessionLockException {
+            throws AlreadyInLobbyException, LobbyFullException {
 
         if (lobby.isPlayerInLobby(userId)) {
             throw new AlreadyInLobbyException();
-        }
-
-        if (sessionService.userHasActiveSession(userId)) {
-            throw new SessionLockException();
         }
 
         // If the user is already in a lobby
@@ -189,7 +180,7 @@ public class LobbyService {
 
         lobbyRepository.save(lobby);
 
-        sessionService.lockSession(sessionId);
+        sessionTakeoverService.takeOver(userId, sessionId);
         userPresenceService.setUserLobby(userId, lobby.getId());
 
         lobbyEventPublisher.playerJoined(lobby, newPlayer);
@@ -280,7 +271,7 @@ public class LobbyService {
     }
 
     public void joinLobbyViaCode(String userId, String sessionId, String code)
-            throws LobbyNotFoundException, AlreadyInLobbyException, LobbyFullException, SessionLockException {
+            throws LobbyNotFoundException, AlreadyInLobbyException, LobbyFullException {
         // The invite code only resolves the id. The lobby itself is read again inside the lock,
         // because the seat count this join is about to check is exactly what a concurrent join
         // changes — deciding on the copy fetched beforehand is how a lobby ends up over-filled.

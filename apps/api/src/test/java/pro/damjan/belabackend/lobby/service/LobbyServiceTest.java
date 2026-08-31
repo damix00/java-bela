@@ -20,7 +20,7 @@ import pro.damjan.belabackend.user.User;
 import pro.damjan.belabackend.user.UserService;
 import pro.damjan.belabackend.user.presence.UserPresence;
 import pro.damjan.belabackend.user.presence.UserPresenceService;
-import pro.damjan.belabackend.user.presence.session.SessionService;
+import pro.damjan.belabackend.user.presence.session.SessionTakeoverService;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -39,7 +39,7 @@ class LobbyServiceTest {
     private LobbyRepository lobbyRepository;
     private UserPresenceService userPresenceService;
     private LobbyEventPublisher lobbyEventPublisher;
-    private SessionService sessionService;
+    private SessionTakeoverService sessionTakeoverService;
     private LobbyGameStarter lobbyGameStarter;
     private MatchmakingService matchmakingService;
     private UserService userService;
@@ -51,7 +51,7 @@ class LobbyServiceTest {
         lobbyRepository = mock(LobbyRepository.class);
         userPresenceService = mock(UserPresenceService.class);
         lobbyEventPublisher = mock(LobbyEventPublisher.class);
-        sessionService = mock(SessionService.class);
+        sessionTakeoverService = mock(SessionTakeoverService.class);
         lobbyGameStarter = mock(LobbyGameStarter.class);
         matchmakingService = mock(MatchmakingService.class);
         userService = mock(UserService.class);
@@ -62,7 +62,7 @@ class LobbyServiceTest {
                 lobbyRepository,
                 userPresenceService,
                 lobbyEventPublisher,
-                sessionService,
+                sessionTakeoverService,
                 lobbyGameStarter,
                 matchmakingService,
                 userService,
@@ -82,7 +82,7 @@ class LobbyServiceTest {
         assertThat(createdLobby.getGameConfiguration())
                 .isEqualTo(GameConfiguration.privateGame(501));
         verify(lobbyRepository).save(createdLobby);
-        verify(sessionService).lockSession("session-id");
+        verify(sessionTakeoverService).takeOver("host-id", "session-id");
     }
 
     @Test

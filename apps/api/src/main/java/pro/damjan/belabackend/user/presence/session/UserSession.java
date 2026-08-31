@@ -8,6 +8,7 @@ import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.core.index.Indexed;
 
 import java.io.Serializable;
+import java.time.Instant;
 
 @RedisHash(value = "UserSession", timeToLive = 30) // 30 seconds TTL for each session
 @Getter @Setter
@@ -21,9 +22,24 @@ public class UserSession implements Serializable {
 
     private SessionMetadata metadata;
 
-    // Whether this session is the current session for the joined game
-    // This is because the user can only join one game on one device, but they can have multiple sessions (e.g. on mobile and desktop)
-    // So we prevent the user from joining multiple games at the same time
+    /**
+     * When the handshake that minted this session happened.
+     *
+     * The takeover rule is "the newest connection wins", and
+     * {@code findByUserId} hands sessions back in no particular order, so
+     * recency has to be written down rather than inferred.
+     */
+    private Instant createdAt;
+
+    /**
+     * Whether this is the connection currently holding the player's seat.
+     *
+     * A player may have several sessions open at once (a phone and a desktop),
+     * but only one of them plays: gameplay is published to the active session
+     * alone. Opening a new one takes the seat from whichever session held it —
+     * see {@code SessionTakeoverService} — and the superseded connection is
+     * told so rather than left showing a table it can no longer act on.
+     */
     private boolean active;
 
     @TimeToLive

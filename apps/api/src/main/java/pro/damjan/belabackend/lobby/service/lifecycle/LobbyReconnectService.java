@@ -10,7 +10,7 @@ import pro.damjan.belabackend.lobby.model.Lobby;
 import pro.damjan.belabackend.user.presence.UserPresence;
 import pro.damjan.belabackend.user.presence.UserPresenceService;
 import pro.damjan.belabackend.user.presence.events.UserReconnectedEvent;
-import pro.damjan.belabackend.user.presence.session.SessionService;
+import pro.damjan.belabackend.user.presence.session.SessionTakeoverService;
 
 @Service
 @RequiredArgsConstructor
@@ -18,14 +18,20 @@ public class LobbyReconnectService {
 
     private final UserPresenceService userPresenceService;
     private final LobbyRepository lobbyRepository;
-    private final SessionService sessionService;
+    private final SessionTakeoverService sessionTakeoverService;
     private final LobbyEventPublisher lobbyEventPublisher;
     private final GameReconnectService gameReconnectService;
 
+    /**
+     * Hands a returning player their table, on whichever connection they came back on.
+     *
+     * The newest connection wins outright: it takes the seat from any older session
+     * of theirs and is sent the snapshot. It used to be the other way round — the
+     * first session held the table and this stood down for it — which meant a
+     * forgotten tab on another machine kept the player out of their own game.
+     */
     @EventListener
     public void handleReconnect(UserReconnectedEvent event) throws InterruptedException {
-        if (sessionService.getActiveSession(event.userId()) != null) return;
-
         UserPresence presence = userPresenceService.getUserPresence(event.userId());
         if (presence == null) return;
 
@@ -38,7 +44,7 @@ public class LobbyReconnectService {
             return;
         }
 
-        sessionService.lockSession(event.sessionId());
+        sessionTakeoverService.takeOver(event.userId(), event.sessionId());
         lobbyEventPublisher.sendSnapshot(lobby, event.userId());
 
         gameReconnectService.handleReconnect(event);

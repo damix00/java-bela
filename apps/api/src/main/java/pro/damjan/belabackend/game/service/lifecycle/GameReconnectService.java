@@ -10,6 +10,7 @@ import pro.damjan.belabackend.user.presence.UserPresence;
 import pro.damjan.belabackend.user.presence.UserPresenceService;
 import pro.damjan.belabackend.user.presence.events.UserReconnectedEvent;
 import pro.damjan.belabackend.user.presence.session.SessionService;
+import pro.damjan.belabackend.user.presence.session.UserSession;
 
 @Service
 @RequiredArgsConstructor
@@ -21,8 +22,10 @@ public class GameReconnectService {
     private final BeloteGameEventPublisher beloteGameEventPublisher;
 
     public void handleReconnect(UserReconnectedEvent event) {
-        // Session must already be locked by LobbyReconnectService
-        if (sessionService.getActiveSession(event.userId()) == null) return;
+        // LobbyReconnectService has already handed the seat to this session. Anything else
+        // means a newer connection took it in between, and the snapshot belongs to that one.
+        UserSession activeSession = sessionService.getActiveSession(event.userId());
+        if (activeSession == null || !activeSession.getId().equals(event.sessionId())) return;
 
         UserPresence presence = userPresenceService.getUserPresence(event.userId());
         if (presence == null) return;

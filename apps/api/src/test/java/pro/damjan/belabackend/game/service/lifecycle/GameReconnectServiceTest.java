@@ -49,7 +49,7 @@ class GameReconnectServiceTest {
                 beloteGameEventPublisher
         );
 
-        when(sessionService.getActiveSession("p0")).thenReturn(mock(UserSession.class));
+        when(sessionService.getActiveSession("p0")).thenReturn(session("session-id"));
         when(userPresenceService.getUserPresence("p0"))
                 .thenReturn(new UserPresence(Instant.now(), "lobby-id", "game-1"));
     }
@@ -83,6 +83,26 @@ class GameReconnectServiceTest {
 
         verify(userPresenceService).cancelUserGame("p0");
         verify(beloteGameEventPublisher, never()).sendSnapshot(any(BeloteGame.class), anyString());
+    }
+
+    @Test
+    void aSessionThatHasSinceLostTheSeatGetsNoSnapshot() {
+        // A newer connection took the seat between the handshake and this call; the snapshot
+        // belongs to that one, and sending it here would resume the game in the wrong window.
+        when(sessionService.getActiveSession("p0")).thenReturn(session("newer-session-id"));
+        when(beloteGameService.findGameById("game-1")).thenReturn(game(GameStatus.IN_PROGRESS));
+
+        gameReconnectService.handleReconnect(event);
+
+        verify(beloteGameEventPublisher, never()).sendSnapshot(any(BeloteGame.class), anyString());
+    }
+
+    private UserSession session(String id) {
+        UserSession session = new UserSession();
+        session.setId(id);
+        session.setUserId("p0");
+        session.setActive(true);
+        return session;
     }
 
     private BeloteGame game(GameStatus status) {
