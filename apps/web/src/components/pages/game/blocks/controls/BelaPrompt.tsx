@@ -37,7 +37,7 @@ export default function BelaPrompt({
             aria-label={heading}
             className="fixed inset-0 z-50 grid place-items-center bg-ink/70 p-6"
         >
-            <div className="flex w-full max-w-[400px] flex-col items-center gap-4 border-4 border-ink bg-baize-deep p-6 shadow-hard-lg">
+            <div className="flex w-full max-w-[400px] flex-col items-center gap-4 rounded-2xl bg-baize-deep p-6 shadow-[0_12px_36px_-10px_rgb(0_0_0_/_0.6)]">
                 <PlayingCard card={card} />
 
                 <p className="text-center font-display text-[20px] font-extrabold tracking-[-.02em] text-cream">
@@ -49,12 +49,13 @@ export default function BelaPrompt({
                 </p>
 
                 <div className="flex w-full flex-wrap justify-center gap-2">
-                    <Button size="sm" onClick={() => onAnswer(true)}>
+                    <Button size="sm" soft onClick={() => onAnswer(true)}>
                         {declareLabel}
                     </Button>
                     <Button
                         tone="cream"
                         size="sm"
+                        soft
                         onClick={() => onAnswer(false)}
                     >
                         {skipLabel}

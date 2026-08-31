@@ -25,11 +25,25 @@ import type { Card, Rank, Suite } from "@bela/protocol";
  * would make the hand jump every time somebody else played.
  */
 
-const WIDTHS = {
+/* Width, and the radius that goes with it. The two are one decision: a felt
+   card is barely half the width of one in the hand, and a single radius that
+   looks like a card at 80px looks like a lozenge at 44px. */
+const SIZES = {
     /** On the felt, where `TrickPile` sizes `--trick-card` against the table. */
-    sm: "w-[var(--trick-card,3.5rem)]",
+    sm: {
+        width: "w-[var(--trick-card,3.5rem)]",
+        radius: "rounded-[6px]",
+    },
+    /** A declared set, listed rather than played. */
+    xs: {
+        width: "w-8 sm:w-10",
+        radius: "rounded-[4px]",
+    },
     /** Your own hand. */
-    md: "w-[clamp(3.625rem,17vw,4.25rem)] sm:w-20 [@media(max-height:560px)]:w-14",
+    md: {
+        width: "w-[clamp(3.625rem,17vw,4.25rem)] sm:w-20 [@media(max-height:560px)]:w-14",
+        radius: "rounded-[10px]",
+    },
 } as const;
 
 /* The card lifts on hover rather than sinking: it is not a block with a shadow
@@ -55,11 +69,9 @@ const DRAG_PLAY_THRESHOLD = 72;
 
 type PlayingCardProps = {
     card?: Pick<Card, "suite" | "rank"> | null;
-    size?: keyof typeof WIDTHS;
+    size?: keyof typeof SIZES;
     /** Draw the back regardless — an opponent's hand, or a card still hidden. */
     faceDown?: boolean;
-    /** Marks the trump suit in your hand. */
-    trump?: boolean;
     /** Dimmed and inert: legal in the deck, not legal right now. */
     disabled?: boolean;
     /** Visually recede an illegal card without washing out an idle hand. */
@@ -78,7 +90,6 @@ export default function PlayingCard({
     card,
     size = "md",
     faceDown = false,
-    trump = false,
     disabled = false,
     dimmed = false,
     onClick,
@@ -93,6 +104,12 @@ export default function PlayingCard({
         ? null
         : getHungarianCardAsset(card.suite as Suite, card.rank as Rank);
 
+    // The width is deliberately *not* in here. A dragged card is two elements
+    // — a wrapper the hand lays out, and the button that moves under it — and
+    // the button has to be `w-full` of that wrapper. Baking the size into the
+    // shared frame left the button merging `w-full` against a responsive width
+    // whose variants `twMerge` cannot see as a conflict, so the one playable
+    // card in the hand came out a size smaller than its dead neighbours.
     const frameBase = cn(
         // `self-start` is load-bearing, not cosmetic. The art is laid in with
         // `fill`, which needs a parent of non-zero height, and the height here
@@ -102,19 +119,23 @@ export default function PlayingCard({
         // resolves to zero and every card collapses. Opting out of the stretch
         // hands the height back to the aspect ratio. Callers can still override
         // it; `twMerge` keeps the last `self-*` to arrive.
-        "relative block aspect-[363/585] shrink-0 self-start overflow-hidden border-[3px] border-ink bg-cream shadow-hard-sm",
-        WIDTHS[size],
-        trump && "border-rust",
+        // No frame drawn around the art: the deck's own white margin is the
+        // card face, and the hard ink border that the rest of the site is
+        // drawn with read as a sticker rather than as a card. What is left is
+        // the radius and a shadow soft enough to say the card is lying on the
+        // felt rather than pinned above it.
+        "relative block aspect-[363/585] shrink-0 self-start overflow-hidden bg-cream shadow-[0_2px_6px_rgb(0_0_0_/_0.35)]",
+        SIZES[size].radius,
         dimmed && "opacity-45 saturate-50",
     );
-    const frame = cn(frameBase, className);
+    const frame = cn(frameBase, SIZES[size].width, className);
 
     const art = (
         <Image
             src={asset?.src ?? HUNGARIAN_CARD_BACK_ASSET}
             alt={hidden ? "" : asset!.alt}
             fill
-            sizes="(max-height: 560px) 56px, (min-width: 640px) 80px, calc((100vw - 4rem) / 4)"
+            sizes="(max-height: 560px) 68px, (min-width: 640px) 112px, calc((100vw - 3rem) / 4)"
             // The art never takes the pointer itself: a native image drag on
             // desktop, or iOS's long-press callout, would both cut the card's
             // own gesture short.
@@ -149,7 +170,7 @@ export default function PlayingCard({
             <span
                 className={cn(
                     "relative block shrink-0 self-start",
-                    WIDTHS[size],
+                    SIZES[size].width,
                     className,
                     liftClass,
                 )}
@@ -161,8 +182,7 @@ export default function PlayingCard({
                     className={cn(
                         frameBase,
                         focusRing,
-                        // Width comes from the wrapper now; `twMerge` keeps this
-                        // last `w-*` over the size's own.
+                        // The wrapper is what has a size; this fills it.
                         "w-full cursor-grab touch-none select-none [-webkit-touch-callout:none] active:cursor-grabbing",
                     )}
                     drag

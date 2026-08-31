@@ -4,7 +4,9 @@ import { useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/controls/Button";
-import type { Declaration } from "@bela/protocol";
+import DeclarationList from "@/components/pages/game/blocks/controls/DeclarationList";
+import { declarationPoints } from "@/lib/game/rules";
+import type { Declaration, Type } from "@bela/protocol";
 
 type DeclarationsPanelProps = {
     /** The server-resolved declarations currently credited to both teams. */
@@ -20,6 +22,10 @@ type DeclarationsPanelProps = {
     declineLabel: string;
     updatingLabel: string;
     totalLabel: string;
+    /** `game.declarations.types` — what each set is called. */
+    typeNames: Record<Type, string>;
+    /** Names the seat a set came from — whose cards these are. */
+    nameOf: (seat: number) => string;
     /** The local player appears in the currently winning declaration set. */
     canDecide: boolean;
     /** The server has acknowledged that this player opted out. */
@@ -28,15 +34,43 @@ type DeclarationsPanelProps = {
     onDecline: () => void;
 };
 
-function Total({ label, points }: { label: string; points: number }) {
+/**
+ * One side's declarations: what it is worth, and the cards it was paid for.
+ *
+ * The cards are the point. Declaring reveals them to the table — that is the
+ * cost the player is deciding whether to pay — so a summary that showed only a
+ * number was taking the payment without ever delivering the goods.
+ */
+function Side({
+    label,
+    declarations,
+    typeNames,
+    nameOf,
+}: {
+    label: string;
+    declarations: Declaration[];
+    typeNames: Record<Type, string>;
+    nameOf: (seat: number) => string;
+}) {
     return (
-        <div className="flex min-w-0 flex-1 flex-col items-center border-[3px] border-ink bg-baize-deep px-2 py-2 text-center shadow-hard-sm sm:px-3 sm:py-3">
+        <div className="flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl bg-baize-deep px-2 py-2 text-center shadow-[0_4px_14px_-6px_rgb(0_0_0_/_0.5)] sm:px-3 sm:py-3">
             <span className="truncate text-[9px] font-bold tracking-wide text-mint/70 uppercase sm:text-[11px]">
                 {label}
             </span>
-            <span className="font-display text-[20px] font-extrabold tracking-[-.03em] text-cream sm:text-[26px]">
-                +{points}
+            <span className="font-display text-[20px] leading-none font-extrabold tracking-[-.03em] text-cream sm:text-[26px]">
+                +{declarationPoints(declarations)}
             </span>
+
+            {/* No empty state here — the `+0` above already says it, and a
+                side that declared nothing does not need a sentence about it.
+                A short screen has the tray and nothing to spare in it; the
+                score bar opens the same cards in full whenever it does not. */}
+            <DeclarationList
+                declarations={declarations}
+                typeNames={typeNames}
+                nameOf={nameOf}
+                className="mt-0.5 items-center [@media(max-height:700px)]:hidden"
+            />
         </div>
     );
 }
@@ -63,6 +97,8 @@ export default function DeclarationsPanel({
     declineLabel,
     updatingLabel,
     totalLabel,
+    typeNames,
+    nameOf,
     canDecide,
     declined,
     chair,
@@ -70,17 +106,11 @@ export default function DeclarationsPanel({
 }: DeclarationsPanelProps) {
     const reduceMotion = useReducedMotion();
     const [choice, setChoice] = useState<"declare" | "decline" | null>(null);
-    const mineTotal = mine.reduce(
-        (sum, declaration) => sum + declaration.points,
-        0,
+    const mineTotal = declarationPoints(mine);
+    const theirsTotal = declarationPoints(theirs);
+    const playerTotal = declarationPoints(
+        mine.filter((declaration) => declaration.playerIndex === chair),
     );
-    const theirsTotal = theirs.reduce(
-        (sum, declaration) => sum + declaration.points,
-        0,
-    );
-    const playerTotal = mine
-        .filter((declaration) => declaration.playerIndex === chair)
-        .reduce((sum, declaration) => sum + declaration.points, 0);
     const mode =
         canDecide && !declined && choice === null
             ? "prompt"
@@ -109,6 +139,7 @@ export default function DeclarationsPanel({
                 <div className="flex flex-wrap justify-center gap-2">
                     <Button
                         size="sm"
+                        soft
                         onClick={() => setChoice("declare")}
                         className="px-3 py-2 text-[13px] sm:px-5 sm:py-[11px] sm:text-[15px]"
                     >
@@ -117,6 +148,7 @@ export default function DeclarationsPanel({
                     <Button
                         tone="cream"
                         size="sm"
+                        soft
                         onClick={() => {
                             setChoice("decline");
                             onDecline();
@@ -168,9 +200,25 @@ export default function DeclarationsPanel({
                     {noneLabel}
                 </p>
             ) : (
-                <div className="flex w-full max-w-[260px] gap-2">
-                    <Total label={mineLabel} points={mineTotal} />
-                    <Total label={theirsLabel} points={theirsTotal} />
+                <div className="flex w-full max-w-[380px] items-start justify-center gap-2">
+                    {[
+                        { label: mineLabel, declarations: mine },
+                        { label: theirsLabel, declarations: theirs },
+                    ]
+                        // A side that declared nothing is not a `+0` worth
+                        // printing — it is simply not part of this round's
+                        // zvanja. When only one side declared, it takes the
+                        // whole width, which is also the width its cards want.
+                        .filter((side) => side.declarations.length > 0)
+                        .map((side) => (
+                            <Side
+                                key={side.label}
+                                label={side.label}
+                                declarations={side.declarations}
+                                typeNames={typeNames}
+                                nameOf={nameOf}
+                            />
+                        ))}
                 </div>
             )}
         </motion.div>

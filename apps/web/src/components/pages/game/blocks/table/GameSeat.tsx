@@ -7,23 +7,26 @@ type GameSeatProps = {
     avatarUrl: string | null;
     /** Theirs to act — the only state on this screen that has to be unmissable. */
     active: boolean;
-    /** They took the trick now sitting on the felt. */
+    /** They took the trick now sitting on the table. */
     won: boolean;
-    /** Wide sits across/near, square on the sides, inline below the hand. */
-    variant: "wide" | "square" | "inline";
-    /** Suffix for the seat that is you. */
-    youLabel?: string;
+    /** Wide sits across, square on the sides. */
+    variant: "wide" | "square";
     wonLabel: string;
 };
 
-/** A player reduced to the two things needed during play: face and name. */
+/**
+ * A player reduced to the two things needed during play: face and name.
+ *
+ * Only the other three are drawn. Your own chair used to sit under the hand
+ * with a "· you" after it, which told you something you already knew and took a
+ * row the cards wanted.
+ */
 export default function GameSeat({
     name,
     avatarUrl,
     active,
     won,
     variant,
-    youLabel,
     wonLabel,
 }: GameSeatProps) {
     return (
@@ -31,31 +34,22 @@ export default function GameSeat({
             data-game-seat=""
             aria-label={won ? `${name} · ${wonLabel}` : name}
             className={cn(
-                "flex h-full w-full min-w-0 items-center justify-center text-center",
-                variant === "inline"
-                    ? "flex-row gap-2 py-0.5"
-                    : "flex-col gap-1",
-                variant === "wide"
-                    ? "py-0.5"
-                    : variant === "square"
-                      ? "px-0.5"
-                      : null,
+                "flex h-full w-full min-w-0 flex-col items-center justify-center gap-1 text-center",
+                variant === "wide" ? "py-0.5" : "px-0.5",
             )}
         >
             <span
                 aria-hidden="true"
+                // One ring, not a border plus an outline: the two used to draw
+                // concentric circles around the avatar whenever a seat was
+                // active, which read as a target rather than as a face.
                 className={cn(
-                    "relative grid shrink-0 place-items-center overflow-hidden rounded-full border-[3px] border-mint/60 bg-cream font-display font-extrabold text-ink uppercase transition-[border-color,outline-color] duration-150 motion-reduce:transition-none",
-                    variant === "inline"
-                        ? "size-9 [@media(max-height:560px)]:size-8"
-                        : variant === "wide"
-                          ? "size-10 sm:size-12 [@media(max-height:560px)]:size-8"
-                          : "size-10 sm:size-14 [@media(max-height:560px)]:size-8",
-                    active &&
-                        "border-rust outline-[3px] outline-offset-2 outline-rust",
-                    won &&
-                        !active &&
-                        "border-mint outline-[3px] outline-offset-2 outline-mint",
+                    "relative grid shrink-0 place-items-center overflow-hidden rounded-full bg-cream font-display font-extrabold text-ink uppercase ring-2 ring-mint/25 transition-[box-shadow] duration-150 motion-reduce:transition-none",
+                    variant === "wide"
+                        ? "size-10 sm:size-12 [@media(max-height:560px)]:size-8"
+                        : "size-10 sm:size-14 [@media(max-height:560px)]:size-8",
+                    active && "ring-[3px] ring-rust",
+                    won && !active && "ring-[3px] ring-mint",
                 )}
             >
                 {avatarUrl ? (
@@ -75,17 +69,12 @@ export default function GameSeat({
             <span
                 className={cn(
                     "max-w-full font-display font-extrabold tracking-[-.02em] text-cream",
-                    variant === "inline"
-                        ? "min-w-0 truncate text-[13px] [@media(max-height:560px)]:text-[11px]"
-                        : variant === "wide"
-                          ? "truncate text-[13px] sm:text-[15px] [@media(max-height:560px)]:text-[11px]"
-                          : "line-clamp-2 break-words text-[9px] leading-tight sm:text-[12px] [@media(max-height:560px)]:text-[8px]",
+                    variant === "wide"
+                        ? "truncate text-[13px] sm:text-[15px] [@media(max-height:560px)]:text-[11px]"
+                        : "line-clamp-2 break-words text-[9px] leading-tight sm:text-[12px] [@media(max-height:560px)]:text-[8px]",
                 )}
             >
                 {name}
-                {youLabel ? (
-                    <span className="text-mint/70"> · {youLabel}</span>
-                ) : null}
             </span>
 
             {won ? (

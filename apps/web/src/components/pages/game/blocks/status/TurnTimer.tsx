@@ -75,11 +75,11 @@ export default function TurnTimer({
             </span>
             <span
                 aria-hidden="true"
-                className="h-2 min-w-0 flex-1 overflow-hidden border-2 border-ink bg-baize-deep"
+                className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-baize-deep/80"
             >
                 <span
                     className={cn(
-                        "block h-full origin-left bg-mint transition-[width,background-color] duration-200",
+                        "block h-full origin-left rounded-full bg-mint transition-[width,background-color] duration-200",
                         urgent && "bg-rust",
                         critical && "bg-rust",
                     )}

@@ -1,7 +1,7 @@
 "use client";
 
 import PlayingCard from "@/components/pages/game/blocks/cards/PlayingCard";
-import { cardKey, isTrump, legalMoveKeys, sortHand } from "@/lib/game/rules";
+import { cardKey, legalMoveKeys, sortHand } from "@/lib/game/rules";
 import { cn } from "@/lib/ui/cn";
 import type { Card, PlayedCard, Suite } from "@bela/protocol";
 
@@ -29,24 +29,25 @@ type HandFanProps = {
  * the table appeared.
  */
 const handClass = [
-    "grid w-[calc(100%-1rem)] max-w-84 grid-cols-4 items-end justify-center gap-2 px-0.5 pt-1",
-    "portrait-md:max-w-[18.5rem]",
-    "portrait-sm:max-w-64 portrait-sm:gap-1.5",
-    "portrait-xs:max-w-56",
-    "flat:flex flat:w-full flat:max-w-[25.5rem] flat:flex-nowrap flat:gap-0 flat:px-2",
-    "desk:flex desk:w-full desk:max-w-[25.5rem] desk:flex-nowrap desk:gap-0 desk:px-2",
+    "grid w-[calc(100%-0.5rem)] max-w-[26rem] grid-cols-4 items-end justify-center gap-2 px-0.5 pt-1",
+    "portrait-md:max-w-[22rem]",
+    "portrait-sm:max-w-[19rem] portrait-sm:gap-1.5",
+    "portrait-xs:max-w-[16.5rem]",
+    // One row, and the cards stand apart in it. They used to tuck under each
+    // other the way a held hand does, which bought width but left every card
+    // but the last one half-read; eight separate faces are the thing to look
+    // at here, so the row buys its width back from the cards' own size instead.
+    "flat:flex flat:w-full flat:max-w-none flat:flex-nowrap flat:gap-1 flat:px-2",
+    "desk:flex desk:w-full desk:max-w-none desk:flex-nowrap desk:gap-1.5 desk:px-2",
 ].join(" ");
-
-/** How far each card tucks under the one before it, once the hand is one row. */
-const overlapClass = "flat:not-first:-ml-5 desk:not-first:-ml-3.5";
 
 /**
  * Your eight cards, in a thumb-readable hand.
  *
  * Portrait phones get two rows of four, matching the way a physical hand is
  * usually scanned without shrinking the art. Short landscape phones and wider
- * screens keep one overlapped row, where the horizontal room is useful and the
- * vertical room is scarce. The one under the pointer lifts clear of its peers.
+ * screens keep one row, where the horizontal room is useful and the vertical
+ * room is scarce. The one under the pointer lifts clear of its peers.
  *
  * A playable card is thrown either by a tap or by dragging it up off the hand
  * — the tap is the quick one, the drag is the one that reads as playing a card
@@ -67,9 +68,13 @@ export default function HandFan({
 }: HandFanProps) {
     const sorted = sortHand(hand, trumpSuite);
     const legal = active ? legalMoveKeys(trickCards, trumpSuite, hand) : null;
+    // In one row the card is sized from the viewport rather than pinned: eight
+    // cards, seven gaps and no overlap have to fit whatever width there is, and
+    // a fixed 80px hand overflows a 640px window the moment it stops tucking.
     const cardClass = cn(
-        overlapClass,
-        "w-full sm:w-20 [@media(max-height:560px)]:w-14",
+        "w-full",
+        "desk:w-[clamp(3.25rem,10.5vw,7rem)]",
+        "flat:w-[clamp(2.5rem,8vw,4.25rem)]",
     );
 
     return (
@@ -98,15 +103,12 @@ export default function HandFan({
                     <PlayingCard
                         key={cardKey(card)}
                         card={card}
-                        trump={isTrump(card, trumpSuite)}
                         disabled={!playable}
                         dimmed={legal !== null && !playable}
                         onClick={playable ? () => onPlay(card) : undefined}
                         onDragPlay={playable ? () => onPlay(card) : undefined}
                         className={cn(
                             cardClass,
-                            // A liftable card needs to sit above the one after
-                            // it, or the lift disappears under its neighbour.
                             playable && "hover:z-10 focus-visible:z-20",
                         )}
                     />

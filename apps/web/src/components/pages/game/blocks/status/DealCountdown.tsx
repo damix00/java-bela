@@ -45,7 +45,7 @@ export default function DealCountdown({ label }: { label: string }) {
                             ? { duration: 0 }
                             : { duration: 0.7, ease: "easeOut" }
                     }
-                    className="absolute inset-0 border-4 border-rust"
+                    className="absolute inset-0 rounded-full border-4 border-rust"
                 />
 
                 <motion.span

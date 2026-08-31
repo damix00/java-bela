@@ -1,4 +1,10 @@
-import { Rank, Suite, type Card, type PlayedCard } from "@bela/protocol";
+import {
+    Rank,
+    Suite,
+    type Card,
+    type Declaration,
+    type PlayedCard,
+} from "@bela/protocol";
 
 /**
  * The rules, as the client understands them.
@@ -32,6 +38,14 @@ const TRUMP_POINTS: Record<Rank, number> = {
     [Rank.NINE]: 14,
     [Rank.JACK]: 20,
 };
+
+/** What a set of declarations is worth, in points. */
+export function declarationPoints(declarations: Declaration[]) {
+    return declarations.reduce(
+        (sum, declaration) => sum + declaration.points,
+        0,
+    );
+}
 
 /** A stable identity for a card, for keys and set membership. */
 export function cardKey(card: Pick<Card, "suite" | "rank">) {

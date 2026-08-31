@@ -370,7 +370,6 @@
         "waiting": "Čekamo ostale igrače…",
         "dealing": "Dijelim…",
         "gone": "Ta je igra završila.",
-        "you": "ti",
         "hiddenCard": "Zatvorena karta",
         "suits": {
             "HEARTS": "Srce",
@@ -391,11 +390,13 @@
             "heading": "Zvanja",
             "promptHeading": "Želiš li zvati?",
             "promptBody": "U ruci imaš zvanja vrijedna {points} bodova. Ako zoveš, njihove će se karte pokazati stolu.",
-            "mine": "Vaša strana",
+            "mine": "Naša strana",
             "theirs": "Njihova strana",
             "none": "Nema zvanja",
             "declare": "Zovi",
             "decline": "Nemoj zvati",
+            "show": "pogledaj zvanja",
+            "close": "Zatvori",
             "updating": "Brojim zvanja…",
             "total": "Ukupno {points} bodova",
             "types": {
@@ -418,7 +419,7 @@
         "trick": {
             "empty": "Još nema bačenih karata",
             "won": "nosi",
-            "yourTurn": "Ti si na redu",
+            "yourTurn": "Ti si na potezu",
             "waitingFor": "Čekamo {name}"
         },
         "timer": {
@@ -430,7 +431,8 @@
         "score": {
             "us": "Mi",
             "them": "Oni",
-            "round": "(+{points})",
+            "declarations": "+{points}",
+            "total": "ukupno {points}",
             "target": "do {target}"
         },
         "over": {

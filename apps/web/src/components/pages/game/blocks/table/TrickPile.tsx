@@ -4,19 +4,23 @@ import { cn } from "@/lib/ui/cn";
 import type { PlayedCard } from "@bela/protocol";
 import type { SeatOrder } from "@/lib/game/seats";
 
+/* The four cards used to lap over each other the way they would on a real
+   table, on tracks deliberately narrower than the cards standing in them. They
+   no longer do: a card with somebody else's corner across it is a card you have
+   to work out rather than read. The tracks are now the full size of what they
+   hold — 1.612 is the deck's own 363:585 — and the pile buys that back out of
+   the card width instead. */
 const pileClass = [
-    "grid place-items-center",
-    "[--trick-card:min(5.25rem,42cqw,28cqh)]",
-    "grid-cols-[repeat(3,calc(var(--trick-card)*0.65))]",
-    "grid-rows-[repeat(3,calc(var(--trick-card)*0.9))]",
+    "grid place-items-center gap-1",
+    "[--trick-card:min(7.5rem,31cqw,19.5cqh)]",
+    "grid-cols-[repeat(3,var(--trick-card))]",
+    "grid-rows-[repeat(3,calc(var(--trick-card)*1.612))]",
 ].join(" ");
 
 type TrickPileProps = {
     playedCards: PlayedCard[];
     /** Near, left, across, right — where each seat's card belongs on the felt. */
     order: SeatOrder;
-    /** Ringed once the trick is decided. */
-    winningPlayerIndex: number | null;
     emptyLabel: string;
 };
 
@@ -30,7 +34,6 @@ type TrickPileProps = {
 export default function TrickPile({
     playedCards,
     order,
-    winningPlayerIndex,
     emptyLabel,
 }: TrickPileProps) {
     const [near, left, across, right] = order;
@@ -54,29 +57,21 @@ export default function TrickPile({
 
     // The tracks are sized rather than left to their contents: an empty seat's
     // cell would otherwise collapse and slide the whole trick off the middle of
-    // the felt as each card arrived.
+    // the table as each card arrived.
     //
-    // `--trick-card` is the card width, and it is measured against the felt (a
-    // size container) rather than off a rem ladder — a fixed width big enough to
-    // read on a phone is wider than the felt square on a short one, and spills
-    // over the border. The tracks are then deliberately smaller than the card
-    // they hold, so the four cards lap over each other the way they would on a
-    // real table; that buys every card about a third more width for the same
-    // patch of felt.
+    // `--trick-card` is the card width, and it is measured against the middle of
+    // the table (a size container) rather than off a rem ladder — a fixed width
+    // big enough to read on a phone is taller than the room a short screen has
+    // for three rows of it.
     return (
         <div className={pileClass}>
             {playedCards.map((played) => (
                 <div
                     key={`${played.playerIndex}-${cardKey(played.card)}`}
                     className={cn(
-                        // Overlapping cards need a stacking order, and the
-                        // trick's winner is the one that must not end up under
-                        // somebody else's corner.
                         "relative",
                         placement[played.playerIndex] ??
                             "col-start-2 row-start-2",
-                        winningPlayerIndex === played.playerIndex &&
-                            "z-10 outline-4 outline-offset-2 outline-mint",
                     )}
                 >
                     <PlayingCard card={played.card} size="sm" />

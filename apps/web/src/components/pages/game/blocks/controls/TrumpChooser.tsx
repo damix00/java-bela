@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Button } from "@/components/controls/Button";
 import { HUNGARIAN_SUIT_ASSETS } from "@/lib/game/card-assets";
 import { cn } from "@/lib/ui/cn";
-import { focusRing, pressSm } from "@/lib/ui/styles";
+import { focusRing } from "@/lib/ui/styles";
 import { Suite } from "@bela/protocol";
 
 type TrumpChooserProps = {
@@ -48,7 +48,7 @@ export default function TrumpChooser({
             className={cn(
                 "flex items-center",
                 tray
-                    ? "w-full flex-col gap-2 border-4 border-ink bg-baize-deep px-3 py-2 shadow-hard-sm [@media(max-height:560px)]:flex-row [@media(max-height:560px)]:gap-3 [@media(max-height:560px)]:py-1.5"
+                    ? "w-full flex-col gap-2 rounded-2xl bg-baize-deep px-3 py-2 shadow-[0_6px_20px_-8px_rgb(0_0_0_/_0.5)] [@media(max-height:560px)]:flex-row [@media(max-height:560px)]:gap-3 [@media(max-height:560px)]:py-1.5"
                     : "flex-col gap-1.5 sm:gap-3",
             )}
         >
@@ -84,11 +84,13 @@ export default function TrumpChooser({
                             onClick={() => onChoose(suite)}
                             aria-label={suiteNames[suite]}
                             className={cn(
-                                "grid cursor-pointer touch-manipulation place-items-center border-[3px] border-ink bg-cream shadow-hard-sm",
+                                // A pip on a disc, not a block on a shadow: the
+                                // suit is the whole target, so the frame around
+                                // it should say as little as possible.
+                                "grid cursor-pointer touch-manipulation place-items-center rounded-full bg-cream shadow-[0_2px_8px_-2px_rgb(0_0_0_/_0.45)] transition-transform duration-100 active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100",
                                 tray
                                     ? "size-11 [@media(max-height:560px)]:size-9"
                                     : "size-9 sm:size-14",
-                                pressSm,
                                 focusRing,
                             )}
                         >
@@ -112,6 +114,7 @@ export default function TrumpChooser({
                     <Button
                         tone="cream"
                         size="sm"
+                        soft
                         onClick={onPass}
                         className={cn(
                             "touch-manipulation",

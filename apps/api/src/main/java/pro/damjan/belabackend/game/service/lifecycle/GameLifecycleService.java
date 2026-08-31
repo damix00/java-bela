@@ -132,7 +132,10 @@ public class GameLifecycleService {
 
         gameAccessService.save(game);
         gamePublisher.roundStarted(game);
-        gamePublisher.trumpChoosingStarted(game, 10L);
+        // The same clock the turn is actually scheduled against. This used to
+        // be a literal 10, which is why the client drew a ten-second bar over a
+        // turn the server was giving longer.
+        gamePublisher.trumpChoosingStarted(game, TrumpPhaseService.TRUMP_CHOICE_TIMEOUT.toSeconds());
         trumpPhaseService.chooseBotTrumpOrSchedule(game);
     }
 

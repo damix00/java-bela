@@ -37,7 +37,7 @@ export default function GameOverPanel({
             : [result.team1FinalScore, result.team2FinalScore];
 
     return (
-        <div className="mx-auto flex w-full max-w-[420px] flex-col items-center gap-4 border-4 border-ink bg-baize-deep p-6 shadow-hard-lg">
+        <div className="mx-auto flex w-full max-w-[420px] flex-col items-center gap-4 rounded-2xl bg-baize-deep p-6 shadow-[0_12px_36px_-10px_rgb(0_0_0_/_0.6)]">
             <p className="font-display text-[26px] font-extrabold tracking-[-.02em] text-cream">
                 {won ? wonLabel : lostLabel}
             </p>

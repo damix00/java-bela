@@ -370,7 +370,6 @@
         "waiting": "Waiting for the other players…",
         "dealing": "Dealing…",
         "gone": "That game has finished.",
-        "you": "you",
         "hiddenCard": "Face-down card",
         "suits": {
             "HEARTS": "Hearts",
@@ -391,11 +390,13 @@
             "heading": "Declarations",
             "promptHeading": "Declare your hand?",
             "promptBody": "You have {points} points available. Declaring reveals those cards to the table.",
-            "mine": "Your side",
+            "mine": "Our side",
             "theirs": "Their side",
             "none": "Nothing declared",
             "declare": "Declare",
             "decline": "Don’t declare",
+            "show": "see declarations",
+            "close": "Close",
             "updating": "Counting declarations…",
             "total": "{points} points total",
             "types": {
@@ -418,7 +419,7 @@
         "trick": {
             "empty": "No cards played yet",
             "won": "took it",
-            "yourTurn": "Your turn",
+            "yourTurn": "Your move",
             "waitingFor": "Waiting for {name}"
         },
         "timer": {
@@ -428,9 +429,10 @@
             "declarations": "Declarations close in {seconds}s"
         },
         "score": {
-            "us": "You",
+            "us": "Us",
             "them": "Them",
-            "round": "(+{points})",
+            "declarations": "+{points}",
+            "total": "{points} in total",
             "target": "to {target}"
         },
         "over": {

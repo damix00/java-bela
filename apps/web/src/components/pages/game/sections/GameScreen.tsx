@@ -12,6 +12,7 @@ import {
 import type { User } from "@/api/types/user";
 import BelaPrompt from "@/components/pages/game/blocks/controls/BelaPrompt";
 import DeclarationsPanel from "@/components/pages/game/blocks/controls/DeclarationsPanel";
+import DeclarationsDialog from "@/components/pages/game/blocks/status/DeclarationsDialog";
 import TrumpChooser from "@/components/pages/game/blocks/controls/TrumpChooser";
 import HandFan from "@/components/pages/game/blocks/cards/HandFan";
 import GameSeat from "@/components/pages/game/blocks/table/GameSeat";
@@ -31,7 +32,7 @@ import { SNAPSHOT_GRACE_MS } from "@/context/lobby-context";
 import { useSocketStatus } from "@/context/socket-context";
 import type { Dictionary } from "@/dictionaries";
 import { cn } from "@/lib/ui/cn";
-import { canDeclareBela } from "@/lib/game/rules";
+import { canDeclareBela, declarationPoints } from "@/lib/game/rules";
 import type { Locale } from "@/lib/i18n/config";
 import { homePath } from "@/lib/navigation/routes";
 import { appGutters } from "@/lib/ui/styles";
@@ -70,10 +71,10 @@ const scoreDockClass = [
 /* Laid flat, the table is the only thing with no room to spare, so every row
    that is not the table gives up what it can — this one included. */
 const scoreSpacerClass = [
-    "w-full h-16 flex-[0_0_4rem]",
-    "portrait-sm:h-14 portrait-sm:flex-[0_0_3.5rem]",
-    "flat:h-12 flat:flex-[0_0_3rem]",
-    "desk:h-19 desk:flex-[0_0_4.75rem]",
+    "w-full h-20 flex-[0_0_5rem]",
+    "portrait-sm:h-18 portrait-sm:flex-[0_0_4.5rem]",
+    "flat:h-14 flat:flex-[0_0_3.5rem]",
+    "desk:h-22 desk:flex-[0_0_5.5rem]",
 ].join(" ");
 
 const playAreaClass = [
@@ -87,24 +88,29 @@ const playAreaClass = [
    it, where the thumb is not covering it. */
 const timerAreaClass = "flex flex-none flex-col gap-1 desk:order-1";
 
+/* Whose move it is, in words, directly over the hand.
+ *
+ * The table used to say this in two places that have both gone: the near seat's
+ * ring, and the empty middle's own label — which only ever showed before the
+ * first card of a trick was down. This is the one that is always there. It
+ * takes `desk:order-1` so it stays with the timer above the hand on a roomy
+ * screen, and sits under the hand with it on a phone. */
+const turnNoticeClass =
+    "flex min-h-6 flex-none items-center justify-center desk:order-1 flat:min-h-5";
+
 /** How long the result stays up before the table shows itself out. */
 const GAME_OVER_DWELL_MS = 3000;
 const handAreaClass = "flex flex-none justify-center desk:order-2";
 
-/* The decision surface, and the near seat's own label, are phone furniture:
-   above `desk` the table's fourth chair carries the label, and the felt carries
-   the decision — but only while the felt is big enough to hold it. Below that
-   the tray comes back and takes the decision with it, because one clipped by the
-   felt's edge is one that cannot be taken; the felt is left to the trick, and the
-   fourth chair gives up its row to it. The tray is capped and centred there
-   rather than left full-width, which on a wide screen would stretch four suit
-   pips across the whole table. */
+/* The decision surface is phone furniture: on a roomy screen the trump call and
+   the declarations are taken in the middle of the table, and below that the tray
+   under the hand takes them instead, where a short screen still has room. The
+   tray is capped and centred rather than left full-width, which on a wide screen
+   would stretch four suit pips across the whole table. */
 const mobileActionClass = [
     "flex w-full flex-none justify-center desk:hidden",
     "felt-short:flex felt-short:desk:mx-auto felt-short:desk:max-w-160",
 ].join(" ");
-const mobilePlayerClass =
-    "flex w-full min-h-9 flex-none justify-center desk:hidden felt-short:flex";
 const mobileOnlyClass = "block desk:hidden flat:hidden";
 const desktopOnlyClass = "hidden desk:block felt-short:hidden";
 
@@ -165,6 +171,11 @@ export default function GameScreen({
 
     /** The card waiting on a bela answer. Cleared as soon as it is thrown. */
     const [belaCard, setBelaCard] = useState<Card | null>(null);
+
+    /** Which side of the score has been tapped for its declarations. */
+    const [showDeclarations, setShowDeclarations] = useState<
+        "us" | "them" | null
+    >(null);
 
     // The "I am on the game screen" handshake. The fourth one deals the first
     // round. Safe to repeat — `GameLifecycleService.onLoaded` returns early
@@ -240,7 +251,7 @@ export default function GameScreen({
 
     const round = game.round;
     const trumpSuite = round?.trumpSuite ?? null;
-    const [near, left, across, right] = seating.order;
+    const [, left, across, right] = seating.order;
 
     const mineFirst = seating.teamIndex === 1;
     const usTotal = mineFirst ? game.team2.totalScore : game.team1.totalScore;
@@ -292,17 +303,29 @@ export default function GameScreen({
         );
     }
 
-    const seatFor = (seat: number, variant: "wide" | "square" | "inline") => (
+    const seatFor = (seat: number, variant: "wide" | "square") => (
         <GameSeat
             name={nameOf(seat)}
             avatarUrl={avatarOf(seat)}
             active={round?.currentTurnIndex === seat}
             won={pendingBreak?.winningPlayerIndex === seat}
             variant={variant}
-            youLabel={seat === chair ? copy.you : undefined}
             wonLabel={copy.trick.won}
         />
     );
+    /* Only the two states worth naming: it is yours, or it is theirs. Anything
+       said between tricks would be gone before it was read. */
+    const playing =
+        round?.roundStatus === RoundStatus.PLAYING && pendingBreak === null;
+    const turnNotice = !playing
+        ? null
+        : isMyTurn
+          ? copy.trick.yourTurn
+          : copy.trick.waitingFor.replace(
+                "{name}",
+                nameOf(round.currentTurnIndex),
+            );
+
     const showMobileAction =
         phase === "declarations" || (phase === "choosing-trump" && isMyTurn);
 
@@ -316,6 +339,8 @@ export default function GameScreen({
                     themTotal={themTotal}
                     usRound={usRound}
                     themRound={themRound}
+                    usDeclarations={declarationPoints(myDeclarations)}
+                    themDeclarations={declarationPoints(theirDeclarations)}
                     target={game.maxPoints}
                     targetLabel={copy.score.target}
                     trumpSuite={trumpSuite}
@@ -334,15 +359,16 @@ export default function GameScreen({
                               ? copy.trump.calledByUs
                               : copy.trump.calledByThem
                     }
-                    roundLabel={copy.score.round}
+                    declarationsLabel={copy.score.declarations}
+                    totalLabel={copy.score.total}
+                    showDeclarationsLabel={copy.declarations.show}
+                    onShowDeclarations={setShowDeclarations}
                 />
             </div>
             <div className={scoreSpacerClass} aria-hidden="true" />
 
             <div className={playAreaClass}>
                 <GameTableStage
-                    compact={showMobileAction}
-                    near={seatFor(near, "wide")}
                     across={seatFor(across, "wide")}
                     left={seatFor(left, "square")}
                     right={seatFor(right, "square")}
@@ -377,6 +403,7 @@ export default function GameScreen({
                         chair={chair}
                         myDeclarations={myDeclarations}
                         theirDeclarations={theirDeclarations}
+                        nameOf={nameOf}
                         onChooseTrump={chooseTrump}
                         onPassTrump={passTrump}
                         onDecline={declineDeclarations}
@@ -384,6 +411,15 @@ export default function GameScreen({
                     />
                 </div>
             ) : null}
+
+            <div className={turnNoticeClass}>
+                <p
+                    aria-live="polite"
+                    className="text-center text-[13px] font-semibold text-mint/70 flat:text-[11px]"
+                >
+                    {turnNotice}
+                </p>
+            </div>
 
             <div className={handAreaClass}>
                 <HandFan
@@ -434,7 +470,26 @@ export default function GameScreen({
                 )}
             </div>
 
-            <div className={mobilePlayerClass}>{seatFor(near, "inline")}</div>
+            {showDeclarations && (
+                <DeclarationsDialog
+                    heading={copy.declarations.heading}
+                    label={
+                        showDeclarations === "us"
+                            ? copy.declarations.mine
+                            : copy.declarations.theirs
+                    }
+                    declarations={
+                        showDeclarations === "us"
+                            ? myDeclarations
+                            : theirDeclarations
+                    }
+                    typeNames={copy.declarations.types}
+                    totalLabel={copy.declarations.total}
+                    closeLabel={copy.declarations.close}
+                    nameOf={nameOf}
+                    onClose={() => setShowDeclarations(null)}
+                />
+            )}
 
             {belaCard && (
                 <BelaPrompt
@@ -514,6 +569,7 @@ function Centre({
                         chair={chair}
                         myDeclarations={myDeclarations}
                         theirDeclarations={theirDeclarations}
+                        nameOf={nameOf}
                         onChooseTrump={onChooseTrump}
                         onPassTrump={onPassTrump}
                         onDecline={onDecline}
@@ -540,6 +596,7 @@ function Centre({
                         chair={chair}
                         myDeclarations={myDeclarations}
                         theirDeclarations={theirDeclarations}
+                        nameOf={nameOf}
                         onChooseTrump={onChooseTrump}
                         onPassTrump={onPassTrump}
                         onDecline={onDecline}
@@ -554,8 +611,9 @@ function Centre({
         <TrickPile
             playedCards={round.trickCards}
             order={order}
-            winningPlayerIndex={round.trickWinningPlayerIndex}
-            emptyLabel={isMyTurn ? copy.trick.yourTurn : copy.trick.empty}
+            // Whose move it is is said over the hand now, in every state
+            // rather than only in the gap before the first card is down.
+            emptyLabel={copy.trick.empty}
         />
     );
 }
@@ -569,6 +627,7 @@ type RoundActionProps = {
     chair: number;
     myDeclarations: Declaration[];
     theirDeclarations: Declaration[];
+    nameOf: (seat: number) => string;
     onChooseTrump: (suite: Suite) => void;
     onPassTrump: () => void;
     onDecline: () => void;
@@ -585,6 +644,7 @@ function RoundAction({
     chair,
     myDeclarations,
     theirDeclarations,
+    nameOf,
     onChooseTrump,
     onPassTrump,
     onDecline,
@@ -612,6 +672,8 @@ function RoundAction({
             key={`${round.roundNumber}-${variant}`}
             mine={myDeclarations}
             theirs={theirDeclarations}
+            typeNames={copy.declarations.types}
+            nameOf={nameOf}
             heading={copy.declarations.heading}
             promptHeading={copy.declarations.promptHeading}
             promptBody={copy.declarations.promptBody}
@@ -634,7 +696,7 @@ function RoundAction({
     if (variant === "table") return panel;
 
     return (
-        <div className="w-full border-4 border-ink bg-baize-deep px-3 py-2 shadow-hard-sm [@media(max-height:560px)]:py-1.5">
+        <div className="w-full rounded-2xl bg-baize-deep px-3 py-2 shadow-[0_6px_20px_-8px_rgb(0_0_0_/_0.5)] [@media(max-height:560px)]:py-1.5">
             {panel}
         </div>
     );

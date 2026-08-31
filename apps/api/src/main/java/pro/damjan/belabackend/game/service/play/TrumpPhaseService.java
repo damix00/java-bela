@@ -26,7 +26,11 @@ import java.util.Map;
 public class TrumpPhaseService {
 
     private static final Duration BOT_TRUMP_CHOICE_DELAY = Duration.ofSeconds(1);
-    private static final Duration TRUMP_CHOICE_TIMEOUT = Duration.ofSeconds(10);
+    // Calling trump is the round's one real decision — six cards read against a
+    // contract you would owe. Ten seconds was a glance; thirty is time to take
+    // it. This is both the turn's own clock and the `timeoutSeconds` the client
+    // draws its timer from, so the bar follows on its own.
+    public static final Duration TRUMP_CHOICE_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration DECLARATION_REVEAL_DELAY = Duration.ofSeconds(10);
 
     private final GameAccessService gameAccessService;
