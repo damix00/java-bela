@@ -6,17 +6,16 @@ import { useMemo, useState, useTransition } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { dismissWelcome, updateProfile } from "@/actions/profile";
-import { refreshAccessToken } from "@/api/token-store";
+import { refreshAccessToken, setAuth } from "@/api/token-store";
 import { Button } from "@/components/controls/Button";
 import CountrySelect from "@/components/controls/CountrySelect";
 import Field, { invalidProps } from "@/components/controls/Field";
 import FormError from "@/components/controls/FormError";
 import AuthSplit from "@/components/pages/auth/blocks/layout/AuthSplit";
-import PlacementCard from "@/components/pages/auth/blocks/rating/PlacementCard";
+import SeatPreview from "@/components/pages/auth/blocks/welcome/SeatPreview";
 import Eyebrow from "@/components/ui/typography/Eyebrow";
 import Heading from "@/components/ui/typography/Heading";
 import Text from "@/components/ui/typography/Text";
-import { useAuth } from "@/context/auth-context";
 import type { Dictionary } from "@/dictionaries";
 import { SESSION_EXPIRED } from "@/lib/profile/result";
 import type { CountryOption } from "@/lib/i18n/countries";
@@ -30,9 +29,6 @@ import {
     type FormErrors,
     type WelcomeProfileValues,
 } from "@/lib/validation/schemas";
-
-/** The five games a new account plays before it has a rating. */
-const PLACEMENT_TOTAL = 5;
 
 type WelcomeScreenProps = {
     copy: Dictionary["auth"]["welcome"];
@@ -54,6 +50,8 @@ type WelcomeScreenProps = {
      * context is a pass behind on load and the heading would greet nobody.
      */
     username: string;
+    /** Null on a fresh account, which is nearly all of them here. */
+    avatarUrl: string | null;
     /** Built on the server — see `countryOptions`. */
     countries: CountryOption[];
 };
@@ -80,10 +78,10 @@ export default function WelcomeScreen({
     errors,
     locale,
     username,
+    avatarUrl,
     countries,
 }: WelcomeScreenProps) {
     const router = useRouter();
-    const { setUser } = useAuth();
     const [pending, startTransition] = useTransition();
     const [error, setError] = useState<string | null>(null);
 
@@ -101,6 +99,13 @@ export default function WelcomeScreen({
 
     const bio = useWatch({ control, name: "bio" });
     const remaining = BIO_MAX - (bio?.length ?? 0);
+
+    // The card beside the form is drawn from the boxes rather than from saved
+    // state, so the country is watched the same way the bio is. The name comes
+    // out of the list that was built on the server — see `countryOptions` for
+    // why it cannot be looked up here.
+    const countryCode = useWatch({ control, name: "countryCode" });
+    const country = countries.find((option) => option.code === countryCode);
 
     /**
      * Both ways out. `replace`, not `push`: a step that is over should not sit
@@ -142,7 +147,12 @@ export default function WelcomeScreen({
                 return;
             }
 
-            setUser(result.user);
+            // The store rather than `useAuth`: this screen is in the
+            // `(auth)` group, and `AuthProvider` is mounted on the `(app)`
+            // layout, so there is no context to read here. The store is what
+            // the provider's `setUser` writes to anyway, and the lobby's own
+            // provider picks the change up when `leave` refreshes it.
+            setAuth({ user: result.user, status: "authenticated" });
             await leave();
         });
     }
@@ -168,14 +178,14 @@ export default function WelcomeScreen({
                     <Text size="md" tone="mint" className="max-w-[36ch]">
                         {copy.body}
                     </Text>
-                    {/* Honest for an account minutes old, and the same card the
-                        rating screens use — nothing is being previewed here that
-                        isn't about to be true. */}
-                    <PlacementCard
-                        label={copy.placement}
-                        played={0}
-                        total={PLACEMENT_TOTAL}
-                        layout="inline"
+                    <SeatPreview
+                        label={copy.preview}
+                        username={username}
+                        avatarUrl={avatarUrl}
+                        bio={bio ?? ""}
+                        countryCode={country?.code ?? null}
+                        countryName={country?.name ?? null}
+                        bioEmpty={profile.bioEmpty}
                     />
                 </>
             }

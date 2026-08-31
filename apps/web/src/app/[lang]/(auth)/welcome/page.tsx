@@ -60,6 +60,7 @@ export default async function Page({ params }: PageProps<"/[lang]/welcome">) {
             errors={dict.form.errors}
             locale={lang}
             username={user.username}
+            avatarUrl={user.avatarUrl}
             countries={countryOptions(lang)}
         />
     );
