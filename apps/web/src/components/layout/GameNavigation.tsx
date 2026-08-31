@@ -10,7 +10,7 @@ import { homePath } from "@/lib/navigation/routes";
 import Logo from "@/components/ui/brand/Logo";
 import ProfileMenu from "@/components/layout/ProfileMenu";
 import GuestUpgrade from "@/components/layout/GuestUpgrade";
-import RankMeter from "@/components/layout/RankMeter";
+// import RankMeter from "@/components/layout/RankMeter";
 import { DesktopNavLinks, MobileNavLinks } from "@/components/layout/NavLinks";
 
 type GameNavigationProps = {
@@ -84,6 +84,12 @@ export default function GameNavigation({
                                         className="hidden lg:flex"
                                     />
                                 </>
+                            ) : null}
+                            {/* The rank meter is out until there is a rating
+                                behind it. It said "Unrated / Unranked" — honest,
+                                but a permanent nothing in the corner every
+                                signed-in player looks at. The component and its
+                                copy stay; this is the slot it comes back into.
                             ) : (
                                 <>
                                     <RankMeter
@@ -96,7 +102,7 @@ export default function GameNavigation({
                                         className="hidden lg:flex"
                                     />
                                 </>
-                            )}
+                            )} */}
                             {/* The account corner is a menu from `sm` up. Below that the
                 bottom bar carries the avatar, and a second one up here would
                 be two doors to the same room in a bar that has no room. */}

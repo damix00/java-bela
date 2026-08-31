@@ -33,13 +33,15 @@ export default function GuestUpgrade({
 
     return (
         <div className={cn("shrink-0 items-center gap-3", className)}>
-            {/* Set in the same ash the rank meter's own labels use, so the corner
-                reads as the meter's replacement rather than as a new thing. */}
+            {/* The "Unranked" label is out while there is no rating anywhere in
+                the app: with the rank meter gone from the signed-in corner, it
+                labelled an absence nobody else is shown. The copy stays in the
+                dictionary — put the span back the day ratings exist.
             {!compact && (
                 <span className="hidden whitespace-nowrap font-sans text-[10px] font-bold tracking-[.12em] text-ash/80 uppercase xl:block">
                     {copy.label}
                 </span>
-            )}
+            )} */}
             <ButtonLink
                 href={authPath(locale, "signUp")}
                 tone="rust"

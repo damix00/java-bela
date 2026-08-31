@@ -147,12 +147,16 @@ export default function TableRules({
 
     const rules = useMemo(
         () => [
-            {
-                type: MatchType.RANKED,
-                title: copy.rules.ranked.title,
-                note: copy.rules.ranked.note,
-                guest: false,
-            },
+            // Ranked is out of the picker until there is a rating behind it.
+            // Nothing else about it is removed — the copy, the guest gate and
+            // the backend's `MatchType.RANKED` all stand — so putting the row
+            // back is uncommenting it.
+            // {
+            //     type: MatchType.RANKED,
+            //     title: copy.rules.ranked.title,
+            //     note: copy.rules.ranked.note,
+            //     guest: false,
+            // },
             {
                 type: MatchType.CASUAL,
                 title: copy.rules.casual.title,
