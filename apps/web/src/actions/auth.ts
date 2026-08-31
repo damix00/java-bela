@@ -9,7 +9,6 @@ import {
     REFRESH_TOKEN_COOKIE,
     USER_COOKIE,
     accessTokenExpiryMs,
-    clearSessionCookies,
     setSessionCookies,
 } from "@/actions/cookies";
 
@@ -87,7 +86,19 @@ export async function logout() {
         }).catch(() => null);
     }
 
-    clearSessionCookies(cookieStore);
+    // The whole jar, not the four names `clearSessionCookies` knows.
+    //
+    // That helper is the *session* clearer, and it stays that: the proxy and the
+    // refresh route call it when a refresh fails, and a browser whose token
+    // expired overnight should not also lose the language it reads the site in.
+    // Signing out is the other thing — a deliberate "leave nothing behind", most
+    // often on a computer someone else is about to use — so it sweeps whatever
+    // is actually in the jar rather than a list that has to be remembered every
+    // time a cookie is added. `NEXT_LOCALE` goes with it; the URL still carries
+    // the language, so the sign-out lands in the same one it started in.
+    for (const cookie of cookieStore.getAll()) {
+        cookieStore.delete(cookie.name);
+    }
 }
 
 /**
