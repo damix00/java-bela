@@ -42,6 +42,9 @@ export default function DeclarationsDialog({
     onClose,
 }: DeclarationsDialogProps) {
     const reduceMotion = useReducedMotion();
+    const transition = reduceMotion
+        ? { duration: 0 }
+        : { type: "spring" as const, stiffness: 320, damping: 32, mass: 0.8 };
 
     // Escape closes it. The dialog is opened from a bar that is otherwise
     // click-through, so the backdrop is the only other way out.
@@ -67,6 +70,7 @@ export default function DeclarationsDialog({
                     reduceMotion ? false : { opacity: 0, scale: 0.98, y: 8 }
                 }
                 animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={transition}
                 // The panel is inside the backdrop's click target, so it has to
                 // stop the click that would otherwise close it.
                 onClick={(event) => event.stopPropagation()}

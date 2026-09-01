@@ -1,5 +1,7 @@
 "use client";
 
+import { motion, useReducedMotion } from "motion/react";
+
 import { Button } from "@/components/controls/Button";
 import PlayingCard from "@/components/pages/game/blocks/cards/PlayingCard";
 import type { Card } from "@bela/protocol";
@@ -32,6 +34,11 @@ export default function BelaPrompt({
     skipLabel,
     onAnswer,
 }: BelaPromptProps) {
+    const reduceMotion = useReducedMotion();
+    const transition = reduceMotion
+        ? { duration: 0 }
+        : { type: "spring" as const, stiffness: 320, damping: 32, mass: 0.8 };
+
     return (
         <div
             role="dialog"
@@ -39,7 +46,12 @@ export default function BelaPrompt({
             aria-label={heading}
             className={cn(scrim, "p-6")}
         >
-            <div
+            <motion.div
+                initial={
+                    reduceMotion ? false : { opacity: 0, scale: 0.97, y: 12 }
+                }
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={transition}
                 className={cn(
                     panelRaised,
                     "flex w-full max-w-[400px] flex-col items-center gap-4 p-6",
@@ -68,7 +80,7 @@ export default function BelaPrompt({
                         {skipLabel}
                     </Button>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 }

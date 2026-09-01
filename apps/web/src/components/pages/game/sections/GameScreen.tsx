@@ -1,6 +1,7 @@
 "use client";
 
 import { LogOut } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
@@ -108,17 +109,15 @@ const turnNoticeClass =
 const GAME_OVER_DWELL_MS = 3000;
 const handAreaClass = "flex flex-none justify-center desk:order-2";
 
-/* The decision surface is phone furniture: on a roomy screen the trump call and
-   the declarations are taken in the middle of the table, and below that the tray
-   under the hand takes them instead, where a short screen still has room. The
-   tray is capped and centred rather than left full-width, which on a wide screen
-   would stretch four suit pips across the whole table. */
-const mobileActionClass = [
-    "flex w-full flex-none justify-center desk:hidden",
-    "felt-short:flex felt-short:desk:mx-auto felt-short:desk:max-w-160",
+/* Decisions float above the felt instead of claiming a row in the game screen.
+   A round changing from cards to declarations therefore cannot push the table,
+   hand, or timer to a different position. */
+const actionOverlayClass = [
+    "pointer-events-none fixed inset-x-[max(0.75rem,env(safe-area-inset-left))] z-40 grid place-items-center",
+    "top-[max(6.5rem,calc(env(safe-area-inset-top)+5.75rem))] bottom-[max(7.5rem,calc(env(safe-area-inset-bottom)+6.75rem))]",
+    "flat:top-[max(4.5rem,calc(env(safe-area-inset-top)+4rem))] flat:bottom-[max(5rem,calc(env(safe-area-inset-bottom)+4.5rem))]",
+    "desk:inset-x-auto desk:left-1/2 desk:w-[min(44rem,calc(100vw-4rem))] desk:-translate-x-1/2 desk:top-[max(7rem,calc(env(safe-area-inset-top)+6rem))] desk:bottom-8",
 ].join(" ");
-const mobileOnlyClass = "block desk:hidden flat:hidden";
-const desktopOnlyClass = "hidden desk:block felt-short:hidden";
 
 type GameScreenProps = {
     copy: Dictionary["game"];
@@ -363,7 +362,7 @@ export default function GameScreen({
                 nameOf(round.currentTurnIndex),
             );
 
-    const showMobileAction =
+    const showRoundAction =
         phase === "declaring" ||
         phase === "declarations" ||
         (phase === "choosing-trump" && isMyTurn);
@@ -448,40 +447,11 @@ export default function GameScreen({
                             round={round}
                             order={seating.order}
                             isMyTurn={isMyTurn}
-                            canPass={canPass}
-                            chair={chair}
                             nameOf={nameOf}
-                            myDeclarations={myDeclarations}
-                            theirDeclarations={theirDeclarations}
-                            onChooseTrump={chooseTrump}
-                            onPassTrump={passTrump}
-                            onDeclare={declareDeclarations}
-                            onDecline={declineDeclarations}
                         />
                     }
                 />
             </div>
-
-            {showMobileAction && round ? (
-                <div className={mobileActionClass}>
-                    <RoundAction
-                        copy={copy}
-                        phase={phase}
-                        round={round}
-                        isMyTurn={isMyTurn}
-                        canPass={canPass}
-                        chair={chair}
-                        myDeclarations={myDeclarations}
-                        theirDeclarations={theirDeclarations}
-                        nameOf={nameOf}
-                        onChooseTrump={chooseTrump}
-                        onPassTrump={passTrump}
-                        onDeclare={declareDeclarations}
-                        onDecline={declineDeclarations}
-                        variant="tray"
-                    />
-                </div>
-            ) : null}
 
             <div className={turnNoticeClass}>
                 <p
@@ -549,6 +519,30 @@ export default function GameScreen({
                 )}
             </div>
 
+            <AnimatePresence mode="wait">
+                {showRoundAction && round ? (
+                    <RoundActionOverlay
+                        key={`${phase}-${round.roundNumber}`}
+                    >
+                        <RoundAction
+                            copy={copy}
+                            phase={phase}
+                            round={round}
+                            isMyTurn={isMyTurn}
+                            canPass={canPass}
+                            chair={chair}
+                            myDeclarations={myDeclarations}
+                            theirDeclarations={theirDeclarations}
+                            nameOf={nameOf}
+                            onChooseTrump={chooseTrump}
+                            onPassTrump={passTrump}
+                            onDeclare={declareDeclarations}
+                            onDecline={declineDeclarations}
+                        />
+                    </RoundActionOverlay>
+                ) : null}
+            </AnimatePresence>
+
             {showDeclarations && (
                 <DeclarationsDialog
                     heading={copy.declarations.heading}
@@ -601,30 +595,14 @@ function Centre({
     round,
     order,
     isMyTurn,
-    canPass,
-    chair,
     nameOf,
-    myDeclarations,
-    theirDeclarations,
-    onChooseTrump,
-    onPassTrump,
-    onDeclare,
-    onDecline,
 }: {
     copy: Dictionary["game"];
     phase: GamePhase;
     round: RoundView | null;
     order: [number, number, number, number];
     isMyTurn: boolean;
-    canPass: boolean;
-    chair: number;
     nameOf: (seat: number) => string;
-    myDeclarations: Declaration[];
-    theirDeclarations: Declaration[];
-    onChooseTrump: (suite: Suite) => void;
-    onPassTrump: () => void;
-    onDeclare: () => void;
-    onDecline: () => void;
 }) {
     if (phase === "waiting") return <Notice>{copy.waiting}</Notice>;
     if (phase === "dealing" || !round) {
@@ -643,60 +621,16 @@ function Centre({
             );
         }
 
-        return (
-            <>
-                <Notice className={cn(mobileOnlyClass, "py-2")}>
-                    {copy.trick.yourTurn}
-                </Notice>
-                <div className={desktopOnlyClass}>
-                    <RoundAction
-                        copy={copy}
-                        phase={phase}
-                        round={round}
-                        isMyTurn={isMyTurn}
-                        canPass={canPass}
-                        chair={chair}
-                        myDeclarations={myDeclarations}
-                        theirDeclarations={theirDeclarations}
-                        nameOf={nameOf}
-                        onChooseTrump={onChooseTrump}
-                        onPassTrump={onPassTrump}
-                        onDeclare={onDeclare}
-                        onDecline={onDecline}
-                        variant="table"
-                    />
-                </div>
-            </>
-        );
+        return <Notice>{copy.trick.yourTurn}</Notice>;
     }
 
     if (phase === "declaring" || phase === "declarations") {
         return (
-            <>
-                <Notice className={cn(mobileOnlyClass, "py-2")}>
-                    {phase === "declaring"
-                        ? copy.declarations.promptHeading
-                        : copy.declarations.heading}
-                </Notice>
-                <div className={desktopOnlyClass}>
-                    <RoundAction
-                        copy={copy}
-                        phase={phase}
-                        round={round}
-                        isMyTurn={isMyTurn}
-                        canPass={canPass}
-                        chair={chair}
-                        myDeclarations={myDeclarations}
-                        theirDeclarations={theirDeclarations}
-                        nameOf={nameOf}
-                        onChooseTrump={onChooseTrump}
-                        onPassTrump={onPassTrump}
-                        onDeclare={onDeclare}
-                        onDecline={onDecline}
-                        variant="table"
-                    />
-                </div>
-            </>
+            <Notice>
+                {phase === "declaring"
+                    ? copy.declarations.promptHeading
+                    : copy.declarations.heading}
+            </Notice>
         );
     }
 
@@ -725,10 +659,9 @@ type RoundActionProps = {
     onPassTrump: () => void;
     onDeclare: () => void;
     onDecline: () => void;
-    variant: "table" | "tray";
 };
 
-/** The decision surface moves beside the hand on phones and onto the felt above. */
+/** The contents of the fixed decision overlay. */
 function RoundAction({
     copy,
     phase,
@@ -743,7 +676,6 @@ function RoundAction({
     onPassTrump,
     onDeclare,
     onDecline,
-    variant,
 }: RoundActionProps) {
     if (phase === "choosing-trump" && isMyTurn) {
         return (
@@ -753,7 +685,6 @@ function RoundAction({
                 passLabel={copy.trump.pass}
                 mustCallNote={copy.trump.mustCall}
                 canPass={canPass}
-                variant={variant}
                 onChoose={onChooseTrump}
                 onPass={onPassTrump}
             />
@@ -764,7 +695,7 @@ function RoundAction({
 
     const panel = (
         <DeclarationsPanel
-            key={`${round.roundNumber}-${variant}`}
+            key={round.roundNumber}
             mine={myDeclarations}
             theirs={theirDeclarations}
             typeNames={copy.declarations.types}
@@ -788,16 +719,27 @@ function RoundAction({
         />
     );
 
-    if (variant === "table") return panel;
+    return panel;
+}
+
+/** The small, calm rise used for trump and declaration decisions. */
+function RoundActionOverlay({ children }: { children: React.ReactNode }) {
+    const reduceMotion = useReducedMotion();
+    const transition = reduceMotion
+        ? { duration: 0 }
+        : { type: "spring" as const, stiffness: 320, damping: 32, mass: 0.8 };
 
     return (
-        <div
-            className={cn(
-                panel,
-                "w-full px-3 py-2 [@media(max-height:560px)]:py-1.5",
-            )}
-        >
-            {panel}
+        <div className={actionOverlayClass}>
+            <motion.div
+                initial={reduceMotion ? false : { opacity: 0, scale: 0.97, y: 12 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.98, y: 6 }}
+                transition={transition}
+                className="pointer-events-auto max-h-full w-fit max-w-full min-w-[min(100%,20rem)] overflow-y-auto overscroll-contain rounded-2xl bg-baize-deep/95 px-3 py-3 shadow-[0_12px_36px_-10px_rgb(0_0_0_/_0.6)] backdrop-blur-sm sm:px-5 sm:py-4"
+            >
+                {children}
+            </motion.div>
         </div>
     );
 }

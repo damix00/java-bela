@@ -125,6 +125,9 @@ export default function DeclarationsPanel({
     const mode = asking ? (answered ? "pending" : "prompt") : "summary";
 
     const reveal = reduceMotion ? undefined : { opacity: 1, scale: 1, y: 0 };
+    const transition = reduceMotion
+        ? { duration: 0 }
+        : { type: "spring" as const, stiffness: 320, damping: 32, mass: 0.8 };
 
     if (mode === "prompt") {
         return (
@@ -134,6 +137,7 @@ export default function DeclarationsPanel({
                     reduceMotion ? false : { opacity: 0, scale: 0.98, y: 6 }
                 }
                 animate={reveal}
+                transition={transition}
                 className="flex w-full flex-col items-center gap-2 text-center sm:gap-3 [@media(max-height:560px)]:flex-row [@media(max-height:560px)]:justify-center [@media(max-height:560px)]:gap-3"
             >
                 <p className="font-display text-[15px] font-extrabold whitespace-nowrap tracking-[-.02em] text-cream sm:text-[18px] [@media(max-height:560px)]:text-[14px]">
@@ -173,6 +177,7 @@ export default function DeclarationsPanel({
                 key="pending"
                 initial={reduceMotion ? false : { opacity: 0 }}
                 animate={{ opacity: 1 }}
+                transition={transition}
                 aria-live="polite"
                 className="text-center text-[13px] font-semibold text-mint/75"
             >
@@ -188,6 +193,7 @@ export default function DeclarationsPanel({
             key="summary"
             initial={reduceMotion ? false : { opacity: 0, scale: 0.98, y: 6 }}
             animate={reveal}
+            transition={transition}
             aria-live="polite"
             className="flex w-full flex-col items-center gap-2 sm:gap-3 [@media(max-height:560px)]:flex-row [@media(max-height:560px)]:justify-center"
         >

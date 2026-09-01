@@ -63,13 +63,14 @@ const liftClass =
  * under the height of the smallest card the hand ever draws — so at the
  * threshold the card has just about cleared the row it was sitting in.
  *
- * Nothing else plays the card. A short flick, however fast, is cancelled and
- * springs back; a tap is already there for the quick way to play.
+ * Nothing else plays the card. A short, slow drag springs back; a card held
+ * clearly above the hand or flicked upward with intent is played. A tap is
+ * already there for the quick way to play.
  */
 const DRAG_PLAY_THRESHOLD = 72;
 
 /** A card has to be released with intent, not merely parked above the hand. */
-const DRAG_PLAY_VELOCITY = -600;
+const DRAG_PLAY_VELOCITY = -350;
 
 type PlayingCardProps = {
     card?: Pick<Card, "suite" | "rank"> | null;
@@ -166,9 +167,10 @@ export default function PlayingCard({
     }
 
     if (onDragPlay && !disabled) {
-        // A card must travel far enough *and* be thrown upward. `offset` is
-        // measured from where the drag started, so returning a card beneath
-        // the table — or merely placing it there — always snaps it back.
+        // A card is played after either a clear upward placement or a decisive
+        // upward flick. `offset` is the drag's final position relative to the
+        // hand, so a player can hold a card over the felt and release it at
+        // rest; velocity is only the alternative quick gesture.
         const onDragEnd = (_event: unknown, info: PanInfo) => {
             // A browser click follows the pointer release. Leave this set for
             // that event too, otherwise a cancelled drag can play the card.
@@ -178,7 +180,7 @@ export default function PlayingCard({
             }, 0);
 
             if (
-                info.offset.y <= -DRAG_PLAY_THRESHOLD &&
+                info.offset.y <= -DRAG_PLAY_THRESHOLD ||
                 info.velocity.y <= DRAG_PLAY_VELOCITY
             ) {
                 onDragPlay();
