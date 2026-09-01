@@ -50,27 +50,17 @@ type TableSeatProps = {
     hasTable: boolean;
     name: string;
     avatarUrl: string | null;
-    /** A move into this seat is in flight or has just landed. */
-    status?: "pending" | "complete";
     disabled?: boolean;
     onRequestSwap: (seat: number) => void;
 };
 
 /**
- * The settle bump: one small scale pulse once the glide has carried the two
- * seats to their new chairs.
- */
-const BUMP_START_MS = 420;
-const BUMP_END_MS = 820;
-
-/**
  * How long a landed switch holds the seats before they take another press.
  *
- * Tied to the bump rather than picked for feel: clearing the request is what
- * tears down the bump's own timers, so anything shorter than `BUMP_END_MS`
- * strands `bump` at true with no timeout left to reset it.
+ * This only prevents a second request overtaking the socket acknowledgement;
+ * the cards complete their shared-layout spring independently.
  */
-const SETTLED_HOLD_MS = BUMP_END_MS + 100;
+const SETTLED_HOLD_MS = 650;
 
 /**
  * The lobby is always viewed from the player who first occupied the table.
@@ -82,12 +72,6 @@ const FIRST_PLAYER_SEAT = 0;
 
 type SwapRequest = {
     fromChair: number;
-    /**
-     * Keyed by chair rather than by whoever was sitting in it. An empty seat is
-     * a move target like any other and has no user to name, and the seat index
-     * is the one identifier both kinds of target share.
-     */
-    targetSeat: number;
 };
 
 type ResolvedTableSeatProps = Omit<TableSeatProps, "name" | "avatarUrl"> & {
@@ -151,7 +135,6 @@ function TableSeat({
     seatsLocked,
     name,
     avatarUrl,
-    status,
     disabled = false,
     onRequestSwap,
 }: TableSeatProps) {
@@ -189,7 +172,6 @@ function TableSeat({
                 label={copy.openSeat}
                 onClick={handleClick}
                 actionLabel={copy.lobby.takeSeat}
-                swapStatus={status}
                 disabled={disabled}
                 className={
                     variant === "side"
@@ -209,11 +191,16 @@ function TableSeat({
                 name={name}
                 avatarUrl={avatarUrl}
                 ready={ready}
-                note={player.host ? copy.lobby.host : copy.lobby.opponent}
+                note={
+                    isYou
+                        ? copy.you
+                        : player.host
+                          ? copy.lobby.host
+                          : copy.lobby.opponent
+                }
                 onClick={handleClick}
                 actionLabel={actionLabel}
                 disabled={disabled}
-                swapStatus={status}
                 className="w-full"
             />
         );
@@ -241,7 +228,6 @@ function TableSeat({
             tags={tags}
             onClick={handleClick}
             actionLabel={actionLabel}
-            status={status}
             disabled={disabled}
             className="w-full"
         />
@@ -260,24 +246,21 @@ export default function LobbyTable({
 }: LobbyTableProps) {
     const reduceMotion = useReducedMotion();
     const [swapRequest, setSwapRequest] = useState<SwapRequest | null>(null);
-    const [bump, setBump] = useState(false);
     const [near, left, across, right] = seatsFromChair(FIRST_PLAYER_SEAT);
     const swapSettled = Boolean(swapRequest && chair !== swapRequest.fromChair);
     const requestSwap = useCallback(
         (seat: number) => {
             if (swapRequest) return;
 
-            setSwapRequest({ fromChair: chair, targetSeat: seat });
+            setSwapRequest({ fromChair: chair });
             onSwapSeat(seat);
         },
         [chair, onSwapSeat, swapRequest],
     );
 
-    // The socket answers almost immediately, so the settled hold only has to
-    // outlast the bump below — long enough for the acknowledgement to play, and
-    // no longer, since until it clears the seats refuse the next press. The
-    // pending fallback is the other end: it returns the controls if a response
-    // is lost during a reconnect.
+    // The pending fallback returns the controls if a response is lost during a
+    // reconnect. Once acknowledged, the short hold lets the spring finish
+    // before another swap starts.
     useEffect(() => {
         if (!swapRequest) return;
 
@@ -289,27 +272,12 @@ export default function LobbyTable({
         return () => clearTimeout(timeout);
     }, [swapRequest, swapSettled]);
 
-    // The two seats that traded places do one small settle once the glide has
-    // carried them to their new chairs — the table acknowledging the switch.
-    useEffect(() => {
-        if (!swapSettled || reduceMotion) return;
-
-        const start = setTimeout(() => setBump(true), BUMP_START_MS);
-        const clear = setTimeout(() => setBump(false), BUMP_END_MS);
-
-        return () => {
-            clearTimeout(start);
-            clearTimeout(clear);
-        };
-    }, [swapSettled, reduceMotion]);
-
     const transition = reduceMotion
         ? { duration: 0 }
         : {
               type: "spring" as const,
               stiffness: 320,
-              damping: 30,
-              scale: { duration: 0.35, ease: "easeOut" as const },
+              damping: 24,
           };
 
     const renderSeat = (
@@ -324,25 +292,11 @@ export default function LobbyTable({
         // its new ones — size included, so a full-width card shrinks into a
         // side tile instead of snapping between the two.
         const identity = player ? `player-${player.userId}` : `empty-${seat}`;
-        const status =
-            seat === swapRequest?.targetSeat
-                ? swapSettled
-                    ? ("complete" as const)
-                    : ("pending" as const)
-                : undefined;
-        // The other half of the trade is whoever the vacated chair now holds —
-        // which is nobody at all when the target was empty, so the `player`
-        // guard leaves that move settling on its own.
-        const bumping =
-            bump &&
-            Boolean(player && (isYou || seat === swapRequest?.fromChair));
-
         return (
             <motion.div
                 key={identity}
                 layoutId={`lobby-${identity}`}
                 transition={transition}
-                animate={bumping ? { scale: [1, 1.04, 1] } : undefined}
                 className="flex size-full"
             >
                 <ResolvedTableSeat
@@ -355,7 +309,6 @@ export default function LobbyTable({
                     hasTable={hasTable}
                     seatsLocked={seatsLocked}
                     user={user}
-                    status={status}
                     disabled={swapRequest !== null}
                     onRequestSwap={requestSwap}
                 />
@@ -370,7 +323,6 @@ export default function LobbyTable({
                 across={renderSeat(seats[across], across, "row")}
                 left={renderSeat(seats[left], left, "side")}
                 right={renderSeat(seats[right], right, "side")}
-                settling={swapRequest !== null}
                 centre={
                     <>
                         <CardFan />

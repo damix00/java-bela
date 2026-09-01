@@ -1,7 +1,5 @@
 import type { ReactNode } from "react";
 
-import { motion, useReducedMotion } from "motion/react";
-
 import { cn } from "@/lib/ui/cn";
 
 type TableStageProps = {
@@ -14,8 +12,6 @@ type TableStageProps = {
     right: ReactNode;
     /** What sits on the felt between them. */
     centre: ReactNode;
-    /** True while a seat switch is resolving — the felt dips and settles back. */
-    settling?: boolean;
     className?: string;
 };
 
@@ -48,14 +44,8 @@ export default function TableStage({
     left,
     right,
     centre,
-    settling = false,
     className,
 }: TableStageProps) {
-    const reduceMotion = useReducedMotion();
-    const feltTransition = reduceMotion
-        ? { duration: 0 }
-        : { type: "spring" as const, stiffness: 300, damping: 26 };
-
     return (
         <div
             className={cn(
@@ -77,10 +67,8 @@ export default function TableStage({
                 {left}
             </div>
 
-            <motion.div
+            <div
                 data-game-table=""
-                animate={{ scale: settling && !reduceMotion ? 0.985 : 1 }}
-                transition={feltTransition}
                 className="col-start-2 row-start-2 aspect-[6/5] w-full overflow-hidden rounded-2xl bg-baize-deep p-1.5 shadow-[0_6px_20px_-8px_rgb(0_0_0_/_0.5)] portrait-sm:aspect-[5/3] desk:aspect-square desk:p-2 desk-lg:p-[10px]"
             >
                 {/* The playing surface, as a well sunk into the block around
@@ -98,7 +86,7 @@ export default function TableStage({
                 <div className="flex size-full min-h-0 flex-col items-center justify-center gap-1.5 overflow-hidden rounded-[10px] bg-baize p-1.5 shadow-[inset_0_2px_10px_-4px_rgb(0_0_0_/_0.45)] desk:gap-3 desk:rounded-lg desk:p-4 desk-lg:rounded-md">
                     {centre}
                 </div>
-            </motion.div>
+            </div>
 
             <div className="col-start-3 row-start-2 flex aspect-square w-full self-center desk-lg:mx-auto desk-lg:max-w-[176px]">
                 {right}

@@ -21,7 +21,7 @@ type SideSeatProps = {
 };
 
 /**
- * An opponent, in the square the table's side columns give them.
+ * A player, in the square the table's side columns give them.
  *
  * The near and across seats are full-width rows and get the whole `SeatCard`;
  * these two get 88px on a phone, which is a tile with a name under it. That is
