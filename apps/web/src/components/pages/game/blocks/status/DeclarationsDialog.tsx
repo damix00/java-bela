@@ -72,10 +72,10 @@ export default function DeclarationsDialog({
                 onClick={(event) => event.stopPropagation()}
                 className={cn(
                     panelRaised,
-                    "flex max-h-[80dvh] w-full max-w-[440px] flex-col gap-4 overflow-y-auto p-5",
+                    "flex max-h-[80dvh] w-full max-w-[440px] flex-col gap-6 overflow-y-auto p-6 sm:p-7",
                 )}
             >
-                <div className="flex items-baseline justify-between gap-3 border-b border-mint/15 pb-2">
+                <div className="flex items-baseline justify-between gap-3 border-b border-mint/15 pb-3">
                     <p className="font-display text-[19px] font-extrabold tracking-[-.02em] text-cream">
                         {heading}
                         <span className="text-[13px] font-semibold text-mint/70">
@@ -95,6 +95,8 @@ export default function DeclarationsDialog({
                     declarations={declarations}
                     typeNames={typeNames}
                     nameOf={nameOf}
+                    cardSize="sm"
+                    className="gap-6"
                 />
 
                 <Button
@@ -102,7 +104,7 @@ export default function DeclarationsDialog({
                     tone="cream"
                     soft
                     onClick={onClose}
-                    className="self-center px-5"
+                    className="mt-1 self-center px-6"
                 >
                     {closeLabel}
                 </Button>

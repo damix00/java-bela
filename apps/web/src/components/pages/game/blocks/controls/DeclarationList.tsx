@@ -11,6 +11,11 @@ type DeclarationListProps = {
     noneLabel?: string;
     /** Names the seat each set came from, when there is room to say it. */
     nameOf?: (seat: number) => string;
+    /**
+     * How big to draw the cards. The felt tray is cramped and takes `xs`; the
+     * dialog is a page of its own and can afford cards worth looking at.
+     */
+    cardSize?: "xs" | "sm";
     className?: string;
 };
 
@@ -28,6 +33,7 @@ export default function DeclarationList({
     typeNames,
     noneLabel,
     nameOf,
+    cardSize = "xs",
     className,
 }: DeclarationListProps) {
     if (declarations.length === 0) {
@@ -50,7 +56,7 @@ export default function DeclarationList({
         // child below its min-content, so `w-full` alone left the list growing
         // to the width of its widest header and spilling out of both sides of
         // the box it was sitting in.
-        <ul className={cn("flex w-full min-w-0 flex-col gap-2", className)}>
+        <ul className={cn("flex w-full min-w-0 flex-col gap-3", className)}>
             {declarations.map((declaration, index) => (
                 <li
                     // Nothing on a declaration is unique on its own — a table
@@ -59,7 +65,7 @@ export default function DeclarationList({
                     key={`${declaration.playerIndex}-${declaration.type}-${declaration.cards
                         .map(cardKey)
                         .join("")}-${index}`}
-                    className="flex flex-col gap-1"
+                    className="flex flex-col gap-2"
                 >
                     <div className="flex w-full min-w-0 items-baseline justify-between gap-2">
                         <span className="min-w-0 truncate text-[11px] font-bold text-cream sm:text-[13px]">
@@ -76,12 +82,16 @@ export default function DeclarationList({
                         </span>
                     </div>
 
-                    <div className="flex flex-wrap justify-center gap-1">
+                    {/* Under its own heading, not floating in the middle of the
+                        box: the cards belong to the line that names them, and a
+                        centred row read as unrelated to it. The felt tray centres
+                        the whole list from outside, so it is unaffected. */}
+                    <div className="flex flex-wrap justify-start gap-2">
                         {declaration.cards.map((card) => (
                             <PlayingCard
                                 key={cardKey(card)}
                                 card={card}
-                                size="xs"
+                                size={cardSize}
                             />
                         ))}
                     </div>
