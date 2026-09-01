@@ -72,6 +72,14 @@ const BUMP_END_MS = 820;
  */
 const SETTLED_HOLD_MS = BUMP_END_MS + 100;
 
+/**
+ * The lobby is always viewed from the player who first occupied the table.
+ *
+ * Keeping seat 0 at the near edge makes a chair change read as a player moving
+ * between fixed places, instead of rotating every other player around them.
+ */
+const FIRST_PLAYER_SEAT = 0;
+
 type SwapRequest = {
     fromChair: number;
     /**
@@ -150,7 +158,7 @@ function TableSeat({
     // Every chair but your own, occupied or not. The backend has never been the
     // constraint — `Lobby.swapSeats` takes any index and treats a vacant target
     // as a plain move — and a seat that is dead for a reason the player cannot
-    // see is worse than one whose only effect is to rotate the drawing.
+    // see is worse than one with no visible outcome.
     const canMoveHere = hasTable && !seatsLocked && seat !== chair;
     const handleSwap = useCallback(
         () => onRequestSwap(seat),
@@ -253,7 +261,7 @@ export default function LobbyTable({
     const reduceMotion = useReducedMotion();
     const [swapRequest, setSwapRequest] = useState<SwapRequest | null>(null);
     const [bump, setBump] = useState(false);
-    const [near, left, across, right] = seatsFromChair(chair);
+    const [near, left, across, right] = seatsFromChair(FIRST_PLAYER_SEAT);
     const swapSettled = Boolean(swapRequest && chair !== swapRequest.fromChair);
     const requestSwap = useCallback(
         (seat: number) => {
@@ -307,9 +315,9 @@ export default function LobbyTable({
     const renderSeat = (
         player: LobbyPlayer | null,
         seat: number,
-        isYou: boolean,
         variant: "row" | "side",
     ) => {
+        const isYou = seat === chair;
         // Keyed by who is in the chair, not by which slot it is: when players
         // change chairs their elements unmount here and mount in the new slot,
         // and Motion's shared layout carries each one from its old bounds to
@@ -358,10 +366,10 @@ export default function LobbyTable({
     return (
         <LayoutGroup id={`lobby-table-${user.id}`}>
             <TableStage
-                near={renderSeat(seats[near], near, true, "row")}
-                across={renderSeat(seats[across], across, false, "row")}
-                left={renderSeat(seats[left], left, false, "side")}
-                right={renderSeat(seats[right], right, false, "side")}
+                near={renderSeat(seats[near], near, "row")}
+                across={renderSeat(seats[across], across, "row")}
+                left={renderSeat(seats[left], left, "side")}
+                right={renderSeat(seats[right], right, "side")}
                 settling={swapRequest !== null}
                 centre={
                     <>
