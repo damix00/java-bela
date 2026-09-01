@@ -3,6 +3,7 @@ import Image from "next/image";
 import { cn } from "@/lib/ui/cn";
 
 type GameSeatProps = {
+    playerIndex: number;
     name: string;
     avatarUrl: string | null;
     /** Theirs to act — the only state on this screen that has to be unmissable. */
@@ -22,6 +23,7 @@ type GameSeatProps = {
  * row the cards wanted.
  */
 export default function GameSeat({
+    playerIndex,
     name,
     avatarUrl,
     active,
@@ -39,6 +41,7 @@ export default function GameSeat({
             )}
         >
             <span
+                data-card-origin={playerIndex}
                 aria-hidden="true"
                 // One ring, not a border plus an outline: the two used to draw
                 // concentric circles around the avatar whenever a seat was

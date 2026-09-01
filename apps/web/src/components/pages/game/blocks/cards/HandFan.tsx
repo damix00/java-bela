@@ -1,6 +1,10 @@
 "use client";
 
-import PlayingCard from "@/components/pages/game/blocks/cards/PlayingCard";
+import { motion, useReducedMotion } from "motion/react";
+
+import PlayingCard, {
+    type CardOrigin,
+} from "@/components/pages/game/blocks/cards/PlayingCard";
 import { cardKey, legalMoveKeys, sortHand } from "@/lib/game/rules";
 import { cn } from "@/lib/ui/cn";
 import type { Card, PlayedCard, Suite } from "@bela/protocol";
@@ -12,7 +16,9 @@ type HandFanProps = {
     trickCards: PlayedCard[];
     /** Nothing is playable when it is not your turn. */
     active: boolean;
-    onPlay: (card: Card) => void;
+    onPlay: (card: Card, origin: CardOrigin) => void;
+    /** Keep an optimistic play in its slot without drawing it twice. */
+    pendingCardKey?: string | null;
     hiddenLabel: string;
     /** Withheld seventh/eighth cards before trump is called. */
     hiddenCount?: number;
@@ -65,7 +71,9 @@ export default function HandFan({
     onPlay,
     hiddenLabel,
     hiddenCount = 0,
+    pendingCardKey = null,
 }: HandFanProps) {
+    const reduceMotion = useReducedMotion();
     const sorted = sortHand(hand, trumpSuite);
     const legal = active ? legalMoveKeys(trickCards, trumpSuite, hand) : null;
     // In one row the card is sized from the viewport rather than pinned: eight
@@ -76,6 +84,14 @@ export default function HandFan({
         "desk:w-[clamp(3.25rem,10.5vw,7rem)]",
         "flat:w-[clamp(2.5rem,8vw,4.25rem)]",
     );
+    const layoutTransition = reduceMotion
+        ? { duration: 0 }
+        : {
+              type: "spring" as const,
+              stiffness: 380,
+              damping: 38,
+              mass: 0.85,
+          };
 
     return (
         <div
@@ -88,40 +104,69 @@ export default function HandFan({
                 // The last two of the deal stay face down until trump is called.
                 if (card.hidden) {
                     return (
-                        <PlayingCard
+                        <motion.div
                             key={cardKey(card)}
-                            faceDown
-                            label={hiddenLabel}
+                            layout={reduceMotion ? false : "position"}
+                            transition={layoutTransition}
                             className={cardClass}
-                        />
+                        >
+                            <PlayingCard
+                                faceDown
+                                label={hiddenLabel}
+                                className={cardClass}
+                            />
+                        </motion.div>
                     );
                 }
 
                 const playable = legal !== null && legal.has(cardKey(card));
+                const pending = pendingCardKey === cardKey(card);
 
                 return (
-                    <PlayingCard
+                    <motion.div
                         key={cardKey(card)}
-                        card={card}
-                        disabled={!playable}
-                        dimmed={legal !== null && !playable}
-                        onClick={playable ? () => onPlay(card) : undefined}
-                        onDragPlay={playable ? () => onPlay(card) : undefined}
-                        className={cn(
-                            cardClass,
-                            playable && "hover:z-10 focus-visible:z-20",
-                        )}
-                    />
+                        layout={reduceMotion ? false : "position"}
+                        transition={layoutTransition}
+                        className={cardClass}
+                    >
+                        <PlayingCard
+                            card={card}
+                            disabled={!playable}
+                            dimmed={legal !== null && !playable}
+                            onClick={
+                                playable
+                                    ? (origin) => onPlay(card, origin)
+                                    : undefined
+                            }
+                            onDragPlay={
+                                playable
+                                    ? (origin) => onPlay(card, origin)
+                                    : undefined
+                            }
+                            className={cn(
+                                cardClass,
+                                playable &&
+                                    "hover:z-10 focus-visible:z-20",
+                                pending && "invisible",
+                            )}
+                        />
+                    </motion.div>
                 );
             })}
 
             {Array.from({ length: hiddenCount }, (_, index) => (
-                <PlayingCard
+                <motion.div
                     key={`undealt-${index}`}
-                    faceDown
-                    label={hiddenLabel}
+                    layout={reduceMotion ? false : "position"}
+                    transition={layoutTransition}
                     className={cardClass}
-                />
+                >
+                    <PlayingCard
+                        faceDown
+                        label={hiddenLabel}
+                        className={cardClass}
+                    />
+                </motion.div>
             ))}
         </div>
     );

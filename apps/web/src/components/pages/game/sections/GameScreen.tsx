@@ -3,7 +3,7 @@
 import { LogOut } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
     RoundStatus,
     type Card,
@@ -17,9 +17,15 @@ import DeclarationsPanel from "@/components/pages/game/blocks/controls/Declarati
 import DeclarationsDialog from "@/components/pages/game/blocks/status/DeclarationsDialog";
 import TrumpChooser from "@/components/pages/game/blocks/controls/TrumpChooser";
 import HandFan from "@/components/pages/game/blocks/cards/HandFan";
+import CardFlightLayer, {
+    type CardFlight,
+} from "@/components/pages/game/blocks/cards/CardFlightLayer";
+import type { CardOrigin } from "@/components/pages/game/blocks/cards/PlayingCard";
 import GameSeat from "@/components/pages/game/blocks/table/GameSeat";
 import GameTableStage from "@/components/pages/game/blocks/table/GameTableStage";
-import TrickPile from "@/components/pages/game/blocks/table/TrickPile";
+import TrickPile, {
+    playedCardRotation,
+} from "@/components/pages/game/blocks/table/TrickPile";
 import GameOverPanel from "@/components/pages/game/blocks/status/GameOverPanel";
 import LeaveMatchDialog from "@/components/pages/game/blocks/status/LeaveMatchDialog";
 import DealCountdown from "@/components/pages/game/blocks/status/DealCountdown";
@@ -33,9 +39,15 @@ import {
 } from "@/context/game-context";
 import { SNAPSHOT_GRACE_MS, useLobbyActions } from "@/context/lobby-context";
 import { useSocketStatus } from "@/context/socket-context";
+import { useSocketErrors, useSocketEvent } from "@/hooks/use-socket-event";
 import type { Dictionary } from "@/dictionaries";
 import { cn } from "@/lib/ui/cn";
-import { canDeclareBela, declarationPoints } from "@/lib/game/rules";
+import {
+    canDeclareBela,
+    cardKey,
+    declarationPoints,
+    sameCard,
+} from "@/lib/game/rules";
 import type { Locale } from "@/lib/i18n/config";
 import { homePath } from "@/lib/navigation/routes";
 import { appGutters, focusRing, panel } from "@/lib/ui/styles";
@@ -109,6 +121,47 @@ const turnNoticeClass =
 const GAME_OVER_DWELL_MS = 3000;
 const handAreaClass = "flex flex-none justify-center desk:order-2";
 
+function flightKey(playerIndex: number, card: Card) {
+    return `${playerIndex}-${cardKey(card)}`;
+}
+
+function remoteCardOrigin(
+    root: HTMLElement,
+    playerIndex: number,
+): CardOrigin | null {
+    const anchor = root.querySelector<HTMLElement>(
+        `[data-card-origin="${playerIndex}"]`,
+    );
+    if (!anchor) return null;
+
+    const anchorRect = anchor.getBoundingClientRect();
+    const destination = root.querySelector<HTMLElement>(
+        `[data-card-destination="${playerIndex}"]`,
+    );
+    const destinationRect = destination?.getBoundingClientRect();
+    const width = destinationRect?.width || 56;
+    const height = destinationRect?.height || width * (585 / 363);
+
+    return {
+        left: anchorRect.left + (anchorRect.width - width) / 2,
+        top: anchorRect.top + (anchorRect.height - height) / 2,
+        width,
+        height,
+    };
+}
+
+function flightRotation(
+    playerIndex: number,
+    order: [number, number, number, number],
+) {
+    const [near, left, across, right] = order;
+    if (playerIndex === left) return -5;
+    if (playerIndex === right) return 5;
+    if (playerIndex === across) return 2;
+    if (playerIndex === near) return -2;
+    return 0;
+}
+
 /* Decisions float above the felt instead of claiming a row in the game screen.
    A round changing from cards to declarations therefore cannot push the table,
    hand, or timer to a different position. */
@@ -176,9 +229,30 @@ export default function GameScreen({
     const { forget } = useLobbyActions();
     const status = useSocketStatus();
     const router = useRouter();
+    const reduceMotion = useReducedMotion();
+    const screenRef = useRef<HTMLElement>(null);
+    const nextFlightId = useRef(0);
+    const [flights, setFlights] = useState<CardFlight[]>([]);
+    const [flightConnection, setFlightConnection] = useState({
+        status,
+        epoch: 0,
+    });
+
+    if (flightConnection.status !== status) {
+        setFlightConnection({
+            status,
+            epoch:
+                flightConnection.epoch + (status === "connected" ? 0 : 1),
+        });
+    }
+
+    const connectionEpoch = flightConnection.epoch;
 
     /** The card waiting on a bela answer. Cleared as soon as it is thrown. */
-    const [belaCard, setBelaCard] = useState<Card | null>(null);
+    const [belaCard, setBelaCard] = useState<{
+        card: Card;
+        origin: CardOrigin;
+    } | null>(null);
 
     /** Which side of the score has been tapped for its declarations. */
     const [showDeclarations, setShowDeclarations] = useState<
@@ -260,6 +334,127 @@ export default function GameScreen({
         return () => clearTimeout(id);
     }, [phase, leaveGame]);
 
+    const roundNumber = game?.round?.roundNumber ?? null;
+    const trickNumber = game?.round?.currentTrickNumber ?? null;
+
+    const completeFlight = useCallback((id: number, returning: boolean) => {
+        setFlights((current) =>
+            current.flatMap((flight) => {
+                if (flight.id !== id) return [flight];
+                if (returning || flight.confirmed) return [];
+
+                return [{ ...flight, landed: true }];
+            }),
+        );
+    }, []);
+
+    useSocketEvent("game:cardThrown", (data) => {
+        const local = data.playerIndex === chair;
+
+        if (local) {
+            setFlights((current) => {
+                const relevant = current.filter(
+                    (flight) =>
+                        flight.roundNumber === data.roundNumber &&
+                        flight.trickNumber === data.trickNumber &&
+                        flight.connectionEpoch === connectionEpoch,
+                );
+
+                return relevant.flatMap((flight) => {
+                    if (
+                        !flight.local ||
+                        flight.playerIndex !== data.playerIndex ||
+                        !sameCard(flight.card, data.card)
+                    ) {
+                        return [flight];
+                    }
+
+                    return flight.landed
+                        ? []
+                        : [{ ...flight, confirmed: true }];
+                });
+            });
+            return;
+        }
+
+        if (reduceMotion || !game?.round || !seating) return;
+        if (game.round.roundNumber !== data.roundNumber) return;
+        if (
+            game.round.trickCards.some(
+                (played) =>
+                    played.playerIndex === data.playerIndex &&
+                    sameCard(played.card, data.card),
+            )
+        ) {
+            return;
+        }
+
+        const root = screenRef.current;
+        const source = root
+            ? remoteCardOrigin(root, data.playerIndex)
+            : null;
+        if (!source) return;
+
+        const key = flightKey(data.playerIndex, data.card);
+        setFlights((current) => {
+            const relevant = current.filter(
+                (flight) =>
+                    flight.roundNumber === data.roundNumber &&
+                    flight.trickNumber === data.trickNumber &&
+                    flight.connectionEpoch === connectionEpoch,
+            );
+            if (relevant.some((flight) => flight.key === key)) {
+                return relevant;
+            }
+
+            return [
+                ...relevant,
+                {
+                    id: nextFlightId.current++,
+                    key,
+                    card: data.card,
+                    playerIndex: data.playerIndex,
+                    roundNumber: data.roundNumber,
+                    trickNumber: data.trickNumber,
+                    connectionEpoch,
+                    source,
+                    rotation: flightRotation(data.playerIndex, seating.order),
+                    landingRotation: playedCardRotation(
+                        { playerIndex: data.playerIndex, card: data.card },
+                        seating.order[0],
+                        data.roundNumber,
+                        data.trickNumber,
+                    ),
+                    local: false,
+                    confirmed: true,
+                    landed: false,
+                    returning: false,
+                    reduced: false,
+                },
+            ];
+        });
+    });
+
+    useSocketErrors((error) => {
+        if (error.command !== "game:card:throw") return;
+
+        setFlights((current) =>
+            current.flatMap((flight) => {
+                if (
+                    flight.roundNumber !== roundNumber ||
+                    flight.trickNumber !== trickNumber ||
+                    flight.connectionEpoch !== connectionEpoch
+                ) {
+                    return [];
+                }
+                if (!flight.local || flight.confirmed) return [flight];
+                if (flight.reduced) return [];
+
+                return [{ ...flight, returning: true }];
+            }),
+        );
+    });
+
     if (!game || !seating) {
         return <Notice className={appGutters}>{copy.loading}</Notice>;
     }
@@ -305,18 +500,82 @@ export default function GameScreen({
         ? (round?.team1Declarations ?? [])
         : (round?.team2Declarations ?? []);
 
+    const activeFlights =
+        status === "connected" && round
+            ? flights.filter(
+                  (flight) =>
+                      flight.roundNumber === round.roundNumber &&
+                      flight.trickNumber === round.currentTrickNumber &&
+                      flight.connectionEpoch === connectionEpoch,
+              )
+            : [];
+
+    const localPending = activeFlights.some(
+        (flight) => flight.local && !flight.confirmed,
+    );
+    const pendingHandKey = activeFlights.find(
+        (flight) => flight.local && !flight.reduced,
+    );
+    const flyingCardKeys = new Set(
+        activeFlights
+            .filter((flight) => !flight.reduced && !flight.returning)
+            .map((flight) => flight.key),
+    );
+
+    const throwLocalCard = (
+        card: Card,
+        origin: CardOrigin,
+        declareBela = false,
+    ) => {
+        if (!round || localPending) return;
+
+        const reduced = Boolean(reduceMotion);
+        setFlights((current) => {
+            const relevant = current.filter(
+                (flight) =>
+                    flight.roundNumber === round.roundNumber &&
+                    flight.trickNumber === round.currentTrickNumber &&
+                    flight.connectionEpoch === connectionEpoch,
+            );
+
+            return [
+                ...relevant,
+                {
+                    id: nextFlightId.current++,
+                    key: flightKey(chair, card),
+                    card,
+                    playerIndex: chair,
+                    roundNumber: round.roundNumber,
+                    trickNumber: round.currentTrickNumber,
+                    connectionEpoch,
+                    source: origin,
+                    rotation: flightRotation(chair, seating.order),
+                    landingRotation: 0,
+                    local: true,
+                    confirmed: false,
+                    landed: reduced,
+                    returning: false,
+                    reduced,
+                },
+            ];
+        });
+        throwCard(card, declareBela);
+    };
+
     /** A card leaves the hand either straight away, or after the bela question. */
-    const play = (card: Card) => {
+    const play = (card: Card, origin: CardOrigin) => {
         if (canDeclareBela(card, trumpSuite, game.hand, game.myPlayedCards)) {
-            setBelaCard(card);
+            setBelaCard({ card, origin });
             return;
         }
 
-        throwCard(card);
+        throwLocalCard(card, origin);
     };
 
     const answerBela = (declare: boolean) => {
-        if (belaCard) throwCard(belaCard, declare);
+        if (belaCard) {
+            throwLocalCard(belaCard.card, belaCard.origin, declare);
+        }
         setBelaCard(null);
     };
 
@@ -341,6 +600,7 @@ export default function GameScreen({
 
     const seatFor = (seat: number, variant: "wide" | "square") => (
         <GameSeat
+            playerIndex={seat}
             name={nameOf(seat)}
             avatarUrl={avatarOf(seat)}
             active={round?.currentTurnIndex === seat}
@@ -368,7 +628,7 @@ export default function GameScreen({
         (phase === "choosing-trump" && isMyTurn);
 
     return (
-        <main className={screenClass}>
+        <main ref={screenRef} className={screenClass}>
             <div className={scoreDockClass}>
                 <ScoreBoard
                     usLabel={copy.score.us}
@@ -448,6 +708,7 @@ export default function GameScreen({
                             order={seating.order}
                             isMyTurn={isMyTurn}
                             nameOf={nameOf}
+                            flyingCardKeys={flyingCardKeys}
                         />
                     }
                 />
@@ -469,10 +730,16 @@ export default function GameScreen({
                     trickCards={round?.trickCards ?? []}
                     active={
                         isMyTurn &&
+                        !localPending &&
                         round?.roundStatus === RoundStatus.PLAYING &&
                         pendingBreak === null
                     }
                     onPlay={play}
+                    pendingCardKey={
+                        pendingHandKey
+                            ? cardKey(pendingHandKey.card)
+                            : null
+                    }
                     hiddenLabel={copy.hiddenCard}
                     hiddenCount={
                         phase === "choosing-trump"
@@ -566,7 +833,7 @@ export default function GameScreen({
 
             {belaCard && (
                 <BelaPrompt
-                    card={belaCard}
+                    card={belaCard.card}
                     heading={copy.bela.heading}
                     body={copy.bela.body}
                     declareLabel={copy.bela.declare}
@@ -583,6 +850,12 @@ export default function GameScreen({
                 />
             )}
 
+            <CardFlightLayer
+                flights={activeFlights.filter((flight) => !flight.reduced)}
+                rootRef={screenRef}
+                onComplete={completeFlight}
+            />
+
             <span className="sr-only">{gameId}</span>
         </main>
     );
@@ -596,6 +869,7 @@ function Centre({
     order,
     isMyTurn,
     nameOf,
+    flyingCardKeys,
 }: {
     copy: Dictionary["game"];
     phase: GamePhase;
@@ -603,6 +877,7 @@ function Centre({
     order: [number, number, number, number];
     isMyTurn: boolean;
     nameOf: (seat: number) => string;
+    flyingCardKeys: ReadonlySet<string>;
 }) {
     if (phase === "waiting") return <Notice>{copy.waiting}</Notice>;
     if (phase === "dealing" || !round) {
@@ -641,6 +916,9 @@ function Centre({
             // Whose move it is is said over the hand now, in every state
             // rather than only in the gap before the first card is down.
             emptyLabel={copy.trick.empty}
+            roundNumber={round.roundNumber}
+            trickNumber={round.currentTrickNumber}
+            flyingCardKeys={flyingCardKeys}
         />
     );
 }

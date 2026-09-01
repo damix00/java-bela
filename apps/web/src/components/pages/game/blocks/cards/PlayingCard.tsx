@@ -72,6 +72,25 @@ const DRAG_PLAY_THRESHOLD = 72;
 /** A card has to be released with intent, not merely parked above the hand. */
 const DRAG_PLAY_VELOCITY = -350;
 
+/** A frozen viewport rectangle, safe to keep after its element moves away. */
+export type CardOrigin = {
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+};
+
+function cardOrigin(element: Element): CardOrigin {
+    const rect = element.getBoundingClientRect();
+
+    return {
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height,
+    };
+}
+
 type PlayingCardProps = {
     card?: Pick<Card, "suite" | "rank"> | null;
     size?: keyof typeof SIZES;
@@ -81,12 +100,12 @@ type PlayingCardProps = {
     disabled?: boolean;
     /** Visually recede an illegal card without washing out an idle hand. */
     dimmed?: boolean;
-    onClick?: () => void;
+    onClick?: (origin: CardOrigin) => void;
     /**
      * Makes the card draggable: pull it up off the hand and let go past half
      * its own height to throw it. Anything short of that springs back.
      */
-    onDragPlay?: () => void;
+    onDragPlay?: (origin: CardOrigin) => void;
     label?: string;
     className?: string;
 };
@@ -108,6 +127,7 @@ export default function PlayingCard({
     // click is a play, and re-rendering every card at the end of a drag would
     // make the hand feel less direct.
     const dragged = useRef(false);
+    const draggableCard = useRef<HTMLButtonElement>(null);
 
     const hidden = faceDown || !card;
     const asset = hidden
@@ -183,7 +203,8 @@ export default function PlayingCard({
                 info.offset.y <= -DRAG_PLAY_THRESHOLD ||
                 info.velocity.y <= DRAG_PLAY_VELOCITY
             ) {
-                onDragPlay();
+                const element = draggableCard.current;
+                if (element) onDragPlay(cardOrigin(element));
             }
         };
 
@@ -200,9 +221,12 @@ export default function PlayingCard({
                 )}
             >
                 <motion.button
+                    ref={draggableCard}
                     type="button"
-                    onClick={() => {
-                        if (!dragged.current) onClick();
+                    onClick={(event) => {
+                        if (!dragged.current) {
+                            onClick(cardOrigin(event.currentTarget));
+                        }
                     }}
                     aria-label={label ?? asset?.alt}
                     className={cn(
@@ -236,7 +260,7 @@ export default function PlayingCard({
     return (
         <button
             type="button"
-            onClick={onClick}
+            onClick={(event) => onClick(cardOrigin(event.currentTarget))}
             disabled={disabled}
             aria-label={label ?? asset?.alt}
             className={cn(

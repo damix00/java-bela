@@ -4,17 +4,17 @@ import { cn } from "@/lib/ui/cn";
 import type { PlayedCard } from "@bela/protocol";
 import type { SeatOrder } from "@/lib/game/seats";
 
-/* The four cards used to lap over each other the way they would on a real
-   table, on tracks deliberately narrower than the cards standing in them. They
-   no longer do: a card with somebody else's corner across it is a card you have
-   to work out rather than read. The tracks are now the full size of what they
-   hold — 1.612 is the deck's own 363:585 — and the pile buys that back out of
-   the card width instead. */
+/* The tracks are slightly narrower than their cards, giving the trick a modest
+   physical overlap without covering the rank and suit artwork. `--trick-card`
+   remains the real landing size; the step variables only decide how tightly
+   the four seat positions gather around the middle. */
 const pileClass = [
     "grid place-items-center gap-1",
-    "[--trick-card:min(7.5rem,31cqw,19.5cqh)]",
-    "grid-cols-[repeat(3,var(--trick-card))]",
-    "grid-rows-[repeat(3,calc(var(--trick-card)*1.612))]",
+    "[--trick-card:min(8.5rem,38cqw,23cqh)]",
+    "[--trick-step-x:calc(var(--trick-card)*0.78)]",
+    "[--trick-step-y:calc(var(--trick-card)*1.612*0.78)]",
+    "grid-cols-[repeat(3,var(--trick-step-x))]",
+    "grid-rows-[repeat(3,var(--trick-step-y))]",
 ].join(" ");
 
 type TrickPileProps = {
@@ -22,7 +22,33 @@ type TrickPileProps = {
     /** Near, left, across, right — where each seat's card belongs on the felt. */
     order: SeatOrder;
     emptyLabel: string;
+    roundNumber: number;
+    trickNumber: number;
+    /** Cards represented by the fixed flight layer until they land. */
+    flyingCardKeys?: ReadonlySet<string>;
 };
+
+export function playedCardKey(played: PlayedCard) {
+    return `${played.playerIndex}-${cardKey(played.card)}`;
+}
+
+/** A tiny deterministic scatter, so React re-renders never rotate cards again. */
+export function playedCardRotation(
+    played: PlayedCard,
+    localPlayerIndex: number,
+    roundNumber: number,
+    trickNumber: number,
+) {
+    if (played.playerIndex === localPlayerIndex) return 0;
+
+    const seed = `${roundNumber}-${trickNumber}-${playedCardKey(played)}`;
+    let hash = 0;
+    for (const character of seed) {
+        hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
+    }
+
+    return ((hash % 1001) - 500) / 100;
+}
 
 /**
  * The cards on the felt, each sitting on the edge nearest whoever played it.
@@ -35,6 +61,9 @@ export default function TrickPile({
     playedCards,
     order,
     emptyLabel,
+    roundNumber,
+    trickNumber,
+    flyingCardKeys,
 }: TrickPileProps) {
     const [near, left, across, right] = order;
 
@@ -47,13 +76,9 @@ export default function TrickPile({
         [right]: "col-start-3 row-start-2",
     };
 
-    if (playedCards.length === 0) {
-        return (
-            <p className="py-6 text-center text-[13px] font-semibold text-mint/60 felt-short:py-2 felt-short:text-[12px] felt-short:leading-tight">
-                {emptyLabel}
-            </p>
-        );
-    }
+    const byPlayer = new Map(
+        playedCards.map((played) => [played.playerIndex, played]),
+    );
 
     // The tracks are sized rather than left to their contents: an empty seat's
     // cell would otherwise collapse and slide the whole trick off the middle of
@@ -64,19 +89,62 @@ export default function TrickPile({
     // big enough to read on a phone is taller than the room a short screen has
     // for three rows of it.
     return (
-        <div className={pileClass}>
-            {playedCards.map((played) => (
-                <div
-                    key={`${played.playerIndex}-${cardKey(played.card)}`}
-                    className={cn(
-                        "relative",
-                        placement[played.playerIndex] ??
-                            "col-start-2 row-start-2",
-                    )}
-                >
-                    <PlayingCard card={played.card} size="sm" />
-                </div>
-            ))}
+        <div className={cn(pileClass, "relative")}>
+            {order.map((playerIndex) => {
+                const played = byPlayer.get(playerIndex);
+                const key = played ? playedCardKey(played) : null;
+                const rotation = played
+                    ? playedCardRotation(
+                          played,
+                          near,
+                          roundNumber,
+                          trickNumber,
+                      )
+                    : 0;
+                const playOrder = played
+                    ? playedCards.findIndex(
+                          (candidate) =>
+                              candidate.playerIndex === played.playerIndex,
+                      )
+                    : -1;
+
+                return (
+                    <div
+                        key={playerIndex}
+                        data-card-destination={playerIndex}
+                        className={cn(
+                            "relative w-[var(--trick-card)] place-self-center aspect-[363/585]",
+                            placement[playerIndex] ??
+                                "col-start-2 row-start-2",
+                        )}
+                        style={{ zIndex: playOrder + 1 }}
+                    >
+                        {played ? (
+                            <div
+                                className="size-full origin-center"
+                                style={{ transform: `rotate(${rotation}deg)` }}
+                            >
+                                <PlayingCard
+                                    card={played.card}
+                                    size="sm"
+                                    className={cn(
+                                        "w-full",
+                                        key &&
+                                            flyingCardKeys?.has(key) &&
+                                            "invisible",
+                                    )}
+                                />
+                            </div>
+                        ) : null}
+                    </div>
+                );
+            })}
+
+            {playedCards.length === 0 ? (
+                <p className="pointer-events-none absolute inset-0 grid place-items-center text-center text-[13px] font-semibold text-mint/60 felt-short:text-[12px] felt-short:leading-tight">
+                    {emptyLabel}
+                </p>
+            ) : null}
         </div>
     );
 }
