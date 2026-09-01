@@ -22,6 +22,10 @@ public class CardThrownEvent extends OutgoingEvent {
     private long pendingDelaySeconds;
     private int team1RoundPoints;
     private int team2RoundPoints;
+    // Points taken in tricks, with no zvanja in them. The scoreboard counts the two apart: what
+    // the cards have won so far, and the declarations sitting on top of it.
+    private int team1CardPoints;
+    private int team2CardPoints;
     private int team1TotalScore;
     private int team2TotalScore;
     private boolean bela;
@@ -40,6 +44,8 @@ public class CardThrownEvent extends OutgoingEvent {
             long pendingDelaySeconds,
             int team1RoundPoints,
             int team2RoundPoints,
+            int team1CardPoints,
+            int team2CardPoints,
             int team1TotalScore,
             int team2TotalScore,
             boolean bela
@@ -58,6 +64,8 @@ public class CardThrownEvent extends OutgoingEvent {
         this.pendingDelaySeconds = pendingDelaySeconds;
         this.team1RoundPoints = team1RoundPoints;
         this.team2RoundPoints = team2RoundPoints;
+        this.team1CardPoints = team1CardPoints;
+        this.team2CardPoints = team2CardPoints;
         this.team1TotalScore = team1TotalScore;
         this.team2TotalScore = team2TotalScore;
         this.bela = bela;

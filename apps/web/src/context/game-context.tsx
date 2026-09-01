@@ -35,6 +35,7 @@ import { seatingFor, type GameSeating } from "@/lib/game/seats";
 const TIMER = {
     trumpChoice: "CHOOSING_TRUMP_TIMEOUT_TASK",
     cardThrow: "CARD_THROW_TIMEOUT_TASK",
+    declaring: "DECLARATION_ASK_TIMEOUT_TASK",
     declarations: "DECLARATIONS_COMPLETE_TASK",
     nextTrick: "NEXT_TRICK_START_TASK",
     nextRound: "ROUND_START_TASK",
@@ -64,9 +65,16 @@ export type RoundView = {
     trickWinningPlayerIndex: number | null;
     team1RoundPoints: number;
     team2RoundPoints: number;
+    /** Points taken in tricks, zvanja excluded — the scoreboard counts the two apart. */
+    team1CardPoints: number;
+    team2CardPoints: number;
     team1Declarations: Declaration[];
     team2Declarations: Declaration[];
     declinedDeclarationSeats: number[];
+    /** Seats that have answered the declarations question — who the table waits on. */
+    answeredDeclarationSeats: number[];
+    /** My own zvanja. The only holdings the server will name while it is asking. */
+    myDeclarations: Declaration[];
 };
 
 export type GameView = {
@@ -114,6 +122,7 @@ export type GamePhase =
     | "waiting"
     | "dealing"
     | "choosing-trump"
+    | "declaring"
     | "declarations"
     | "playing"
     | "round-over"
@@ -128,7 +137,9 @@ type GameState = {
     /** Whose turn it is to act, and whether that is me. */
     isMyTurn: boolean;
     trumpCountdown: Countdown | null;
-    /** The window in which zvanja may be declined, before the server resolves them. */
+    /** The window in which the question is open and every seat may still answer it. */
+    declaringCountdown: Countdown | null;
+    /** The window in which the resolved zvanja are on the table, before play starts. */
     declarationCountdown: Countdown | null;
     turnCountdown: Countdown | null;
     pendingBreak: PendingBreak | null;
@@ -150,6 +161,7 @@ type GameActions = {
     chooseTrump: (suite: Suite) => void;
     passTrump: () => void;
     throwCard: (card: Card, declareBela?: boolean) => void;
+    declareDeclarations: () => void;
     declineDeclarations: () => void;
     /**
      * Steps off a finished table, back into the lobby it was made from.
@@ -231,6 +243,8 @@ export function GameProvider({
 
     const [game, setGame] = useState<GameView | null>(null);
     const [trumpCountdown, setTrumpCountdown] = useState<Countdown | null>(null);
+    const [declaringCountdown, setDeclaringCountdown] =
+        useState<Countdown | null>(null);
     const [declarationCountdown, setDeclarationCountdown] =
         useState<Countdown | null>(null);
     const [turnCountdown, setTurnCountdown] = useState<Countdown | null>(null);
@@ -240,6 +254,7 @@ export function GameProvider({
 
     const clearCountdowns = useCallback(() => {
         setTrumpCountdown(null);
+        setDeclaringCountdown(null);
         setDeclarationCountdown(null);
         setTurnCountdown(null);
         setPendingBreak(null);
@@ -305,10 +320,15 @@ export function GameProvider({
                   ),
                   team1RoundPoints: snapshot.team1RoundPoints,
                   team2RoundPoints: snapshot.team2RoundPoints,
+                  team1CardPoints: snapshot.team1CardPoints ?? 0,
+                  team2CardPoints: snapshot.team2CardPoints ?? 0,
                   team1Declarations: snapshot.team1Declarations ?? [],
                   team2Declarations: snapshot.team2Declarations ?? [],
                   declinedDeclarationSeats:
                       snapshot.declinedDeclarationSeats ?? [],
+                  answeredDeclarationSeats:
+                      snapshot.answeredDeclarationSeats ?? [],
+                  myDeclarations: snapshot.myDeclarations ?? [],
               }
             : null;
 
@@ -339,6 +359,12 @@ export function GameProvider({
         setTrumpCountdown(
             round?.roundStatus === RoundStatus.CHOOSING_TRUMP
                 ? { timeoutSeconds: remaining ?? 0, startedAt }
+                : null,
+        );
+
+        setDeclaringCountdown(
+            timerType === TIMER.declaring && remaining !== null
+                ? { timeoutSeconds: remaining, startedAt }
                 : null,
         );
 
@@ -403,9 +429,13 @@ export function GameProvider({
                     trickWinningPlayerIndex: null,
                     team1RoundPoints: data.team1RoundPoints,
                     team2RoundPoints: data.team2RoundPoints,
+                    team1CardPoints: 0,
+                    team2CardPoints: 0,
                     team1Declarations: [],
                     team2Declarations: [],
                     declinedDeclarationSeats: [],
+                    answeredDeclarationSeats: [],
+                    myDeclarations: [],
                 },
             };
         });
@@ -413,6 +443,7 @@ export function GameProvider({
 
     useSocketEvent("game:trumpChoosingStarted", (data) => {
         setTurnCountdown(null);
+        setDeclaringCountdown(null);
         setDeclarationCountdown(null);
         setPendingBreak(null);
         setTrumpCountdown({
@@ -441,26 +472,46 @@ export function GameProvider({
             startedAt: Date.now(),
         });
 
-        setGame((prev) =>
-            prev?.round?.roundNumber === data.roundNumber
-                ? {
-                      ...prev,
-                      round: {
-                          ...prev.round,
-                          currentTurnIndex: data.nextTurnIndex,
-                      },
-                  }
-                : prev,
-        );
+        setGame((prev) => {
+            if (!prev || prev.round?.roundNumber !== data.roundNumber) {
+                return prev;
+            }
+
+            // Saying "dalje" is what turns my own last two face up — the server
+            // sends them to the passer alone, so this list is empty on every
+            // other seat's copy of the same event.
+            const revealed = (data.revealedCards ?? []).filter(
+                (card) => !prev.hand.some((held) => sameCard(held, card)),
+            );
+            const hand = revealed.length
+                ? [...prev.hand, ...revealed].map((card) => ({
+                      ...card,
+                      hidden: false,
+                  }))
+                : prev.hand;
+
+            return {
+                ...prev,
+                hand,
+                counts: revealed.length
+                    ? { ...prev.counts, [data.skippedTurnIndex]: hand.length }
+                    : prev.counts,
+                round: {
+                    ...prev.round,
+                    currentTurnIndex: data.nextTurnIndex,
+                },
+            };
+        });
     });
 
     useSocketEvent("game:trumpChosen", (data) => {
         clearCountdowns();
 
-        // Zvanja are shown for a fixed window the server owns; it carries the
-        // length here so the tray can count the same seconds down.
-        if (data.roundStatus === RoundStatus.DECLARATIONS) {
-            setDeclarationCountdown({
+        // The table is asked first, for a window the server owns; it carries the
+        // length here so the tray can count the same seconds down. What was
+        // declared arrives later, in its own event.
+        if (data.roundStatus === RoundStatus.DECLARING) {
+            setDeclaringCountdown({
                 timeoutSeconds: data.timeoutSeconds,
                 startedAt: Date.now(),
             });
@@ -515,15 +566,48 @@ export function GameProvider({
                     currentTurnIndex: data.currentTurnIndex,
                     team1RoundPoints: data.team1RoundPoints,
                     team2RoundPoints: data.team2RoundPoints,
+                    team1CardPoints: data.team1CardPoints ?? 0,
+                    team2CardPoints: data.team2CardPoints ?? 0,
                     team1Declarations: data.team1Declarations ?? [],
                     team2Declarations: data.team2Declarations ?? [],
+                    declinedDeclarationSeats: [],
+                    answeredDeclarationSeats: [],
+                    myDeclarations: data.myDeclarations ?? [],
                 },
             };
         });
     });
 
+    /**
+     * The ask is over: here is what the table declared, for a beat, before play.
+     */
+    useSocketEvent("game:declarationsRevealed", (data) => {
+        setDeclaringCountdown(null);
+        setDeclarationCountdown({
+            timeoutSeconds: data.timeoutSeconds,
+            startedAt: Date.now(),
+        });
+
+        setGame((prev) =>
+            prev?.round?.roundNumber === data.roundNumber
+                ? {
+                      ...prev,
+                      round: {
+                          ...prev.round,
+                          roundStatus: data.roundStatus,
+                          team1Declarations: data.team1Declarations ?? [],
+                          team2Declarations: data.team2Declarations ?? [],
+                          declinedDeclarationSeats:
+                              data.declinedDeclarationSeats ?? [],
+                      },
+                  }
+                : prev,
+        );
+    });
+
     useSocketEvent("game:cardTurnStarted", (data) => {
         setPendingBreak(null);
+        setDeclaringCountdown(null);
         setDeclarationCountdown(null);
         setTurnCountdown({
             timeoutSeconds: data.timeoutSeconds,
@@ -632,6 +716,8 @@ export function GameProvider({
                         : prev.round.trickWinningPlayerIndex,
                     team1RoundPoints: data.team1RoundPoints,
                     team2RoundPoints: data.team2RoundPoints,
+                    team1CardPoints: data.team1CardPoints ?? 0,
+                    team2CardPoints: data.team2CardPoints ?? 0,
                 },
             };
         });
@@ -677,6 +763,8 @@ export function GameProvider({
         switch (game.round.roundStatus) {
             case RoundStatus.CHOOSING_TRUMP:
                 return "choosing-trump";
+            case RoundStatus.DECLARING:
+                return "declaring";
             case RoundStatus.DECLARATIONS:
                 return "declarations";
             case RoundStatus.PLAYING:
@@ -705,8 +793,15 @@ export function GameProvider({
         [send],
     );
 
+    // Both answers are commands in their own right: the server needs the "yes"
+    // to know the table is done, not just the "no". It answers with a fresh
+    // snapshot either way, so nothing is patched here.
+    const declareDeclarations = useCallback(
+        () => send("game:declarations:declare"),
+        [send],
+    );
+
     const declineDeclarations = useCallback(
-        // The backend answers with a fresh snapshot, so nothing is patched here.
         () => send("game:declarations:decline"),
         [send],
     );
@@ -724,6 +819,7 @@ export function GameProvider({
             isMyTurn:
                 chair !== -1 && game?.round?.currentTurnIndex === chair,
             trumpCountdown,
+            declaringCountdown,
             declarationCountdown,
             turnCountdown,
             pendingBreak,
@@ -735,6 +831,7 @@ export function GameProvider({
         phase,
         seating,
         trumpCountdown,
+        declaringCountdown,
         declarationCountdown,
         turnCountdown,
         pendingBreak,
@@ -748,10 +845,19 @@ export function GameProvider({
             chooseTrump,
             passTrump,
             throwCard,
+            declareDeclarations,
             declineDeclarations,
             leaveGame,
         }),
-        [ready, chooseTrump, passTrump, throwCard, declineDeclarations, leaveGame],
+        [
+            ready,
+            chooseTrump,
+            passTrump,
+            throwCard,
+            declareDeclarations,
+            declineDeclarations,
+            leaveGame,
+        ],
     );
 
     return (

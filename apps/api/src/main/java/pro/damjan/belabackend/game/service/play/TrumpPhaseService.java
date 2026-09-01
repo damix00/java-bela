@@ -8,6 +8,7 @@ import pro.damjan.belabackend.game.model.card.Card;
 import pro.damjan.belabackend.game.model.card.Suite;
 import pro.damjan.belabackend.game.model.player.GamePlayer;
 import pro.damjan.belabackend.game.model.round.BeloteRound;
+import pro.damjan.belabackend.game.model.round.RoundPlayer;
 import pro.damjan.belabackend.game.model.round.RoundStatus;
 import pro.damjan.belabackend.game.scheduling.registry.ScheduledTaskRegistry;
 import pro.damjan.belabackend.game.scheduling.tasks.ScheduledGameTask;
@@ -31,7 +32,10 @@ public class TrumpPhaseService {
     // it. This is both the turn's own clock and the `timeoutSeconds` the client
     // draws its timer from, so the bar follows on its own.
     public static final Duration TRUMP_CHOICE_TIMEOUT = Duration.ofSeconds(30);
-    private static final Duration DECLARATION_REVEAL_DELAY = Duration.ofSeconds(10);
+    // Two windows, in the order a table plays them: first everyone is asked, privately, whether
+    // they declare; then what was declared is on the table for everyone to read.
+    private static final Duration DECLARATION_ASK_TIMEOUT = Duration.ofSeconds(10);
+    private static final Duration DECLARATION_REVEAL_DELAY = Duration.ofSeconds(5);
 
     private final GameAccessService gameAccessService;
     private final BeloteGameEventPublisher gamePublisher;
@@ -56,12 +60,7 @@ public class TrumpPhaseService {
             return;
         }
 
-        int skippedTurnIndex = round.getCurrentTurnIndex();
-        round.passTrumpChoice();
-
-        gameAccessService.save(game);
-        gamePublisher.trumpChoiceSkipped(game, skippedTurnIndex, TRUMP_CHOICE_TIMEOUT.toSeconds());
-        chooseBotTrumpOrSchedule(game);
+        passTrumpChoice(game, round.getCurrentTurnIndex());
     }
 
     public void handleBotTrumpChoice(String gameId, int roundNumber, int turnIndex) {
@@ -79,6 +78,27 @@ public class TrumpPhaseService {
         chooseBotTrump(game);
     }
 
+    /**
+     * The ask window ran out. Silence declares — the protocol has only ever had an opt-out — so the
+     * seats that never answered are simply marked answered, and the reveal follows.
+     */
+    public void handleDeclarationAskTimeout(String gameId, int roundNumber) {
+        BeloteGame game = gameAccessService.requireGameById(gameId);
+
+        var round = game.getCurrentRound();
+        if (round == null
+                || round.getRoundStatus() != RoundStatus.DECLARING
+                || round.getRoundNumber() != roundNumber) {
+            return;
+        }
+
+        for (RoundPlayer player : round.getRoundPlayers()) {
+            round.markDeclarationsAnswered(player.getPlayerIndex());
+        }
+
+        advanceToReveal(game);
+    }
+
     public void handleDeclarationsComplete(String gameId, int roundNumber) {
         BeloteGame game = gameAccessService.requireGameById(gameId);
 
@@ -90,6 +110,9 @@ public class TrumpPhaseService {
         }
 
         startCardPlay(game);
+        // Same reason as the phase's other exit: with a bot leading, nothing else would tell the
+        // table the reveal is over.
+        gamePublisher.broadcastSnapshot(game);
         publishFirstCardTurnOrSchedule(game);
     }
 
@@ -118,20 +141,21 @@ public class TrumpPhaseService {
             throw new IllegalStateException("It is not this player's turn to choose trump");
         }
 
-        int skippedTurnIndex = round.getCurrentTurnIndex();
-        round.passTrumpChoice();
-
-        gameAccessService.save(game);
-        gamePublisher.trumpChoiceSkipped(game, skippedTurnIndex, TRUMP_CHOICE_TIMEOUT.toSeconds());
-        chooseBotTrumpOrSchedule(game);
+        passTrumpChoice(game, round.getCurrentTurnIndex());
     }
 
-    public void declineDeclarations(String userId) {
+    /**
+     * A player's answer to the declarations question. Every seat is asked, whether or not it holds
+     * anything — a prompt that only appeared for players with zvanja would announce that somebody
+     * has them. Once all four have answered there is nothing left to wait for, so the window closes
+     * early rather than burning the rest of its clock.
+     */
+    public void answerDeclarations(String userId, boolean declare) {
         BeloteGame game = gameAccessService.requireUserGame(userId);
         BeloteRound round = game.getCurrentRound();
 
-        if (round == null || round.getRoundStatus() != RoundStatus.DECLARATIONS) {
-            throw new IllegalStateException("Declarations cannot be declined outside the declarations phase");
+        if (round == null || round.getRoundStatus() != RoundStatus.DECLARING) {
+            throw new IllegalStateException("Declarations cannot be answered outside the declarations ask phase");
         }
 
         GamePlayer player = game.getPlayers().stream()
@@ -139,12 +163,14 @@ public class TrumpPhaseService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Player is not part of this game"));
 
-        round.declineDeclarations(player.getSeatIndex());
+        round.answerDeclarations(player.getSeatIndex(), declare);
 
         gameAccessService.save(game);
-        // Declarations are derived on demand from the live choice flags, so a fresh snapshot
-        // reflects the recomputed winning team for every player.
+        // Says who the table is still waiting on. The snapshot withholds the answers themselves
+        // while the round is asking, so this reveals nothing about anyone's hand.
         gamePublisher.broadcastSnapshot(game);
+
+        advanceToRevealIfAllAnswered(game);
     }
 
     private GamePlayer getCurrentTrumpChooser(BeloteGame game) {
@@ -191,24 +217,69 @@ public class TrumpPhaseService {
             return;
         }
 
+        // Everyone is asked, always: entering the phase only when somebody holds zvanja would make
+        // the phase itself the tell.
+        round.setRoundStatus(RoundStatus.DECLARING);
+        markBotSeatsAnswered(game);
+
+        gameAccessService.save(game);
+        gamePublisher.trumpChosen(
+                game,
+                chosenByTurnIndex,
+                suite,
+                RoundStatus.DECLARING,
+                revealedCardsByUserId,
+                DECLARATION_ASK_TIMEOUT.toSeconds()
+        );
+
+        if (!advanceToRevealIfAllAnswered(game)) {
+            scheduleDeclarationAskTimeout(game);
+        }
+    }
+
+    /** Bots never answer for themselves, and they always declare. */
+    private void markBotSeatsAnswered(BeloteGame game) {
+        BeloteRound round = game.getCurrentRound();
+
+        for (GamePlayer player : game.getPlayers()) {
+            if (player.isBot()) {
+                round.markDeclarationsAnswered(player.getSeatIndex());
+            }
+        }
+    }
+
+    private boolean advanceToRevealIfAllAnswered(BeloteGame game) {
+        if (!game.getCurrentRound().allDeclarationsAnswered()) {
+            return false;
+        }
+
+        advanceToReveal(game);
+        return true;
+    }
+
+    /**
+     * Closes the ask window: either show what was declared for a beat, or — when the round has
+     * nothing to show, because nobody held zvanja or everybody declined — go straight to play.
+     */
+    private void advanceToReveal(BeloteGame game) {
+        BeloteRound round = game.getCurrentRound();
+
+        // The window can close early, so its timeout must not fire into the phase that follows.
+        scheduledTaskRegistry.removeGameTasksOfType(game.getId(), ScheduledTaskType.DECLARATION_ASK_TIMEOUT_TASK);
+
         if (round.hasDeclarations()) {
             round.setRoundStatus(RoundStatus.DECLARATIONS);
 
             gameAccessService.save(game);
-            gamePublisher.trumpChosen(
-                    game,
-                    chosenByTurnIndex,
-                    suite,
-                    RoundStatus.DECLARATIONS,
-                    revealedCardsByUserId,
-                    DECLARATION_REVEAL_DELAY.toSeconds()
-            );
+            gamePublisher.declarationsRevealed(game, DECLARATION_REVEAL_DELAY.toSeconds());
             scheduleDeclarationsComplete(game);
             return;
         }
 
         startCardPlay(game);
-        gamePublisher.trumpChosen(game, chosenByTurnIndex, suite, RoundStatus.PLAYING, revealedCardsByUserId, 0);
+        // With a bot leading there is no cardTurnStarted to announce the new phase, so the snapshot
+        // is what tells the table the ask is over.
+        gamePublisher.broadcastSnapshot(game);
         publishFirstCardTurnOrSchedule(game);
     }
 
@@ -289,6 +360,22 @@ public class TrumpPhaseService {
         );
     }
 
+    private void scheduleDeclarationAskTimeout(BeloteGame game) {
+        var round = game.getCurrentRound();
+        if (round == null || round.getRoundStatus() != RoundStatus.DECLARING) {
+            return;
+        }
+
+        scheduledTaskRegistry.registerTask(
+                new ScheduledGameTask(
+                        ScheduledTaskType.DECLARATION_ASK_TIMEOUT_TASK,
+                        DECLARATION_ASK_TIMEOUT,
+                        game.getId(),
+                        Map.of("roundNumber", round.getRoundNumber())
+                )
+        );
+    }
+
     private void scheduleDeclarationsComplete(BeloteGame game) {
         var round = game.getCurrentRound();
         if (round == null || round.getRoundStatus() != RoundStatus.DECLARATIONS) {
@@ -331,11 +418,31 @@ public class TrumpPhaseService {
             return;
         }
 
-        int skippedTurnIndex = round.getCurrentTurnIndex();
-        round.passTrumpChoice();
+        passTrumpChoice(game, round.getCurrentTurnIndex());
+    }
+
+    /**
+     * Saying "dalje" is the moment a player is done bidding on six cards, so it is also the moment
+     * their own two face-down cards flip — for them alone, and without waiting on whoever ends up
+     * calling trump. Bots pass through here too, so the second bidding round reads eight cards for
+     * everybody or for nobody.
+     */
+    private void passTrumpChoice(BeloteGame game, int skippedTurnIndex) {
+        GamePlayer passer = game.getPlayer(skippedTurnIndex);
+
+        List<Card> revealed = passer.getHand().stream().filter(Card::isHidden).toList();
+        passer.getHand().forEach(card -> card.setHidden(false));
+
+        game.getCurrentRound().passTrumpChoice();
 
         gameAccessService.save(game);
-        gamePublisher.trumpChoiceSkipped(game, skippedTurnIndex, TRUMP_CHOICE_TIMEOUT.toSeconds());
+        gamePublisher.trumpChoiceSkipped(
+                game,
+                skippedTurnIndex,
+                passer.getUserId(),
+                revealed,
+                TRUMP_CHOICE_TIMEOUT.toSeconds()
+        );
         chooseBotTrumpOrSchedule(game);
     }
 

@@ -10,6 +10,7 @@ import pro.damjan.belabackend.game.model.card.Declaration;
 import pro.damjan.belabackend.game.model.card.Suite;
 import pro.damjan.belabackend.game.model.player.GamePlayer;
 import pro.damjan.belabackend.game.model.round.BeloteRound;
+import pro.damjan.belabackend.game.model.round.RoundPlayer;
 import pro.damjan.belabackend.game.model.round.RoundStatus;
 import pro.damjan.belabackend.game.model.round.trick.PlayedCard;
 import pro.damjan.belabackend.websocket.events.dto.OutgoingEvent;
@@ -44,8 +45,17 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
         this.team1 = TeamSnapshot.from(game.getTeam1(), perspectiveUserId);
         this.team2 = TeamSnapshot.from(game.getTeam2(), perspectiveUserId);
         this.currentRound = game.getCurrentRound() != null
-                ? RoundSnapshot.from(game.getCurrentRound(), timerType, timeoutSeconds)
+                ? RoundSnapshot.from(game.getCurrentRound(), seatOf(game, perspectiveUserId), timerType, timeoutSeconds)
                 : null;
+    }
+
+    // The seat the snapshot is being built for, or null for a viewer who is not at this table.
+    private static Integer seatOf(BeloteGame game, String perspectiveUserId) {
+        return game.getPlayers().stream()
+                .filter(player -> player.getUserId().equals(perspectiveUserId))
+                .map(GamePlayer::getSeatIndex)
+                .findFirst()
+                .orElse(null);
     }
 
     @Getter @Setter
@@ -121,10 +131,20 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
         private final List<PlayedCard> currentTrickCards;
         private final int team1RoundPoints;
         private final int team2RoundPoints;
+        // Points taken in tricks, with no zvanja in them. The scoreboard counts the two apart: what
+        // the cards have won so far, and the declarations sitting on top of it.
+        private final int team1CardPoints;
+        private final int team2CardPoints;
         private final List<Declaration> team1Declarations;
         private final List<Declaration> team2Declarations;
-        // seat indices of players who opted out of declaring their declarations this round
+        // seat indices of players who opted out of declaring their declarations this round.
+        // Withheld (empty) during the ask, when who declined is not yet public.
         private final List<Integer> declinedDeclarationSeats;
+        // seat indices of players who have answered the declarations question — who the table waits on
+        private final List<Integer> answeredDeclarationSeats;
+        // the perspective player's own zvanja, so they can be asked about them without anyone
+        // else's holdings travelling with the question
+        private final List<Declaration> myDeclarations;
         // the active countdown: which timer is running (ScheduledTaskType name) and seconds remaining.
         // Both null when no client-facing timer is active.
         private final String timerType;
@@ -142,9 +162,13 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
                 List<PlayedCard> currentTrickCards,
                 int team1RoundPoints,
                 int team2RoundPoints,
+                int team1CardPoints,
+                int team2CardPoints,
                 List<Declaration> team1Declarations,
                 List<Declaration> team2Declarations,
                 List<Integer> declinedDeclarationSeats,
+                List<Integer> answeredDeclarationSeats,
+                List<Declaration> myDeclarations,
                 String timerType,
                 Long timeoutSeconds,
                 Integer currentTrickWinningPlayerIndex
@@ -158,24 +182,41 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
             this.currentTrickCards = currentTrickCards;
             this.team1RoundPoints = team1RoundPoints;
             this.team2RoundPoints = team2RoundPoints;
+            this.team1CardPoints = team1CardPoints;
+            this.team2CardPoints = team2CardPoints;
             this.team1Declarations = team1Declarations;
             this.team2Declarations = team2Declarations;
             this.declinedDeclarationSeats = declinedDeclarationSeats;
+            this.answeredDeclarationSeats = answeredDeclarationSeats;
+            this.myDeclarations = myDeclarations;
             this.timerType = timerType;
             this.timeoutSeconds = timeoutSeconds;
             this.currentTrickWinningPlayerIndex = currentTrickWinningPlayerIndex;
         }
 
-        public static RoundSnapshot from(BeloteRound round, String timerType, Long timeoutSeconds) {
+        public static RoundSnapshot from(
+                BeloteRound round,
+                Integer perspectiveSeat,
+                String timerType,
+                Long timeoutSeconds
+        ) {
             var currentTrick = round.getCurrentTrick();
             Integer winningPlayerIndex = currentTrick != null && currentTrick.isComplete()
                     ? currentTrick.getWinningPlayerIndex()
                     : null;
 
-            List<Integer> declinedSeats = round.getRoundPlayers().stream()
-                    .filter(player -> !player.isChoosesToDeclare())
-                    .map(pro.damjan.belabackend.game.model.round.RoundPlayer::getPlayerIndex)
-                    .toList();
+            // The ask is private. Until the reveal, the resolved sets and the opt-outs stay on the
+            // server: a snapshot mid-ask (a reconnect, or the broadcast an answer triggers) would
+            // otherwise hand the table both what everyone holds and who just declined. The check
+            // lives here, at the point of construction, so no call site can opt out of it.
+            boolean asking = round.getRoundStatus() == RoundStatus.DECLARING;
+
+            List<Integer> declinedSeats = asking
+                    ? List.of()
+                    : round.getRoundPlayers().stream()
+                            .filter(player -> !player.isChoosesToDeclare())
+                            .map(RoundPlayer::getPlayerIndex)
+                            .toList();
 
             return new RoundSnapshot(
                     round.getRoundNumber(),
@@ -185,15 +226,30 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
                     round.getCurrentTurnIndex(),
                     round.getCurrentTrickNumber(),
                     currentTrick == null ? List.of() : currentTrick.getPlayedCards(),
-                    round.getTeam1RoundScore(),
-                    round.getTeam2RoundScore(),
-                    round.getDeclarations(0),
-                    round.getDeclarations(1),
+                    asking ? round.getCardPoints(0) : round.getTeam1RoundScore(),
+                    asking ? round.getCardPoints(1) : round.getTeam2RoundScore(),
+                    round.getCardPoints(0),
+                    round.getCardPoints(1),
+                    asking ? List.of() : round.getDeclarations(0),
+                    asking ? List.of() : round.getDeclarations(1),
                     declinedSeats,
+                    round.answeredDeclarationSeats(),
+                    ownDeclarations(round, perspectiveSeat),
                     timerType,
                     timeoutSeconds,
                     winningPlayerIndex
             );
+        }
+
+        /** The perspective player's own detected zvanja — read from their seat, never from anyone else's. */
+        private static List<Declaration> ownDeclarations(BeloteRound round, Integer perspectiveSeat) {
+            if (perspectiveSeat == null) {
+                return List.of();
+            }
+
+            return round.getRoundPlayer(perspectiveSeat).getDeclarations().stream()
+                    .filter(declaration -> declaration.getType() != Declaration.Type.BELA)
+                    .toList();
         }
     }
 }

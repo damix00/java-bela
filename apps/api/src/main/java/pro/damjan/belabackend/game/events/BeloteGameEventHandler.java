@@ -34,9 +34,14 @@ public class BeloteGameEventHandler {
         beloteGameService.passTrump(user.getId());
     }
 
+    @OnEvent("game:declarations:declare")
+    public void declareDeclarations(User user) {
+        beloteGameService.answerDeclarations(user.getId(), true);
+    }
+
     @OnEvent("game:declarations:decline")
     public void declineDeclarations(User user) {
-        beloteGameService.declineDeclarations(user.getId());
+        beloteGameService.answerDeclarations(user.getId(), false);
     }
 
     @OnEvent("game:card:throw")

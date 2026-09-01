@@ -391,6 +391,7 @@
             "heading": "Zvanja",
             "promptHeading": "Želiš li zvati?",
             "promptBody": "U ruci imaš zvanja vrijedna {points} bodova. Ako zoveš, njihove će se karte pokazati stolu.",
+            "promptBodyNone": "Ove runde nemaš što zvati.",
             "mine": "Naša strana",
             "theirs": "Njihova strana",
             "none": "Nema zvanja",
@@ -398,7 +399,7 @@
             "decline": "Nemoj zvati",
             "show": "pogledaj zvanja",
             "close": "Zatvori",
-            "updating": "Brojim zvanja…",
+            "updating": "Čekamo ostale…",
             "total": "Ukupno {points} bodova",
             "types": {
                 "BELOTE": "Belot",
@@ -427,6 +428,7 @@
             "turn": "još {seconds}s",
             "nextTrick": "Sljedeći štih za {seconds}s",
             "nextRound": "Sljedeća runda za {seconds}s",
+            "declaring": "Zovi za {seconds}s",
             "declarations": "Zvanja se zatvaraju za {seconds}s"
         },
         "score": {

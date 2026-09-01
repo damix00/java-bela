@@ -120,7 +120,7 @@ public class BeloteRound implements Serializable {
         this.trumpSuite = suite;
         this.trumpCallerIndex = currentTurnIndex;
         getRoundTeamForPlayerIndex(currentTurnIndex).setCalledTrump(true);
-        this.roundStatus = RoundStatus.DECLARATIONS;
+        this.roundStatus = RoundStatus.DECLARING;
     }
 
     public void advanceTurn() {
@@ -305,14 +305,46 @@ public class BeloteRound implements Serializable {
         }
     }
 
-    /** Records that a player opts out of declaring; their declarations drop from the contest. */
-    public void declineDeclarations(int seatIndex) {
-        getRoundPlayer(seatIndex).setChoosesToDeclare(false);
+    /** Records a player's answer to the declarations question: whether they declare, and that they answered. */
+    public void answerDeclarations(int seatIndex, boolean declare) {
+        RoundPlayer player = getRoundPlayer(seatIndex);
+        player.setChoosesToDeclare(declare);
+        player.setDeclarationAnswered(true);
     }
 
-    /** True if any player holds a non-belot declaration that could be declared (drives the phase). */
+    /** Records that a player opts out of declaring; their declarations drop from the contest. */
+    public void declineDeclarations(int seatIndex) {
+        answerDeclarations(seatIndex, false);
+    }
+
+    /**
+     * Answers for a seat that will never answer for itself — a bot, or a player the ask window ran out
+     * on. Silence declares, which is the default the opt-out-only protocol has always had.
+     */
+    public void markDeclarationsAnswered(int seatIndex) {
+        getRoundPlayer(seatIndex).setDeclarationAnswered(true);
+    }
+
+    /** True once every seat has answered, which closes the ask window early. */
+    public boolean allDeclarationsAnswered() {
+        return roundPlayersOrEmpty().stream().allMatch(RoundPlayer::isDeclarationAnswered);
+    }
+
+    /** Seats that have answered. Public during the ask: it says who the table is waiting on, nothing more. */
+    public List<Integer> answeredDeclarationSeats() {
+        return roundPlayersOrEmpty().stream()
+                .filter(RoundPlayer::isDeclarationAnswered)
+                .map(RoundPlayer::getPlayerIndex)
+                .toList();
+    }
+
+    /**
+     * True if any player who is still declaring holds a non-belot declaration — that is, whether the
+     * reveal has anything to show. A round everyone declined skips it.
+     */
     public boolean hasDeclarations() {
         return roundPlayersOrEmpty().stream()
+                .filter(RoundPlayer::isChoosesToDeclare)
                 .flatMap(player -> player.getDeclarations().stream())
                 .anyMatch(declaration -> declaration.getType() != Declaration.Type.BELOTE);
     }
@@ -368,6 +400,15 @@ public class BeloteRound implements Serializable {
 
     private int getDeclarationPoints(int teamIndex) {
         return getDeclarations(teamIndex).stream().mapToInt(Declaration::getPoints).sum();
+    }
+
+    /**
+     * Points a team has taken in tricks, with no zvanja in them. What the table may be shown while
+     * the declarations question is still open: the running score is otherwise a place the contest
+     * leaks out of, blanked lists or not.
+     */
+    public int getCardPoints(int teamIndex) {
+        return getRoundTeam(teamIndex).getPoints();
     }
 
     public int getTeamPoints(int teamIndex) {

@@ -74,8 +74,10 @@ export interface CardThrownEvent extends OutgoingEvent {
     pendingDelaySeconds: number;
     playerIndex: number;
     roundNumber: number;
+    team1CardPoints: number;
     team1RoundPoints: number;
     team1TotalScore: number;
+    team2CardPoints: number;
     team2RoundPoints: number;
     team2TotalScore: number;
     timeoutSeconds: number;
@@ -108,6 +110,15 @@ export interface Declaration {
     playerIndex: number;
     points: number;
     type: Type;
+}
+
+export interface DeclarationsRevealedEvent extends OutgoingEvent {
+    declinedDeclarationSeats: number[];
+    roundNumber: number;
+    roundStatus: RoundStatus;
+    team1Declarations: Declaration[];
+    team2Declarations: Declaration[];
+    timeoutSeconds: number;
 }
 
 export interface GameConfiguration {
@@ -280,20 +291,25 @@ export interface Result {
 export interface RoundPlayer {
     belaDeclared: boolean;
     choosesToDeclare: boolean;
+    declarationAnswered: boolean;
     declarations: Declaration[];
     playerIndex: number;
 }
 
 export interface RoundSnapshot {
+    answeredDeclarationSeats: number[];
     currentTrickCards: PlayedCard[];
     currentTrickNumber: number;
     currentTrickWinningPlayerIndex: number;
     currentTurnIndex: number;
     declinedDeclarationSeats: number[];
+    myDeclarations: Declaration[];
     roundNumber: number;
     roundStatus: RoundStatus;
+    team1CardPoints: number;
     team1Declarations: Declaration[];
     team1RoundPoints: number;
+    team2CardPoints: number;
     team2Declarations: Declaration[];
     team2RoundPoints: number;
     timeoutSeconds: number;
@@ -352,8 +368,9 @@ export interface Trick {
     winningPlayerIndex: number;
 }
 
-export interface TrumpChoiceSkippedEvent extends OutgoingEvent {
+export interface TrumpChoiceSkippedEvent extends PerspectiveOutgoingEvent {
     nextTurnIndex: number;
+    revealedCards: Card[];
     roundNumber: number;
     skippedTurnIndex: number;
     timeoutSeconds: number;
@@ -369,12 +386,15 @@ export interface TrumpChosenEvent extends PerspectiveOutgoingEvent {
     chosenByTurnIndex: number;
     currentTurnIndex: number;
     hand: Card[];
+    myDeclarations: Declaration[];
     revealedCards: Card[];
     roundNumber: number;
     roundStatus: RoundStatus;
+    team1CardPoints: number;
     team1Declarations: Declaration[];
     team1RoundPoints: number;
     team1TotalScore: number;
+    team2CardPoints: number;
     team2Declarations: Declaration[];
     team2RoundPoints: number;
     team2TotalScore: number;
@@ -463,6 +483,7 @@ export enum Role {
 
 export enum RoundStatus {
     CHOOSING_TRUMP = "CHOOSING_TRUMP",
+    DECLARING = "DECLARING",
     DECLARATIONS = "DECLARATIONS",
     PLAYING = "PLAYING",
     FINISHED = "FINISHED",

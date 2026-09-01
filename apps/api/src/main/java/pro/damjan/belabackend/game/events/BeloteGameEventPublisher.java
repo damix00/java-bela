@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pro.damjan.belabackend.game.events.dto.outgoing.CardThrownEvent;
 import pro.damjan.belabackend.game.events.dto.outgoing.CardTurnStartedEvent;
+import pro.damjan.belabackend.game.events.dto.outgoing.DeclarationsRevealedEvent;
 import pro.damjan.belabackend.game.events.dto.outgoing.GameEndedEvent;
 import pro.damjan.belabackend.game.events.dto.outgoing.GameSnapshotEvent;
 import pro.damjan.belabackend.game.events.dto.outgoing.GameStatusChangedEvent;
@@ -15,9 +16,11 @@ import pro.damjan.belabackend.game.events.dto.outgoing.TrumpChoosingStartedEvent
 import pro.damjan.belabackend.game.model.BeloteGame;
 import pro.damjan.belabackend.game.model.card.Card;
 import pro.damjan.belabackend.game.model.card.CardOrdering;
+import pro.damjan.belabackend.game.model.card.Declaration;
 import pro.damjan.belabackend.game.model.card.Suite;
 import pro.damjan.belabackend.game.model.player.GamePlayer;
 import pro.damjan.belabackend.game.model.round.BeloteRound;
+import pro.damjan.belabackend.game.model.round.RoundPlayer;
 import pro.damjan.belabackend.game.model.round.RoundStatus;
 import pro.damjan.belabackend.game.scheduling.registry.ScheduledTaskRegistry;
 import pro.damjan.belabackend.game.scheduling.tasks.ScheduledTaskType;
@@ -43,6 +46,8 @@ public class BeloteGameEventPublisher {
 
         return switch (round.getRoundStatus()) {
             case CHOOSING_TRUMP -> ScheduledTaskType.CHOOSING_TRUMP_TIMEOUT_TASK;
+            case DECLARING -> ScheduledTaskType.DECLARATION_ASK_TIMEOUT_TASK;
+            case DECLARATIONS -> ScheduledTaskType.DECLARATIONS_COMPLETE_TASK;
             case PLAYING -> round.getCurrentTrick() != null && round.getCurrentTrick().isComplete()
                     ? ScheduledTaskType.NEXT_TRICK_START_TASK
                     : ScheduledTaskType.CARD_THROW_TIMEOUT_TASK;
@@ -136,18 +141,40 @@ public class BeloteGameEventPublisher {
         );
     }
 
-    public void trumpChoiceSkipped(BeloteGame game, int skippedTurnIndex, long timeoutSeconds) {
+    /**
+     * A pass, sent per seat: passing is also when that player's own two face-down cards flip, and
+     * those cards go to their owner alone. Every other recipient gets an empty reveal — the lookup
+     * is keyed by the recipient we are addressing, so there is no way for one seat's cards to be
+     * written into another seat's copy of the event.
+     */
+    public void trumpChoiceSkipped(
+            BeloteGame game,
+            int skippedTurnIndex,
+            String revealedForUserId,
+            List<Card> revealedCards,
+            long timeoutSeconds
+    ) {
         BeloteRound round = game.getCurrentRound();
 
-        broadcastToGame(
-                game,
-                new TrumpChoiceSkippedEvent(
-                        round.getRoundNumber(),
-                        skippedTurnIndex,
-                        round.getCurrentTurnIndex(),
-                        timeoutSeconds
-                )
-        );
+        for (GamePlayer player : game.getPlayers()) {
+            if (player.isBot()) continue;
+
+            List<Card> revealed = player.getUserId().equals(revealedForUserId)
+                    ? CardOrdering.sortForClient(revealedCards)
+                    : List.of();
+
+            webSocketPublisher.sendToActiveSession(
+                    player.getUserId(),
+                    new TrumpChoiceSkippedEvent(
+                            player.getUserId(),
+                            round.getRoundNumber(),
+                            skippedTurnIndex,
+                            round.getCurrentTurnIndex(),
+                            revealed,
+                            timeoutSeconds
+                    )
+            );
+        }
     }
 
     public void trumpChosen(
@@ -159,6 +186,8 @@ public class BeloteGameEventPublisher {
             long timeoutSeconds
     ) {
         BeloteRound round = game.getCurrentRound();
+        // Nothing about the contest leaves the server while the table is still being asked.
+        boolean asking = roundStatus == RoundStatus.DECLARING;
 
         for (GamePlayer player : game.getPlayers()) {
             if (player.isBot()) continue;
@@ -174,16 +203,51 @@ public class BeloteGameEventPublisher {
                             roundStatus,
                             CardOrdering.sortForClient(player.getHand()),
                             CardOrdering.sortForClient(revealedCardsByUserId.getOrDefault(player.getUserId(), List.of())),
-                            round.getTeam1RoundScore(),
-                            round.getTeam2RoundScore(),
+                            asking ? round.getCardPoints(0) : round.getTeam1RoundScore(),
+                            asking ? round.getCardPoints(1) : round.getTeam2RoundScore(),
+                            round.getCardPoints(0),
+                            round.getCardPoints(1),
                             game.getTeam1().getTotalScore(),
                             game.getTeam2().getTotalScore(),
-                            round.getDeclarations(0),
-                            round.getDeclarations(1),
+                            asking ? List.of() : round.getDeclarations(0),
+                            asking ? List.of() : round.getDeclarations(1),
+                            ownDeclarations(round, player.getSeatIndex()),
                             timeoutSeconds
                     )
             );
         }
+    }
+
+    /**
+     * The resolved contest, once the ask window has closed. The same for everyone: what was declared
+     * is public by then, which is exactly why it does not ride along with the question.
+     */
+    public void declarationsRevealed(BeloteGame game, long timeoutSeconds) {
+        BeloteRound round = game.getCurrentRound();
+
+        List<Integer> declinedSeats = round.getRoundPlayers().stream()
+                .filter(player -> !player.isChoosesToDeclare())
+                .map(RoundPlayer::getPlayerIndex)
+                .toList();
+
+        broadcastToGame(
+                game,
+                new DeclarationsRevealedEvent(
+                        round.getRoundNumber(),
+                        round.getRoundStatus(),
+                        round.getDeclarations(0),
+                        round.getDeclarations(1),
+                        declinedSeats,
+                        timeoutSeconds
+                )
+        );
+    }
+
+    /** A player's own zvanja, read from their own seat — the only declarations the ask may carry. */
+    private List<Declaration> ownDeclarations(BeloteRound round, int seatIndex) {
+        return round.getRoundPlayer(seatIndex).getDeclarations().stream()
+                .filter(declaration -> declaration.getType() != Declaration.Type.BELA)
+                .toList();
     }
 
     public void cardTurnStarted(BeloteGame game, long timeoutSeconds) {
@@ -230,6 +294,8 @@ public class BeloteGameEventPublisher {
                         pendingDelaySeconds,
                         game.getCurrentRound().getTeam1RoundScore(),
                         game.getCurrentRound().getTeam2RoundScore(),
+                        game.getCurrentRound().getCardPoints(0),
+                        game.getCurrentRound().getCardPoints(1),
                         game.getTeam1().getTotalScore(),
                         game.getTeam2().getTotalScore(),
                         bela

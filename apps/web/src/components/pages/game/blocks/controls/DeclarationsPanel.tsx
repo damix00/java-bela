@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/controls/Button";
@@ -17,6 +16,8 @@ type DeclarationsPanelProps = {
     heading: string;
     promptHeading: string;
     promptBody: string;
+    /** What the prompt says to a player holding nothing — which is most of them. */
+    promptBodyNone: string;
     mineLabel: string;
     theirsLabel: string;
     noneLabel: string;
@@ -28,11 +29,13 @@ type DeclarationsPanelProps = {
     typeNames: Record<Type, string>;
     /** Names the seat a set came from — whose cards these are. */
     nameOf: (seat: number) => string;
-    /** The local player appears in the currently winning declaration set. */
-    canDecide: boolean;
-    /** The server has acknowledged that this player opted out. */
-    declined: boolean;
-    chair: number;
+    /** My own zvanja, as the server told me — the only holdings it names while it asks. */
+    my: Declaration[];
+    /** The round is still asking; the resolved sets are not on the wire yet. */
+    asking: boolean;
+    /** The server has recorded this player's answer, whichever way it went. */
+    answered: boolean;
+    onDeclare: () => void;
     onDecline: () => void;
 };
 
@@ -83,13 +86,14 @@ function Side({
 }
 
 /**
- * Zvanja — first the private decision, then the table's resolved totals.
+ * Zvanja — first the private question, then the table's resolved totals.
  *
- * The protocol defaults a player to declaring and only has an opt-out command.
- * That is kept as a transport detail: visually, nothing is revealed until the
- * player has explicitly answered yes or no. A no waits for the fresh server
- * snapshot before showing the recomputed totals, so the summary never flashes
- * points that were just withheld.
+ * The question is asked of everyone, including the seats holding nothing: a
+ * prompt that appeared only for players with zvanja would announce that somebody
+ * has them, which is the one thing this phase is for keeping quiet. Whether this
+ * player has answered is the server's to say, not local state — the round only
+ * moves on once every seat has, so a client-side "I clicked it" would be lying
+ * about what the table is waiting for.
  */
 export default function DeclarationsPanel({
     mine,
@@ -97,6 +101,7 @@ export default function DeclarationsPanel({
     heading,
     promptHeading,
     promptBody,
+    promptBodyNone,
     mineLabel,
     theirsLabel,
     noneLabel,
@@ -106,24 +111,17 @@ export default function DeclarationsPanel({
     totalLabel,
     typeNames,
     nameOf,
-    canDecide,
-    declined,
-    chair,
+    my,
+    asking,
+    answered,
+    onDeclare,
     onDecline,
 }: DeclarationsPanelProps) {
     const reduceMotion = useReducedMotion();
-    const [choice, setChoice] = useState<"declare" | "decline" | null>(null);
     const mineTotal = declarationPoints(mine);
     const theirsTotal = declarationPoints(theirs);
-    const playerTotal = declarationPoints(
-        mine.filter((declaration) => declaration.playerIndex === chair),
-    );
-    const mode =
-        canDecide && !declined && choice === null
-            ? "prompt"
-            : choice === "decline" && !declined
-              ? "pending"
-              : "summary";
+    const playerTotal = declarationPoints(my);
+    const mode = asking ? (answered ? "pending" : "prompt") : "summary";
 
     const reveal = reduceMotion ? undefined : { opacity: 1, scale: 1, y: 0 };
 
@@ -141,13 +139,15 @@ export default function DeclarationsPanel({
                     {promptHeading}
                 </p>
                 <p className="max-w-[260px] text-[11px] leading-snug font-medium text-mint/75 sm:text-[13px] [@media(max-height:560px)]:hidden">
-                    {promptBody.replace("{points}", String(playerTotal))}
+                    {playerTotal > 0
+                        ? promptBody.replace("{points}", String(playerTotal))
+                        : promptBodyNone}
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
                     <Button
                         size="sm"
                         soft
-                        onClick={() => setChoice("declare")}
+                        onClick={onDeclare}
                         className="px-3 py-2 text-[13px] sm:px-5 sm:py-[11px] sm:text-[15px]"
                     >
                         {declareLabel}
@@ -156,10 +156,7 @@ export default function DeclarationsPanel({
                         tone="cream"
                         size="sm"
                         soft
-                        onClick={() => {
-                            setChoice("decline");
-                            onDecline();
-                        }}
+                        onClick={onDecline}
                         className="px-3 py-2 text-[13px] sm:px-5 sm:py-[11px] sm:text-[15px]"
                     >
                         {declineLabel}

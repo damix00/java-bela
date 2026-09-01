@@ -2,6 +2,10 @@ package pro.damjan.belabackend.game.events.dto.outgoing;
 
 import org.junit.jupiter.api.Test;
 import pro.damjan.belabackend.game.events.dto.outgoing.GameSnapshotEvent.PlayerSnapshot;
+import pro.damjan.belabackend.game.events.dto.outgoing.GameSnapshotEvent.RoundSnapshot;
+import pro.damjan.belabackend.game.model.card.Declaration;
+import pro.damjan.belabackend.game.model.round.BeloteRound;
+import pro.damjan.belabackend.game.model.round.RoundStatus;
 import pro.damjan.belabackend.game.model.card.Card;
 import pro.damjan.belabackend.game.model.card.Rank;
 import pro.damjan.belabackend.game.model.card.Suite;
@@ -53,6 +57,59 @@ class GameSnapshotEventTest {
         PlayerSnapshot snapshot = PlayerSnapshot.from(player("u1", "Marko"), "u1");
 
         assertThat(snapshot.getHand()).hasSize(2);
+    }
+
+    @Test
+    void withholdsTheContestWhileTheTableIsStillBeingAsked() {
+        BeloteRound round = roundWithZvanja(RoundStatus.DECLARING);
+
+        RoundSnapshot snapshot = RoundSnapshot.from(round, 0, null, null);
+
+        assertThat(snapshot.getTeam1Declarations()).isEmpty();
+        assertThat(snapshot.getTeam2Declarations()).isEmpty();
+        assertThat(snapshot.getDeclinedDeclarationSeats()).isEmpty();
+    }
+
+    @Test
+    void namesTheContestOnceItIsRevealed() {
+        BeloteRound round = roundWithZvanja(RoundStatus.DECLARATIONS);
+
+        RoundSnapshot snapshot = RoundSnapshot.from(round, 0, null, null);
+
+        assertThat(snapshot.getTeam1Declarations()).hasSize(1);
+        assertThat(snapshot.getDeclinedDeclarationSeats()).containsExactly(1);
+    }
+
+    @Test
+    void tellsEachSeatItsOwnZvanjaAndOnlyItsOwn() {
+        BeloteRound round = roundWithZvanja(RoundStatus.DECLARING);
+
+        assertThat(RoundSnapshot.from(round, 0, null, null).getMyDeclarations()).hasSize(1);
+        assertThat(RoundSnapshot.from(round, 1, null, null).getMyDeclarations()).isEmpty();
+        assertThat(RoundSnapshot.from(round, 2, null, null).getMyDeclarations()).isEmpty();
+    }
+
+    @Test
+    void aViewerWithNoSeatIsToldOfNoZvanjaAtAll() {
+        BeloteRound round = roundWithZvanja(RoundStatus.DECLARING);
+
+        assertThat(RoundSnapshot.from(round, null, null, null).getMyDeclarations()).isEmpty();
+    }
+
+    private BeloteRound roundWithZvanja(RoundStatus status) {
+        BeloteRound round = new BeloteRound(0, 0, status);
+        round.getRoundPlayer(0).setDeclarations(List.of(new Declaration(
+                Declaration.Type.FOUR_JACKS,
+                0,
+                List.of(
+                        new Card(Suite.HEARTS, Rank.JACK, false),
+                        new Card(Suite.BELLS, Rank.JACK, false),
+                        new Card(Suite.ACORN, Rank.JACK, false),
+                        new Card(Suite.LEAF, Rank.JACK, false)
+                )
+        )));
+        round.answerDeclarations(1, false);
+        return round;
     }
 
     @Test

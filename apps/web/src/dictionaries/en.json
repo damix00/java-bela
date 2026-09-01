@@ -391,6 +391,7 @@
             "heading": "Declarations",
             "promptHeading": "Declare your hand?",
             "promptBody": "You have {points} points available. Declaring reveals those cards to the table.",
+            "promptBodyNone": "You have nothing to declare this round.",
             "mine": "Our side",
             "theirs": "Their side",
             "none": "Nothing declared",
@@ -398,7 +399,7 @@
             "decline": "Don’t declare",
             "show": "see declarations",
             "close": "Close",
-            "updating": "Counting declarations…",
+            "updating": "Waiting for the others…",
             "total": "{points} points total",
             "types": {
                 "BELOTE": "Belot",
@@ -427,6 +428,7 @@
             "turn": "{seconds}s left",
             "nextTrick": "Next trick in {seconds}s",
             "nextRound": "Next round in {seconds}s",
+            "declaring": "Declare in {seconds}s",
             "declarations": "Declarations close in {seconds}s"
         },
         "score": {

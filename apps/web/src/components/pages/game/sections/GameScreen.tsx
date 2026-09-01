@@ -158,6 +158,7 @@ export default function GameScreen({
         chair,
         isMyTurn,
         trumpCountdown,
+        declaringCountdown,
         declarationCountdown,
         turnCountdown,
         pendingBreak,
@@ -169,6 +170,7 @@ export default function GameScreen({
         chooseTrump,
         passTrump,
         throwCard,
+        declareDeclarations,
         declineDeclarations,
         leaveGame,
     } = useGameActions();
@@ -288,12 +290,15 @@ export default function GameScreen({
     const mineFirst = seating.teamIndex === 1;
     const usTotal = mineFirst ? game.team2.totalScore : game.team1.totalScore;
     const themTotal = mineFirst ? game.team1.totalScore : game.team2.totalScore;
+    // What the cards have won, with the zvanja shown beside it rather than folded
+    // in: the bar was printing the same 60 twice, once as the round and once as
+    // the declarations it was made of.
     const usRound = mineFirst
-        ? (round?.team2RoundPoints ?? 0)
-        : (round?.team1RoundPoints ?? 0);
+        ? (round?.team2CardPoints ?? 0)
+        : (round?.team1CardPoints ?? 0);
     const themRound = mineFirst
-        ? (round?.team1RoundPoints ?? 0)
-        : (round?.team2RoundPoints ?? 0);
+        ? (round?.team1CardPoints ?? 0)
+        : (round?.team2CardPoints ?? 0);
     const myDeclarations = mineFirst
         ? (round?.team2Declarations ?? [])
         : (round?.team1Declarations ?? []);
@@ -359,7 +364,9 @@ export default function GameScreen({
             );
 
     const showMobileAction =
-        phase === "declarations" || (phase === "choosing-trump" && isMyTurn);
+        phase === "declaring" ||
+        phase === "declarations" ||
+        (phase === "choosing-trump" && isMyTurn);
 
     return (
         <main className={screenClass}>
@@ -448,6 +455,7 @@ export default function GameScreen({
                             theirDeclarations={theirDeclarations}
                             onChooseTrump={chooseTrump}
                             onPassTrump={passTrump}
+                            onDeclare={declareDeclarations}
                             onDecline={declineDeclarations}
                         />
                     }
@@ -468,6 +476,7 @@ export default function GameScreen({
                         nameOf={nameOf}
                         onChooseTrump={chooseTrump}
                         onPassTrump={passTrump}
+                        onDeclare={declareDeclarations}
                         onDecline={declineDeclarations}
                         variant="tray"
                     />
@@ -508,16 +517,24 @@ export default function GameScreen({
                     countdown={
                         phase === "choosing-trump"
                             ? trumpCountdown
-                            : phase === "declarations"
-                              ? declarationCountdown
-                              : turnCountdown
+                            : phase === "declaring"
+                              ? declaringCountdown
+                              : phase === "declarations"
+                                ? declarationCountdown
+                                : turnCountdown
                     }
                     label={
-                        phase === "declarations"
-                            ? copy.timer.declarations
-                            : copy.timer.turn
+                        phase === "declaring"
+                            ? copy.timer.declaring
+                            : phase === "declarations"
+                              ? copy.timer.declarations
+                              : copy.timer.turn
                     }
-                    urgent={isMyTurn && phase !== "declarations"}
+                    urgent={
+                        isMyTurn &&
+                        phase !== "declaring" &&
+                        phase !== "declarations"
+                    }
                 />
 
                 {pendingBreak && (
@@ -591,6 +608,7 @@ function Centre({
     theirDeclarations,
     onChooseTrump,
     onPassTrump,
+    onDeclare,
     onDecline,
 }: {
     copy: Dictionary["game"];
@@ -605,6 +623,7 @@ function Centre({
     theirDeclarations: Declaration[];
     onChooseTrump: (suite: Suite) => void;
     onPassTrump: () => void;
+    onDeclare: () => void;
     onDecline: () => void;
 }) {
     if (phase === "waiting") return <Notice>{copy.waiting}</Notice>;
@@ -642,6 +661,7 @@ function Centre({
                         nameOf={nameOf}
                         onChooseTrump={onChooseTrump}
                         onPassTrump={onPassTrump}
+                        onDeclare={onDeclare}
                         onDecline={onDecline}
                         variant="table"
                     />
@@ -650,11 +670,13 @@ function Centre({
         );
     }
 
-    if (phase === "declarations") {
+    if (phase === "declaring" || phase === "declarations") {
         return (
             <>
                 <Notice className={cn(mobileOnlyClass, "py-2")}>
-                    {copy.declarations.heading}
+                    {phase === "declaring"
+                        ? copy.declarations.promptHeading
+                        : copy.declarations.heading}
                 </Notice>
                 <div className={desktopOnlyClass}>
                     <RoundAction
@@ -669,6 +691,7 @@ function Centre({
                         nameOf={nameOf}
                         onChooseTrump={onChooseTrump}
                         onPassTrump={onPassTrump}
+                        onDeclare={onDeclare}
                         onDecline={onDecline}
                         variant="table"
                     />
@@ -700,6 +723,7 @@ type RoundActionProps = {
     nameOf: (seat: number) => string;
     onChooseTrump: (suite: Suite) => void;
     onPassTrump: () => void;
+    onDeclare: () => void;
     onDecline: () => void;
     variant: "table" | "tray";
 };
@@ -717,6 +741,7 @@ function RoundAction({
     nameOf,
     onChooseTrump,
     onPassTrump,
+    onDeclare,
     onDecline,
     variant,
 }: RoundActionProps) {
@@ -735,7 +760,7 @@ function RoundAction({
         );
     }
 
-    if (phase !== "declarations") return null;
+    if (phase !== "declaring" && phase !== "declarations") return null;
 
     const panel = (
         <DeclarationsPanel
@@ -747,6 +772,7 @@ function RoundAction({
             heading={copy.declarations.heading}
             promptHeading={copy.declarations.promptHeading}
             promptBody={copy.declarations.promptBody}
+            promptBodyNone={copy.declarations.promptBodyNone}
             mineLabel={copy.declarations.mine}
             theirsLabel={copy.declarations.theirs}
             noneLabel={copy.declarations.none}
@@ -754,11 +780,10 @@ function RoundAction({
             declineLabel={copy.declarations.decline}
             updatingLabel={copy.declarations.updating}
             totalLabel={copy.declarations.total}
-            canDecide={myDeclarations.some(
-                (declaration) => declaration.playerIndex === chair,
-            )}
-            declined={round.declinedDeclarationSeats.includes(chair)}
-            chair={chair}
+            my={round.myDeclarations}
+            asking={phase === "declaring"}
+            answered={round.answeredDeclarationSeats.includes(chair)}
+            onDeclare={onDeclare}
             onDecline={onDecline}
         />
     );

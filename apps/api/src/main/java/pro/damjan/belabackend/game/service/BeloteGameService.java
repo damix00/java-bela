@@ -87,6 +87,10 @@ public class BeloteGameService {
         gameLockService.withGameLock(gameId, () -> trumpPhaseService.handleBotTrumpChoice(gameId, roundNumber, turnIndex));
     }
 
+    public void handleDeclarationAskTimeout(String gameId, int roundNumber) {
+        gameLockService.withGameLock(gameId, () -> trumpPhaseService.handleDeclarationAskTimeout(gameId, roundNumber));
+    }
+
     public void handleDeclarationsComplete(String gameId, int roundNumber) {
         gameLockService.withGameLock(gameId, () -> trumpPhaseService.handleDeclarationsComplete(gameId, roundNumber));
     }
@@ -99,8 +103,8 @@ public class BeloteGameService {
         withUserGameLock(userId, () -> trumpPhaseService.passTrump(userId));
     }
 
-    public void declineDeclarations(String userId) {
-        withUserGameLock(userId, () -> trumpPhaseService.declineDeclarations(userId));
+    public void answerDeclarations(String userId, boolean declare) {
+        withUserGameLock(userId, () -> trumpPhaseService.answerDeclarations(userId, declare));
     }
 
     public void throwCard(String userId, Suite suite, Rank rank, boolean declareBela) {

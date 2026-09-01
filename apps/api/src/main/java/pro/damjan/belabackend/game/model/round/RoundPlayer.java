@@ -27,6 +27,14 @@ public class RoundPlayer implements Serializable {
     private boolean choosesToDeclare = true;
 
     /**
+     * Whether this player has answered the declarations question this round. The opt-out flag alone
+     * cannot say the difference between "declares" and "has not answered yet", and that difference is
+     * what lets the ask window close as soon as everybody has decided.
+     */
+    @Setter
+    private boolean declarationAnswered;
+
+    /**
      * Declarations belonging to this player: the zvanja detected from their hand when trump is
      * chosen, plus a {@code BELA} entry appended when they complete (and declared) the K+Q of trump.
      */

@@ -17,6 +17,7 @@ import type {
     CardTurnStartedEvent,
     ChangeLobbyConfigCommand,
     ChooseTrumpCommand,
+    DeclarationsRevealedEvent,
     GameEndedEvent,
     GameSnapshotEvent,
     GameStatusChangedEvent,
@@ -44,6 +45,7 @@ import type {
 export interface ServerEvents {
     "game:cardThrown": CardThrownEvent;
     "game:cardTurnStarted": CardTurnStartedEvent;
+    "game:declarationsRevealed": DeclarationsRevealedEvent;
     "game:ended": GameEndedEvent;
     "game:roundStart": RoundStartEvent;
     "game:snapshot": GameSnapshotEvent;
@@ -69,6 +71,7 @@ export interface ServerEvents {
  */
 export interface ClientEvents {
     "game:card:throw": ThrowCardCommand;
+    "game:declarations:declare": null;
     "game:declarations:decline": null;
     "game:leave": null;
     "game:loaded": null;
