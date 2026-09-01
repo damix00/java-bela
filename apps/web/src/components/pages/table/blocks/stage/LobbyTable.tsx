@@ -13,6 +13,7 @@ import TableStage from "@/components/pages/table/blocks/stage/TableStage";
 import {
     partnerSeat,
     seatsFromChair,
+    teamOf,
 } from "@/components/pages/table/seat-identity";
 import type { Seats } from "@/context/lobby-context";
 import type { Dictionary } from "@/dictionaries";
@@ -39,13 +40,15 @@ type LobbyTableProps = {
     onSwapSeat: (seat: number) => void;
 };
 
+type SeatVariant = "row" | "side";
+
 type TableSeatProps = {
     copy: TableCopy;
     player: LobbyPlayer | null;
     seat: number;
     chair: number;
     isYou: boolean;
-    variant: "row" | "side";
+    variant: SeatVariant;
     seatsLocked: boolean;
     hasTable: boolean;
     name: string;
@@ -61,6 +64,7 @@ type TableSeatProps = {
  * the cards complete their shared-layout spring independently.
  */
 const SETTLED_HOLD_MS = 650;
+const SHAPE_BLUR_MS = 100;
 
 /**
  * The lobby is always viewed from the player who first occupied the table.
@@ -72,7 +76,14 @@ const FIRST_PLAYER_SEAT = 0;
 
 type SwapRequest = {
     fromChair: number;
+    targetSeat: number;
+    /** True only when moving across teams also changes the seat card's shape. */
+    usesShapeBlur: boolean;
 };
+
+function variantForSeat(seat: number): SeatVariant {
+    return teamOf(seat) === teamOf(FIRST_PLAYER_SEAT) ? "row" : "side";
+}
 
 type ResolvedTableSeatProps = Omit<TableSeatProps, "name" | "avatarUrl"> & {
     user: User;
@@ -252,11 +263,30 @@ export default function LobbyTable({
         (seat: number) => {
             if (swapRequest) return;
 
-            setSwapRequest({ fromChair: chair });
-            onSwapSeat(seat);
+            const usesShapeBlur =
+                !reduceMotion &&
+                teamOf(chair) !== teamOf(seat) &&
+                variantForSeat(chair) !== variantForSeat(seat);
+
+            setSwapRequest({ fromChair: chair, targetSeat: seat, usesShapeBlur });
+            if (!usesShapeBlur) onSwapSeat(seat);
         },
-        [chair, onSwapSeat, swapRequest],
+        [chair, onSwapSeat, reduceMotion, swapRequest],
     );
+
+    // Blur first, then ask the server to move the card into its differently
+    // shaped destination. The small lead-in keeps a wide row card from visibly
+    // squashing into a side tile (or the reverse) during the layout spring.
+    useEffect(() => {
+        if (!swapRequest?.usesShapeBlur) return;
+
+        const timeout = setTimeout(
+            () => onSwapSeat(swapRequest.targetSeat),
+            SHAPE_BLUR_MS,
+        );
+
+        return () => clearTimeout(timeout);
+    }, [onSwapSeat, swapRequest]);
 
     // The pending fallback returns the controls if a response is lost during a
     // reconnect. Once acknowledged, the short hold lets the spring finish
@@ -277,15 +307,21 @@ export default function LobbyTable({
         : {
               type: "spring" as const,
               stiffness: 320,
-              damping: 24,
+              damping: 28,
           };
+    const blurTransition = reduceMotion
+        ? { duration: 0 }
+        : { duration: 0.12, ease: "easeOut" as const };
 
     const renderSeat = (
         player: LobbyPlayer | null,
         seat: number,
-        variant: "row" | "side",
+        variant: SeatVariant,
     ) => {
         const isYou = seat === chair;
+        const shouldBlur =
+            swapRequest?.usesShapeBlur &&
+            (seat === swapRequest.fromChair || seat === swapRequest.targetSeat);
         // Keyed by who is in the chair, not by which slot it is: when players
         // change chairs their elements unmount here and mount in the new slot,
         // and Motion's shared layout carries each one from its old bounds to
@@ -299,19 +335,25 @@ export default function LobbyTable({
                 transition={transition}
                 className="flex size-full"
             >
-                <ResolvedTableSeat
-                    copy={copy}
-                    player={player}
-                    seat={seat}
-                    chair={chair}
-                    isYou={isYou}
-                    variant={variant}
-                    hasTable={hasTable}
-                    seatsLocked={seatsLocked}
-                    user={user}
-                    disabled={swapRequest !== null}
-                    onRequestSwap={requestSwap}
-                />
+                <motion.div
+                    animate={{ filter: shouldBlur ? "blur(6px)" : "blur(0px)" }}
+                    transition={blurTransition}
+                    className="flex size-full"
+                >
+                    <ResolvedTableSeat
+                        copy={copy}
+                        player={player}
+                        seat={seat}
+                        chair={chair}
+                        isYou={isYou}
+                        variant={variant}
+                        hasTable={hasTable}
+                        seatsLocked={seatsLocked}
+                        user={user}
+                        disabled={swapRequest !== null}
+                        onRequestSwap={requestSwap}
+                    />
+                </motion.div>
             </motion.div>
         );
     };
