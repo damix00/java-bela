@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { motion, useReducedMotion, type PanInfo } from "motion/react";
+import { useRef } from "react";
 
 import {
     HUNGARIAN_CARD_BACK_ASSET,
@@ -67,6 +68,9 @@ const liftClass =
  */
 const DRAG_PLAY_THRESHOLD = 72;
 
+/** A card has to be released with intent, not merely parked above the hand. */
+const DRAG_PLAY_VELOCITY = -600;
+
 type PlayingCardProps = {
     card?: Pick<Card, "suite" | "rank"> | null;
     size?: keyof typeof SIZES;
@@ -98,6 +102,11 @@ export default function PlayingCard({
     className,
 }: PlayingCardProps) {
     const reduced = useReducedMotion();
+    // Motion starts a drag after the pointer has moved a few pixels. Keep that
+    // fact outside React state — it only decides whether the release's native
+    // click is a play, and re-rendering every card at the end of a drag would
+    // make the hand feel less direct.
+    const dragged = useRef(false);
 
     const hidden = faceDown || !card;
     const asset = hidden
@@ -157,10 +166,23 @@ export default function PlayingCard({
     }
 
     if (onDragPlay && !disabled) {
-        // Only the distance decides. `offset` is measured from where the drag
-        // started, so it is the card's own travel and not the pointer's.
+        // A card must travel far enough *and* be thrown upward. `offset` is
+        // measured from where the drag started, so returning a card beneath
+        // the table — or merely placing it there — always snaps it back.
         const onDragEnd = (_event: unknown, info: PanInfo) => {
-            if (info.offset.y <= -DRAG_PLAY_THRESHOLD) onDragPlay();
+            // A browser click follows the pointer release. Leave this set for
+            // that event too, otherwise a cancelled drag can play the card.
+            dragged.current = true;
+            window.setTimeout(() => {
+                dragged.current = false;
+            }, 0);
+
+            if (
+                info.offset.y <= -DRAG_PLAY_THRESHOLD &&
+                info.velocity.y <= DRAG_PLAY_VELOCITY
+            ) {
+                onDragPlay();
+            }
         };
 
         return (
@@ -177,7 +199,9 @@ export default function PlayingCard({
             >
                 <motion.button
                     type="button"
-                    onClick={onClick}
+                    onClick={() => {
+                        if (!dragged.current) onClick();
+                    }}
                     aria-label={label ?? asset?.alt}
                     className={cn(
                         frameBase,
@@ -191,6 +215,9 @@ export default function PlayingCard({
                     dragSnapToOrigin
                     dragMomentum={false}
                     dragTransition={{ bounceStiffness: 560, bounceDamping: 40 }}
+                    onDragStart={() => {
+                        dragged.current = true;
+                    }}
                     whileDrag={
                         // The zIndex matters most on a phone, where the top row
                         // of the hand is dragged straight over the bottom one.

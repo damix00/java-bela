@@ -73,13 +73,14 @@ function Side({
 
             {/* No empty state here — the `+0` above already says it, and a
                 side that declared nothing does not need a sentence about it.
-                A short screen has the tray and nothing to spare in it; the
-                score bar opens the same cards in full whenever it does not. */}
+                The cards remain visible at every table height: revealing them
+                is what makes the declaration valid, so the points alone are
+                not an adequate table summary. */}
             <DeclarationList
                 declarations={declarations}
                 typeNames={typeNames}
                 nameOf={nameOf}
-                className="mt-1 items-center [@media(max-height:700px)]:hidden"
+                className="mt-1 items-center"
             />
         </div>
     );
