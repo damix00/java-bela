@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState, useTransition } from "react";
 import {
     ChevronDown,
@@ -18,7 +19,13 @@ import { isGuest } from "@/api/types/user";
 import type { Dictionary } from "@/dictionaries";
 import { forgetLobby } from "@/lib/game/last-lobby";
 import { cn } from "@/lib/ui/cn";
-import { panel } from "@/lib/ui/styles";
+import {
+    panel,
+    popEnterFrom,
+    popEnterTo,
+    popExitTo,
+    popTransition,
+} from "@/lib/ui/styles";
 import type { Locale } from "@/lib/i18n/config";
 import { authPath, profilePath, settingsPath } from "@/lib/navigation/routes";
 import Icon from "@/components/ui/graphics/Icon";
@@ -56,6 +63,7 @@ export default function ProfileMenu({
     const [pending, startTransition] = useTransition();
     const containerRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
+    const reduceMotion = useReducedMotion();
 
     // A menu that stays open behind the thing you clicked next is worse than no
     // menu, so both dismissals are wired: the pointer leaving the panel, and the
@@ -134,15 +142,23 @@ export default function ProfileMenu({
                 />
             </button>
 
-            {open && (
-                <div
-                    role="menu"
-                    aria-label={copy.trigger}
-                    className={cn(
-                        panel,
-                        "absolute top-[calc(100%+14px)] right-0 z-40 w-[268px] overflow-hidden",
-                    )}
-                >
+            <AnimatePresence>
+                {open && (
+                    <motion.div
+                        role="menu"
+                        aria-label={copy.trigger}
+                        initial={reduceMotion ? false : popEnterFrom}
+                        animate={popEnterTo}
+                        exit={reduceMotion ? { opacity: 0 } : popExitTo}
+                        transition={
+                            reduceMotion ? { duration: 0 } : popTransition
+                        }
+                        style={{ transformOrigin: "top right" }}
+                        className={cn(
+                            panel,
+                            "absolute top-[calc(100%+14px)] right-0 z-40 w-[268px] overflow-hidden",
+                        )}
+                    >
                     {/* Who you are, before what you can do about it: the avatar repeats
                         at menu scale so the panel reads as belonging to the corner it
                         dropped out of. */}
@@ -194,8 +210,9 @@ export default function ProfileMenu({
                     >
                         {copy.signOut}
                     </MenuItem>
-                </div>
-            )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

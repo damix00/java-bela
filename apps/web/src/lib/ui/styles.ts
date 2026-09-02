@@ -285,9 +285,9 @@ export const edge = "ring-1 ring-mint/20";
 /** The curve every popup enters and leaves on. */
 export const popTransition = {
     type: "spring",
-    stiffness: 320,
-    damping: 32,
-    mass: 0.8,
+    stiffness: 500,
+    damping: 38,
+    mass: 0.65,
 } as const;
 
 /** Where a popup comes from: below, and a shade smaller. */

@@ -144,6 +144,7 @@ export default function TableRules({
     const selector = useRef<HTMLDivElement>(null);
     const trigger = useRef<HTMLButtonElement>(null);
     const listbox = useRef<HTMLDivElement>(null);
+    const skipTriggerClick = useRef(false);
     const reduceMotion = useReducedMotion();
 
     /**
@@ -232,6 +233,31 @@ export default function TableRules({
         setOpen(false);
         setActiveIndex(null);
         if (restoreFocus) trigger.current?.focus();
+    }
+
+    function handleTriggerPointerDown(event: React.PointerEvent) {
+        if (!open) return;
+
+        // A pointer press fires before the button's click. Close here and
+        // consume that following click, so it cannot see an already-closed
+        // menu and immediately open it again.
+        event.preventDefault();
+        skipTriggerClick.current = true;
+        closeListbox();
+    }
+
+    function handleTriggerClick() {
+        if (skipTriggerClick.current) {
+            skipTriggerClick.current = false;
+            return;
+        }
+
+        if (open) {
+            closeListbox();
+            return;
+        }
+
+        openListbox();
     }
 
     /**
@@ -380,14 +406,23 @@ export default function TableRules({
              * move *within* the control — into a button, or back to the trigger
              * as `closeListbox` restores it — is not a departure.
              */
-            onBlur={(event) => {
+            onBlur={() => {
                 if (!open) return;
 
-                const next = event.relatedTarget as Node | null;
-                if (next && selector.current?.contains(next)) return;
+                // A pointer press moves focus before it dispatches `click`. If
+                // this runs against `relatedTarget` immediately, some browsers
+                // report the old target while the trigger is being pressed and
+                // close the list just before its click toggles it open again.
+                // Let the focus move complete, then inspect the one source of
+                // truth. That keeps a click on the trigger a single close.
+                queueMicrotask(() => {
+                    if (selector.current?.contains(document.activeElement)) {
+                        return;
+                    }
 
-                setOpen(false);
-                setActiveIndex(null);
+                    setOpen(false);
+                    setActiveIndex(null);
+                });
             }}
         >
             <button
@@ -396,7 +431,8 @@ export default function TableRules({
                 aria-haspopup="listbox"
                 aria-expanded={open}
                 aria-controls={listboxId}
-                onClick={() => (open ? closeListbox() : openListbox())}
+                onPointerDown={handleTriggerPointerDown}
+                onClick={handleTriggerClick}
                 onKeyDown={handleTriggerKeyDown}
                 className={cn(
                     "flex min-h-14 portrait-sm:min-h-12 w-full cursor-pointer items-center justify-between gap-3 bg-baize px-4 py-3 text-left ring-1 ring-mint/20 desk:min-h-16",
