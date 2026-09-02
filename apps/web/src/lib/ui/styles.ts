@@ -272,8 +272,73 @@ export const hairline = "border-mint/15";
  */
 export const edge = "ring-1 ring-mint/20";
 
-/** The dim behind a dialog, and the grid that centres it. */
-export const scrim = "fixed inset-0 z-50 grid place-items-center bg-ink/70";
+// One entrance for everything that arrives over the page.
+//
+// There used to be two: the modal shell rose on a 220ms tween and every popup
+// the game route wrote for itself rose on a spring, so two dialogs opened by
+// the same press — the invite panel and the trump call — did not move alike.
+// The spring won because it was already the majority and because it settles
+// rather than stops, which is what a block landing on a table does.
+//
+// Held here rather than in each popup so the next one cannot invent a third.
+
+/** The curve every popup enters and leaves on. */
+export const popTransition = {
+    type: "spring",
+    stiffness: 320,
+    damping: 32,
+    mass: 0.8,
+} as const;
+
+/** Where a popup comes from: below, and a shade smaller. */
+export const popEnterFrom = { opacity: 0, scale: 0.96, y: 12 } as const;
+
+/** Where it settles. */
+export const popEnterTo = { opacity: 1, scale: 1, y: 0 } as const;
+
+/**
+ * Where it goes. A shorter trip than the entrance on purpose — an exit that
+ * retraces the arrival reads as a mistake being undone.
+ */
+export const popExitTo = { opacity: 0, scale: 0.98, y: 6 } as const;
+
+/**
+ * The backdrop's fade, in milliseconds, mirrored by the `.modal-shell`
+ * `::backdrop` rules in `globals.css`.
+ *
+ * The dim is CSS and the panel is Motion — the two halves of one entrance in
+ * two languages — because a `::backdrop` has no node to hand Motion and the
+ * `fixed` div that stood in for one turned out to be the cause of both bugs
+ * this pairing replaced (see `Modal`). These constants are what keep the two
+ * in step: the close path waits `POP_OUT_MS` for the dim before it navigates.
+ */
+export const POP_IN_MS = 220;
+export const POP_OUT_MS = 140;
+
+// Where a block sits in the lobby band's row, and therefore which of its
+// corners face out.
+//
+// The concentric rule above fixes the inner radius at 12px on every tier
+// (24−12, 20−8, 28−16), but it only says what the *outer* corners of the row
+// owe the band around them. Left to itself that gives three separate blocks
+// each curving away from its neighbours, which is what made the band read as
+// three unrelated widgets. Holding the outer corners at the concentric 12px
+// and tightening every interior one to 8px turns the row back into a single
+// run: the silhouette follows the band, and the seams inside it are seams.
+//
+// The row is one stacked column until `desk`, so which corners are "outer"
+// changes with the layout — hence a pair per tier rather than a single side.
+// Spelled out one corner at a time rather than by side. `rounded-t-*` and
+// `rounded-l-*` both claim the top-left, and neither Tailwind's output order
+// nor `twMerge` resolves that pair — which of the two won would be an accident.
+export const bandCell = {
+    /** First in the row: outer at the top stacked, on the left as a row. */
+    start: "rounded-tl-xl rounded-tr-xl rounded-bl-lg rounded-br-lg desk:rounded-tr-lg desk:rounded-bl-xl",
+    /** Surrounded on both sides, whichever way the row runs. */
+    middle: "rounded-lg",
+    /** Last in the row: outer at the bottom stacked, on the right as a row. */
+    end: "rounded-tl-lg rounded-tr-lg rounded-bl-xl rounded-br-xl desk:rounded-tr-xl desk:rounded-bl-lg",
+} as const;
 
 /**
  * The felt's press, and the counterpart to `pressSm`/`pressMd`/`pressLg`.

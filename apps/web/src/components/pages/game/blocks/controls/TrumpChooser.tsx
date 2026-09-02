@@ -46,10 +46,10 @@ export default function TrumpChooser({
     return (
         <div
             className={cn(
-                "flex items-center",
+                "flex max-w-full items-center",
                 tray
                     ? `${panel} w-full flex-col gap-2 px-3 py-2 [@media(max-height:560px)]:flex-row [@media(max-height:560px)]:gap-3 [@media(max-height:560px)]:py-1.5`
-                    : "flex-col gap-1.5 sm:gap-3",
+                    : "flex-col gap-3",
             )}
         >
             <p
@@ -57,7 +57,7 @@ export default function TrumpChooser({
                     "text-center font-display leading-tight font-extrabold tracking-[-.02em] text-cream",
                     tray
                         ? "text-[14px] [@media(max-height:560px)]:mr-auto [@media(max-height:560px)]:whitespace-nowrap [@media(max-height:560px)]:text-[13px]"
-                        : "text-[14px] sm:text-[16px]",
+                        : "text-[17px]",
                 )}
             >
                 {heading}
@@ -67,14 +67,14 @@ export default function TrumpChooser({
                 className={cn(
                     tray
                         ? "flex items-center justify-center gap-2"
-                        : "contents",
+                        : "flex flex-col items-center gap-2.5",
                 )}
             >
                 <div
                     className={cn(
                         tray
                             ? "flex items-center justify-center gap-1.5"
-                            : "grid grid-cols-2 gap-1.5 sm:flex sm:flex-wrap sm:justify-center sm:gap-2",
+                            : "flex items-center justify-center gap-2",
                     )}
                 >
                     {SUITES.map((suite) => (
@@ -90,7 +90,7 @@ export default function TrumpChooser({
                                 "grid cursor-pointer touch-manipulation place-items-center rounded-full bg-cream shadow-[0_2px_8px_-2px_rgb(0_0_0_/_0.45)] transition-transform duration-100 active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100",
                                 tray
                                     ? "size-11 [@media(max-height:560px)]:size-9"
-                                    : "size-9 sm:size-14",
+                                    : "size-12",
                                 focusRing,
                             )}
                         >
@@ -103,7 +103,7 @@ export default function TrumpChooser({
                                     "object-contain",
                                     tray
                                         ? "size-6 [@media(max-height:560px)]:size-5"
-                                        : "size-5 sm:size-8",
+                                        : "size-7",
                                 )}
                             />
                         </button>
@@ -120,7 +120,7 @@ export default function TrumpChooser({
                             "touch-manipulation",
                             tray
                                 ? "min-h-11 px-4 py-2 text-[13px] [@media(max-height:560px)]:min-h-9 [@media(max-height:560px)]:px-3 [@media(max-height:560px)]:py-1.5"
-                                : "px-3 py-2 text-[13px] sm:px-5 sm:py-[11px] sm:text-[15px]",
+                                : "min-h-11",
                         )}
                     >
                         {passLabel}
@@ -128,7 +128,7 @@ export default function TrumpChooser({
                 ) : (
                     <p
                         className={cn(
-                            "max-w-[220px] text-center text-[11px] leading-tight font-semibold text-mint/75 sm:text-[13px]",
+                            "max-w-[280px] text-center text-[13px] leading-tight font-semibold text-mint/75",
                             tray &&
                                 "[@media(max-height:560px)]:max-w-40 [@media(max-height:560px)]:text-left [@media(max-height:560px)]:text-[10px]",
                         )}

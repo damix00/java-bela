@@ -98,7 +98,6 @@ export default function SignUpScreen({
             asideTone="sage"
             asideAlign="center"
             columns="lg:grid-cols-[55%_45%]"
-            shadow="rust"
             aside={
                 <>
                     <Heading

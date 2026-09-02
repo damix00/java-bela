@@ -326,6 +326,7 @@
             "host": "host",
             "ready": "Ready",
             "opponent": "opponent",
+            "partner": "partner",
             "readyAction": "I’m ready",
             "unreadyAction": "Not ready",
             "startWithBots": "Play with bots",

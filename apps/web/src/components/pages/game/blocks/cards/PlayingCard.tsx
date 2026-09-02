@@ -37,7 +37,7 @@ const SIZES = {
     },
     /** A declared set, listed rather than played. */
     xs: {
-        width: "w-8 sm:w-10",
+        width: "w-10 sm:w-10",
         radius: "rounded-[4px]",
     },
     /** Your own hand. */
@@ -233,7 +233,7 @@ export default function PlayingCard({
                         frameBase,
                         focusRing,
                         // The wrapper is what has a size; this fills it.
-                        "w-full cursor-grab touch-none select-none [-webkit-touch-callout:none] active:cursor-grabbing",
+                        "w-full cursor-pointer touch-none select-none [-webkit-touch-callout:none]",
                     )}
                     drag
                     // Nothing pins the card, so it follows the finger exactly and

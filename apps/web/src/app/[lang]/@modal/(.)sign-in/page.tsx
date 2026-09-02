@@ -28,7 +28,7 @@ export default async function Page({
     const user = await guardCredentialScreen(lang, returnTo);
 
     return (
-        <Modal closeLabel={dict.auth.common.back}>
+        <Modal closeLabel={dict.auth.common.back} surface="felt">
             <SignInScreen
                 copy={dict.auth.signIn}
                 common={dict.auth.common}

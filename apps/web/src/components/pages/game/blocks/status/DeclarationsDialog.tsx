@@ -1,14 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
-import { motion, useReducedMotion } from "motion/react";
-
-import { Button } from "@/components/controls/Button";
 import DeclarationList from "@/components/pages/game/blocks/controls/DeclarationList";
+import Card from "@/components/ui/surfaces/Card";
+import Modal from "@/components/ui/surfaces/Modal";
 import { declarationPoints } from "@/lib/game/rules";
 import type { Declaration, Type } from "@bela/protocol";
-import { cn } from "@/lib/ui/cn";
-import { panelRaised, scrim } from "@/lib/ui/styles";
+import { hairline } from "@/lib/ui/styles";
 
 type DeclarationsDialogProps = {
     heading: string;
@@ -30,6 +27,15 @@ type DeclarationsDialogProps = {
  * have that — so the one place the cards can always be checked is here. It is
  * opened by tapping the score that raised the question, and only a side that
  * declared something can be tapped, so this never has to say "nothing".
+ *
+ * It used to draw its own scrim, its own `Esc` listener and its own backdrop
+ * click, and had no focus trap at all. `Modal` owns every one of those — and
+ * its `onClose` branch exists for exactly this, a dialog opened from component
+ * state with no history entry to unwind.
+ *
+ * The "Close" button it used to carry at the foot went with them. There is
+ * nothing to decide here — it is a thing to read — so the shell's own close
+ * control is the whole of the way out, as it is on every other dialog.
  */
 export default function DeclarationsDialog({
     heading,
@@ -41,53 +47,27 @@ export default function DeclarationsDialog({
     nameOf,
     onClose,
 }: DeclarationsDialogProps) {
-    const reduceMotion = useReducedMotion();
-    const transition = reduceMotion
-        ? { duration: 0 }
-        : { type: "spring" as const, stiffness: 320, damping: 32, mass: 0.8 };
-
-    // Escape closes it. The dialog is opened from a bar that is otherwise
-    // click-through, so the backdrop is the only other way out.
-    useEffect(() => {
-        const onKey = (event: KeyboardEvent) => {
-            if (event.key === "Escape") onClose();
-        };
-
-        window.addEventListener("keydown", onKey);
-        return () => window.removeEventListener("keydown", onKey);
-    }, [onClose]);
-
     return (
-        <div
-            role="dialog"
-            aria-modal="true"
-            aria-label={heading}
-            className={cn(scrim, "p-4")}
-            onClick={onClose}
+        <Modal
+            surface="felt"
+            closeLabel={closeLabel}
+            onClose={onClose}
+            className="max-w-[440px]"
         >
-            <motion.div
-                initial={
-                    reduceMotion ? false : { opacity: 0, scale: 0.98, y: 8 }
-                }
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={transition}
-                // The panel is inside the backdrop's click target, so it has to
-                // stop the click that would otherwise close it.
-                onClick={(event) => event.stopPropagation()}
-                className={cn(
-                    panelRaised,
-                    "flex max-h-[80dvh] w-full max-w-[440px] flex-col gap-6 overflow-y-auto p-6 sm:p-7",
-                )}
-            >
-                <div className="flex items-baseline justify-between gap-3 border-b border-mint/15 pb-3">
-                    <p className="font-display text-[19px] font-extrabold tracking-[-.02em] text-cream">
+            <Card surface="felt" padding="none" className="gap-6 p-5 sm:p-6">
+                {/* `pr-9` keeps the total clear of the close button, which the
+                    shell draws over this corner. */}
+                <div
+                    className={`flex items-baseline justify-between gap-3 border-b pr-9 pb-3 ${hairline}`}
+                >
+                    <p className="font-display text-[17px] font-extrabold tracking-[-.02em] text-cream">
                         {heading}
                         <span className="text-[13px] font-semibold text-mint/70">
                             {" · "}
                             {label}
                         </span>
                     </p>
-                    <span className="shrink-0 text-[12px] font-semibold text-mint/70 tabular-nums sm:text-[14px]">
+                    <span className="shrink-0 text-[13px] font-semibold text-mint/70 tabular-nums">
                         {totalLabel.replace(
                             "{points}",
                             String(declarationPoints(declarations)),
@@ -102,17 +82,7 @@ export default function DeclarationsDialog({
                     cardSize="sm"
                     className="gap-6"
                 />
-
-                <Button
-                    size="sm"
-                    tone="cream"
-                    soft
-                    onClick={onClose}
-                    className="mt-1 self-center px-6"
-                >
-                    {closeLabel}
-                </Button>
-            </motion.div>
-        </div>
+            </Card>
+        </Modal>
     );
 }

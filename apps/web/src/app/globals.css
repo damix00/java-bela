@@ -52,6 +52,59 @@
   --shadow-hard-rust: 8px 8px 0 #d1603d;
 }
 
+/* The dim behind a `Modal`.
+ *
+ * The real `::backdrop`, not a `fixed` child of the dialog. The child was
+ * chosen so Motion would have a node to animate, and it cost both of the bugs
+ * this replaced: Chromium gives a fixed-position child of a top-layer element
+ * its own composited layer and does not merge it until the next full paint, so
+ * the dim snapped in at the *end* of the panel's entrance instead of fading
+ * with it, and the same layer clipped square at the corners.
+ *
+ * `@starting-style` is what makes an opening transition possible at all here —
+ * the dialog goes from `display: none` to open in one step, and without a
+ * declared starting value there is nothing for the browser to interpolate
+ * from. Closing is driven by `data-closing`, which `Modal` sets before it
+ * awaits the exit, so the dim and the panel leave on one timeline.
+ *
+ * Durations mirror `POP_IN_MS` / `POP_OUT_MS` in `lib/ui/styles.ts`. */
+.modal-shell::backdrop {
+  background-color: rgb(22 33 15 / 0.7);
+  opacity: 0;
+  transition: opacity 220ms ease-out;
+}
+
+.modal-shell[open]::backdrop {
+  opacity: 1;
+}
+
+@starting-style {
+  .modal-shell[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+.modal-shell[data-closing]::backdrop {
+  opacity: 0;
+  transition-duration: 140ms;
+  transition-timing-function: ease-in;
+}
+
+/* The dim is what makes the dialog read as modal, so it is simply there from
+   the first frame — only the fade goes. */
+@media (prefers-reduced-motion: reduce) {
+  .modal-shell::backdrop,
+  .modal-shell[open]::backdrop {
+    opacity: 1;
+    transition: none;
+  }
+
+  .modal-shell[data-closing]::backdrop {
+    opacity: 0;
+    transition: none;
+  }
+}
+
 /* The game screen's breakpoints, which are not the marketing pages'.
  *
  * A table has to fit in both directions at once: a wide phone held sideways has

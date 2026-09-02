@@ -27,7 +27,9 @@ export default function GuestOption({
 }: GuestOptionProps) {
     return (
         <>
-            <LabeledRule className="pt-1">{copy.or}</LabeledRule>
+            <LabeledRule surface="felt" className="pt-1">
+                {copy.or}
+            </LabeledRule>
 
             <div className="flex flex-wrap items-center gap-4">
                 <Button

@@ -326,6 +326,7 @@
             "host": "domaćin",
             "ready": "Spreman",
             "opponent": "protivnik",
+            "partner": "partner",
             "readyAction": "Spreman sam",
             "unreadyAction": "Nisam spreman",
             "startWithBots": "Igraj s botovima",

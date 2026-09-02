@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, ChevronDown } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { MatchType } from "@bela/protocol";
 
@@ -14,7 +15,16 @@ import {
 } from "@/context/lobby-context";
 import type { Dictionary } from "@/dictionaries";
 import { cn } from "@/lib/ui/cn";
-import { dip, focusRing } from "@/lib/ui/styles";
+import {
+    bandCell,
+    dip,
+    focusRing,
+    panelRaised,
+    popEnterFrom,
+    popEnterTo,
+    popExitTo,
+    popTransition,
+} from "@/lib/ui/styles";
 
 type TableRulesProps = {
     copy: Dictionary["table"];
@@ -134,6 +144,7 @@ export default function TableRules({
     const selector = useRef<HTMLDivElement>(null);
     const trigger = useRef<HTMLButtonElement>(null);
     const listbox = useRef<HTMLDivElement>(null);
+    const reduceMotion = useReducedMotion();
 
     /**
      * What the table is playing to, straight from the lobby.
@@ -342,7 +353,12 @@ export default function TableRules({
     // drawn as one. Same block, same place, no affordance.
     if (!isHost) {
         return (
-            <div className="flex min-h-14 portrait-sm:min-h-12 w-full items-center rounded-xl bg-baize px-4 py-3 ring-1 ring-mint/20 desk:min-h-16">
+            <div
+                className={cn(
+                    "flex min-h-14 portrait-sm:min-h-12 w-full items-center bg-baize px-4 py-3 ring-1 ring-mint/20 desk:min-h-16",
+                    bandCell.start,
+                )}
+            >
                 {face}
             </div>
         );
@@ -383,7 +399,8 @@ export default function TableRules({
                 onClick={() => (open ? closeListbox() : openListbox())}
                 onKeyDown={handleTriggerKeyDown}
                 className={cn(
-                    "flex min-h-14 portrait-sm:min-h-12 w-full cursor-pointer items-center justify-between gap-3 rounded-xl bg-baize px-4 py-3 text-left ring-1 ring-mint/20 desk:min-h-16",
+                    "flex min-h-14 portrait-sm:min-h-12 w-full cursor-pointer items-center justify-between gap-3 bg-baize px-4 py-3 text-left ring-1 ring-mint/20 desk:min-h-16",
+                    bandCell.start,
                     dip,
                     focusRing,
                 )}
@@ -400,78 +417,92 @@ export default function TableRules({
                 />
             </button>
 
-            {open ? (
-                <div
-                    ref={listbox}
-                    id={listboxId}
-                    role="listbox"
-                    tabIndex={-1}
-                    aria-label={copy.rulesLabel}
-                    aria-activedescendant={`${listboxId}-${rules[activeOption]!.type}`}
-                    onKeyDown={handleListboxKeyDown}
-                    className="absolute bottom-full left-0 z-40 mb-3 w-full overflow-hidden rounded-2xl bg-baize-deep shadow-[0_12px_36px_-10px_rgb(0_0_0_/_0.6)] outline-none sm:w-[360px]"
-                >
-                    {rules.map((rule, index) => {
-                        const isSelected = index === selectedIndex;
-                        // The fill follows the keyboard; the tick marks what is
-                        // actually chosen. They part company only while someone
-                        // is arrowing through the list.
-                        const isActive = index === activeOption;
-                        return (
-                            <div
-                                key={rule.type}
-                                id={`${listboxId}-${rule.type}`}
-                                role="option"
-                                aria-selected={isSelected}
-                                onClick={() => selectRule(index)}
-                                className={cn(
-                                    "flex w-full cursor-pointer items-center gap-3 border-mint/15 px-4 py-3 text-left not-first:border-t",
-                                    isActive
-                                        ? "bg-rust text-cream"
-                                        : "bg-baize-deep text-cream hover:bg-mint/10",
-                                )}
-                            >
-                                <span className="min-w-0 flex-1">
-                                    <span className="block font-display text-[16px] font-extrabold tracking-[-.02em]">
-                                        {rule.title}
-                                    </span>
-                                    <span
-                                        className={cn(
-                                            "mt-0.5 block text-[12px] font-semibold",
-                                            isActive
-                                                ? "text-cream/85"
-                                                : "text-mint/70",
-                                        )}
-                                    >
-                                        {rule.note}
-                                    </span>
-
-                                    {showPoints &&
-                                        rule.type === MatchType.PRIVATE && (
-                                            <TargetScorePicker
-                                                label={
-                                                    copy.rules.private
-                                                        .pointsLabel
-                                                }
-                                                target={targetScore}
-                                                onSelect={selectPoints}
-                                            />
-                                        )}
-                                </span>
-                                <Check
-                                    aria-hidden
-                                    size={19}
-                                    strokeWidth={3}
+            <AnimatePresence>
+                {open ? (
+                    <motion.div
+                        ref={listbox}
+                        id={listboxId}
+                        role="listbox"
+                        tabIndex={-1}
+                        aria-label={copy.rulesLabel}
+                        aria-activedescendant={`${listboxId}-${rules[activeOption]!.type}`}
+                        onKeyDown={handleListboxKeyDown}
+                        initial={reduceMotion ? false : popEnterFrom}
+                        animate={popEnterTo}
+                        exit={reduceMotion ? { opacity: 0 } : popExitTo}
+                        transition={
+                            reduceMotion ? { duration: 0 } : popTransition
+                        }
+                        // The menu opens upward, so it should grow from the trigger
+                        // it came out of rather than from its own middle.
+                        style={{ transformOrigin: "bottom left" }}
+                        className={cn(
+                            panelRaised,
+                            "absolute bottom-full left-0 z-40 mb-3 w-full overflow-hidden outline-none sm:w-[360px]",
+                        )}
+                    >
+                        {rules.map((rule, index) => {
+                            const isSelected = index === selectedIndex;
+                            // The fill follows the keyboard; the tick marks what is
+                            // actually chosen. They part company only while someone
+                            // is arrowing through the list.
+                            const isActive = index === activeOption;
+                            return (
+                                <div
+                                    key={rule.type}
+                                    id={`${listboxId}-${rule.type}`}
+                                    role="option"
+                                    aria-selected={isSelected}
+                                    onClick={() => selectRule(index)}
                                     className={cn(
-                                        "shrink-0",
-                                        !isSelected && "invisible",
+                                        "flex w-full cursor-pointer items-center gap-3 border-mint/15 px-4 py-3 text-left not-first:border-t",
+                                        isActive
+                                            ? "bg-rust text-cream"
+                                            : "bg-baize-deep text-cream hover:bg-mint/10",
                                     )}
-                                />
-                            </div>
-                        );
-                    })}
-                </div>
-            ) : null}
+                                >
+                                    <span className="min-w-0 flex-1">
+                                        <span className="block font-display text-[16px] font-extrabold tracking-[-.02em]">
+                                            {rule.title}
+                                        </span>
+                                        <span
+                                            className={cn(
+                                                "mt-0.5 block text-[12px] font-semibold",
+                                                isActive
+                                                    ? "text-cream/85"
+                                                    : "text-mint/70",
+                                            )}
+                                        >
+                                            {rule.note}
+                                        </span>
+
+                                        {showPoints &&
+                                            rule.type === MatchType.PRIVATE && (
+                                                <TargetScorePicker
+                                                    label={
+                                                        copy.rules.private
+                                                            .pointsLabel
+                                                    }
+                                                    target={targetScore}
+                                                    onSelect={selectPoints}
+                                                />
+                                            )}
+                                    </span>
+                                    <Check
+                                        aria-hidden
+                                        size={19}
+                                        strokeWidth={3}
+                                        className={cn(
+                                            "shrink-0",
+                                            !isSelected && "invisible",
+                                        )}
+                                    />
+                                </div>
+                            );
+                        })}
+                    </motion.div>
+                ) : null}
+            </AnimatePresence>
 
             {gateOpen && (
                 <RankedGate

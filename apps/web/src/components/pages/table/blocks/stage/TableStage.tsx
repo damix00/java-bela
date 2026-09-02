@@ -2,6 +2,17 @@ import type { ReactNode } from "react";
 
 import { cn } from "@/lib/ui/cn";
 
+/**
+ * One seat, at every position on the table.
+ *
+ * The side columns are this wide and the near and across seats are cut to
+ * match, so all four are the same square — which is what keeps a seat change
+ * from resizing anything. 88px is the floor rather than the ideal: it is the
+ * width at which an avatar, a name and a role still fit, and the felt gives it
+ * up because the felt only holds an ornament and two short lines.
+ */
+const seatSquare = "aspect-square w-[88px] desk:w-[104px] desk-lg:w-[120px]";
+
 type TableStageProps = {
     /** The reader's own chair, at the near edge. */
     near: ReactNode;
@@ -20,8 +31,15 @@ type TableStageProps = {
  *
  * The seats are laid out as the table is — partner across, the two opposing
  * seats to either side, you at the near edge. The same arrangement holds at
- * every width: the side seats narrow to their squares on a phone rather than
- * dropping out, so the shape of what is being joined survives down to 360px.
+ * every width: the seats narrow with the screen rather than dropping out, so
+ * the shape of what is being joined survives down to 360px.
+ *
+ * All four are the same square. The near and across seats used to be
+ * full-width cards, which meant a player changing teams moved between two
+ * different shapes and left a row behind that resized to whatever the empty
+ * chair happened to be — the felt and the band under it jumped on every press.
+ * Equal squares have nothing to resize, and they are the truer picture of the
+ * table besides: four seats of the same standing, none of them the main one.
  *
  * The side columns are 88px on a phone rather than the 48px they used to be,
  * because 48px is not a seat. A seat is an avatar with a name under it, and at
@@ -37,6 +55,15 @@ type TableStageProps = {
  * Placement lives here and sizing lives on the children, which is what lets the
  * same grid hold a full `SeatCard` at the near edge and a square `SideSeat` in
  * the columns without either knowing where it has been put.
+ *
+ * The one thing the grid does insist on is the height of the near and across
+ * rows, which is pinned rather than taken from whoever is sitting there. A row
+ * used to be as tall as its contents, and a taken seat and an empty chair are
+ * not the same height — so changing teams, which empties one row slot and fills
+ * another, resized two of the three grid rows and slid the felt and everything
+ * under it. The rows are held at the seat card's own height instead: the card
+ * fills it exactly, the empty chair takes its square from it, and a swap moves
+ * players without moving the table.
  */
 export default function TableStage({
     near,
@@ -55,15 +82,30 @@ export default function TableStage({
                 // full 560px and the square it makes is taller than the screen.
                 "flat:max-w-[380px]",
                 "desk:grid-cols-[104px_minmax(0,1fr)_104px] desk:gap-4",
-                "desk-lg:max-w-[1000px] desk-lg:grid-cols-[minmax(0,1fr)_320px_minmax(0,1fr)] desk-lg:gap-6 desk-xl:gap-8",
+                // Every track is stated at this width rather than shared out:
+                // a flexed side column lands wherever the container leaves it
+                // (160px at 1280), and a seat that is 16px short of the one
+                // across from it is not the same seat. Fixed tracks, centred as
+                // a block, keep the four squares identical.
+                "desk-lg:grid-cols-[120px_280px_120px] desk-lg:justify-center desk-lg:gap-6",
                 className,
             )}
         >
-            <div className="col-span-3 col-start-1 row-start-1 flex w-full desk-lg:col-span-1 desk-lg:col-start-2">
+            <div
+                className={cn(
+                    "col-start-2 row-start-1 mx-auto flex",
+                    seatSquare,
+                )}
+            >
                 {across}
             </div>
 
-            <div className="col-start-1 row-start-2 flex aspect-square w-full self-center desk-lg:mx-auto desk-lg:max-w-[176px]">
+            <div
+                className={cn(
+                    "col-start-1 row-start-2 mx-auto flex self-center",
+                    seatSquare,
+                )}
+            >
                 {left}
             </div>
 
@@ -88,11 +130,21 @@ export default function TableStage({
                 </div>
             </div>
 
-            <div className="col-start-3 row-start-2 flex aspect-square w-full self-center desk-lg:mx-auto desk-lg:max-w-[176px]">
+            <div
+                className={cn(
+                    "col-start-3 row-start-2 mx-auto flex self-center",
+                    seatSquare,
+                )}
+            >
                 {right}
             </div>
 
-            <div className="col-span-3 col-start-1 row-start-3 flex w-full desk-lg:col-span-1 desk-lg:col-start-2">
+            <div
+                className={cn(
+                    "col-start-2 row-start-3 mx-auto flex",
+                    seatSquare,
+                )}
+            >
                 {near}
             </div>
         </div>

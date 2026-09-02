@@ -50,7 +50,16 @@ import {
 } from "@/lib/game/rules";
 import type { Locale } from "@/lib/i18n/config";
 import { homePath } from "@/lib/navigation/routes";
-import { appGutters, focusRing, panel } from "@/lib/ui/styles";
+import {
+    appGutters,
+    focusRing,
+    panel,
+    panelRaised,
+    popEnterFrom,
+    popEnterTo,
+    popExitTo,
+    popTransition,
+} from "@/lib/ui/styles";
 
 /* The screen's own frame: the viewport, safe areas included, at every size —
    the play route's wrapper is `h-dvh overflow-hidden`, so anything this lays out
@@ -73,10 +82,10 @@ const screenClass = [
 /* The score sits over the screen rather than in its flow, so the table keeps
    the height. `scoreSpacerClass` is what reserves the row it covers. */
 const scoreDockClass = [
-    // A column now, not just the board: the leave control hangs under it, in the
-    // dock's own right-hand gutter. Only the board's height is reserved by
-    // `scoreSpacerClass`, so what hangs below overlays the felt — which is the
-    // point, it is furniture rather than a row of its own.
+    // Only the board's height is reserved by `scoreSpacerClass`, so the leave
+    // control below it overlays the felt rather than taking a row from the
+    // table. Its inner column is constrained to the board's width: aligning it
+    // to this viewport-wide dock put the control adrift at the screen edge.
     "pointer-events-none fixed z-30 flex flex-col gap-2 desk:gap-2.5",
     "top-[max(0.75rem,env(safe-area-inset-top))]",
     "left-[max(0.75rem,env(safe-area-inset-left))] right-[max(0.75rem,env(safe-area-inset-right))]",
@@ -86,6 +95,9 @@ const scoreDockClass = [
     "desk-lg:left-48 desk-lg:right-48",
     "desk-xl:left-72 desk-xl:right-72",
 ].join(" ");
+
+const scoreDockContentClass =
+    "mx-auto flex w-full max-w-[560px] flex-col gap-2 sm:gap-2.5 lg:max-w-[1000px]";
 
 /* Laid flat, the table is the only thing with no room to spare, so every row
    that is not the table gives up what it can — this one included. */
@@ -166,10 +178,10 @@ function flightRotation(
    A round changing from cards to declarations therefore cannot push the table,
    hand, or timer to a different position. */
 const actionOverlayClass = [
-    "pointer-events-none fixed inset-x-[max(0.75rem,env(safe-area-inset-left))] z-40 grid place-items-center",
+    "pointer-events-none fixed left-1/2 z-40 grid w-[calc(100vw-max(1rem,calc(env(safe-area-inset-left)+env(safe-area-inset-right))))] -translate-x-1/2 place-items-center",
     "top-[max(6.5rem,calc(env(safe-area-inset-top)+5.75rem))] bottom-[max(7.5rem,calc(env(safe-area-inset-bottom)+6.75rem))]",
     "flat:top-[max(4.5rem,calc(env(safe-area-inset-top)+4rem))] flat:bottom-[max(5rem,calc(env(safe-area-inset-bottom)+4.5rem))]",
-    "desk:inset-x-auto desk:left-1/2 desk:w-[min(44rem,calc(100vw-4rem))] desk:-translate-x-1/2 desk:top-[max(7rem,calc(env(safe-area-inset-top)+6rem))] desk:bottom-8",
+    "desk:w-[min(44rem,calc(100vw-4rem))] desk:top-[max(7rem,calc(env(safe-area-inset-top)+6rem))] desk:bottom-8",
 ].join(" ");
 
 type GameScreenProps = {
@@ -241,8 +253,7 @@ export default function GameScreen({
     if (flightConnection.status !== status) {
         setFlightConnection({
             status,
-            epoch:
-                flightConnection.epoch + (status === "connected" ? 0 : 1),
+            epoch: flightConnection.epoch + (status === "connected" ? 0 : 1),
         });
     }
 
@@ -390,9 +401,7 @@ export default function GameScreen({
         }
 
         const root = screenRef.current;
-        const source = root
-            ? remoteCardOrigin(root, data.playerIndex)
-            : null;
+        const source = root ? remoteCardOrigin(root, data.playerIndex) : null;
         if (!source) return;
 
         const key = flightKey(data.playerIndex, data.card);
@@ -630,68 +639,70 @@ export default function GameScreen({
     return (
         <main ref={screenRef} className={screenClass}>
             <div className={scoreDockClass}>
-                <ScoreBoard
-                    usLabel={copy.score.us}
-                    themLabel={copy.score.them}
-                    usTotal={usTotal}
-                    themTotal={themTotal}
-                    usRound={usRound}
-                    themRound={themRound}
-                    usDeclarations={declarationPoints(myDeclarations)}
-                    themDeclarations={declarationPoints(theirDeclarations)}
-                    target={game.maxPoints}
-                    targetLabel={copy.score.target}
-                    trumpSuite={trumpSuite}
-                    trumpLabel={copy.trump.label}
-                    trumpName={trumpSuite ? copy.suits[trumpSuite] : null}
-                    trumpCallerLabel={
-                        round?.trumpCallerIndex === null ||
-                        round?.trumpCallerIndex === undefined
-                            ? null
-                            : // Which side called is what the scoreboard is
-                              // about — a name is longer than the slot and gets
-                              // truncated, and it is the team that owes the
-                              // contract anyway.
-                              round.trumpCallerIndex === chair ||
-                                round.trumpCallerIndex === across
-                              ? copy.trump.calledByUs
-                              : copy.trump.calledByThem
-                    }
-                    declarationsLabel={copy.score.declarations}
-                    totalLabel={copy.score.total}
-                    showDeclarationsLabel={copy.declarations.show}
-                    onShowDeclarations={setShowDeclarations}
-                />
+                <div className={scoreDockContentClass}>
+                    <ScoreBoard
+                        usLabel={copy.score.us}
+                        themLabel={copy.score.them}
+                        usTotal={usTotal}
+                        themTotal={themTotal}
+                        usRound={usRound}
+                        themRound={themRound}
+                        usDeclarations={declarationPoints(myDeclarations)}
+                        themDeclarations={declarationPoints(theirDeclarations)}
+                        target={game.maxPoints}
+                        targetLabel={copy.score.target}
+                        trumpSuite={trumpSuite}
+                        trumpLabel={copy.trump.label}
+                        trumpName={trumpSuite ? copy.suits[trumpSuite] : null}
+                        trumpCallerLabel={
+                            round?.trumpCallerIndex === null ||
+                            round?.trumpCallerIndex === undefined
+                                ? null
+                                : // Which side called is what the scoreboard is
+                                  // about — a name is longer than the slot and gets
+                                  // truncated, and it is the team that owes the
+                                  // contract anyway.
+                                  round.trumpCallerIndex === chair ||
+                                    round.trumpCallerIndex === across
+                                  ? copy.trump.calledByUs
+                                  : copy.trump.calledByThem
+                        }
+                        declarationsLabel={copy.score.declarations}
+                        totalLabel={copy.score.total}
+                        showDeclarationsLabel={copy.declarations.show}
+                        onShowDeclarations={setShowDeclarations}
+                    />
 
-                {/* The only way off this screen, and it has to be here: the play
-                    route hides the navigation frame, so there is no chrome to
-                    hang it from. Under the score rather than beside it — the bar
-                    is as wide as the table, and squeezing a control in next to
-                    it took room off the one thing on screen that is read every
-                    trick.
+                    {/* The only way off this screen, and it has to be here: the play
+                        route hides the navigation frame, so there is no chrome to
+                        hang it from. Under the score rather than beside it — the bar
+                        is as wide as the table, and squeezing a control in next to
+                        it took room off the one thing on screen that is read every
+                        trick.
 
-                    Built like the bar it hangs from rather than like a lobby
-                    button: same surface, same corner, same drop shadow, and a
-                    hover that only warms the glyph. An ink border and a hard
-                    shadow out here would be the loudest thing over the felt.
+                        Built like the bar it hangs from rather than like a lobby
+                        button: same surface, same corner, same drop shadow, and a
+                        hover that only warms the glyph. An ink border and a hard
+                        shadow out here would be the loudest thing over the felt.
 
-                    `pointer-events-auto` opts back in: the dock is inert so the
-                    felt underneath stays reachable. */}
-                <button
-                    type="button"
-                    onClick={() => setConfirmingLeave(true)}
-                    aria-label={copy.leave.action}
-                    title={copy.leave.action}
-                    className={cn(
-                        "pointer-events-auto grid cursor-pointer place-items-center self-end",
-                        panel,
-                        "size-10 text-mint desk:size-11",
-                        "transition-colors hover:text-cream",
-                        focusRing,
-                    )}
-                >
-                    <LogOut aria-hidden size={17} strokeWidth={3} />
-                </button>
+                        `pointer-events-auto` opts back in: the dock is inert so the
+                        felt underneath stays reachable. */}
+                    <button
+                        type="button"
+                        onClick={() => setConfirmingLeave(true)}
+                        aria-label={copy.leave.action}
+                        title={copy.leave.action}
+                        className={cn(
+                            "pointer-events-auto grid cursor-pointer place-items-center self-end",
+                            panel,
+                            "size-10 text-mint desk:size-11",
+                            "transition-colors hover:text-cream",
+                            focusRing,
+                        )}
+                    >
+                        <LogOut aria-hidden size={17} strokeWidth={3} />
+                    </button>
+                </div>
             </div>
             <div className={scoreSpacerClass} aria-hidden="true" />
 
@@ -736,9 +747,7 @@ export default function GameScreen({
                     }
                     onPlay={play}
                     pendingCardKey={
-                        pendingHandKey
-                            ? cardKey(pendingHandKey.card)
-                            : null
+                        pendingHandKey ? cardKey(pendingHandKey.card) : null
                     }
                     hiddenLabel={copy.hiddenCard}
                     hiddenCount={
@@ -788,9 +797,7 @@ export default function GameScreen({
 
             <AnimatePresence mode="wait">
                 {showRoundAction && round ? (
-                    <RoundActionOverlay
-                        key={`${phase}-${round.roundNumber}`}
-                    >
+                    <RoundActionOverlay key={`${phase}-${round.roundNumber}`}>
                         <RoundAction
                             copy={copy}
                             phase={phase}
@@ -1000,21 +1007,29 @@ function RoundAction({
     return panel;
 }
 
-/** The small, calm rise used for trump and declaration decisions. */
+/**
+ * The rise used for trump and declaration decisions.
+ *
+ * The same block and the same curve as a dialog, deliberately without the dim:
+ * these are decisions taken while reading the table, and darkening the felt and
+ * the hand would hide the very thing being decided. What makes them read as one
+ * family with the dialogs is `panelRaised` and the shared `pop*` motion, not a
+ * scrim.
+ */
 function RoundActionOverlay({ children }: { children: React.ReactNode }) {
     const reduceMotion = useReducedMotion();
-    const transition = reduceMotion
-        ? { duration: 0 }
-        : { type: "spring" as const, stiffness: 320, damping: 32, mass: 0.8 };
 
     return (
         <div className={actionOverlayClass}>
             <motion.div
-                initial={reduceMotion ? false : { opacity: 0, scale: 0.97, y: 12 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.98, y: 6 }}
-                transition={transition}
-                className="pointer-events-auto max-h-full w-fit max-w-full min-w-[min(100%,20rem)] overflow-y-auto overscroll-contain rounded-2xl bg-baize-deep/95 px-3 py-3 shadow-[0_12px_36px_-10px_rgb(0_0_0_/_0.6)] backdrop-blur-sm sm:px-5 sm:py-4"
+                initial={reduceMotion ? false : popEnterFrom}
+                animate={popEnterTo}
+                exit={reduceMotion ? { opacity: 0 } : popExitTo}
+                transition={reduceMotion ? { duration: 0 } : popTransition}
+                className={cn(
+                    panelRaised,
+                    "pointer-events-auto max-h-full w-fit max-w-full justify-self-center overflow-y-auto overscroll-contain px-4 py-3.5 desk:min-w-[20rem] desk:px-5 desk:py-4",
+                )}
             >
                 {children}
             </motion.div>

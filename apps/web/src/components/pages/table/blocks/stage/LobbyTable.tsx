@@ -3,17 +3,13 @@ import { LayoutGroup, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 
 import EmptySeat from "@/components/pages/table/blocks/seats/EmptySeat";
-import SeatCard, {
-    type SeatTag,
-} from "@/components/pages/table/blocks/seats/SeatCard";
-import SideSeat from "@/components/pages/table/blocks/seats/SideSeat";
+import SeatTile from "@/components/pages/table/blocks/seats/SeatTile";
 import MockLabel from "@/components/pages/table/blocks/shared/MockLabel";
 import CardFan from "@/components/pages/table/blocks/stage/CardFan";
 import TableStage from "@/components/pages/table/blocks/stage/TableStage";
 import {
     partnerSeat,
     seatsFromChair,
-    teamOf,
 } from "@/components/pages/table/seat-identity";
 import type { Seats } from "@/context/lobby-context";
 import type { Dictionary } from "@/dictionaries";
@@ -40,15 +36,12 @@ type LobbyTableProps = {
     onSwapSeat: (seat: number) => void;
 };
 
-type SeatVariant = "row" | "side";
-
 type TableSeatProps = {
     copy: TableCopy;
     player: LobbyPlayer | null;
     seat: number;
     chair: number;
     isYou: boolean;
-    variant: SeatVariant;
     seatsLocked: boolean;
     hasTable: boolean;
     name: string;
@@ -64,7 +57,6 @@ type TableSeatProps = {
  * the cards complete their shared-layout spring independently.
  */
 const SETTLED_HOLD_MS = 650;
-const SHAPE_BLUR_MS = 100;
 
 /**
  * The lobby is always viewed from the player who first occupied the table.
@@ -76,14 +68,7 @@ const FIRST_PLAYER_SEAT = 0;
 
 type SwapRequest = {
     fromChair: number;
-    targetSeat: number;
-    /** True only when moving across teams also changes the seat card's shape. */
-    usesShapeBlur: boolean;
 };
-
-function variantForSeat(seat: number): SeatVariant {
-    return teamOf(seat) === teamOf(FIRST_PLAYER_SEAT) ? "row" : "side";
-}
 
 type ResolvedTableSeatProps = Omit<TableSeatProps, "name" | "avatarUrl"> & {
     user: User;
@@ -141,7 +126,6 @@ function TableSeat({
     seat,
     chair,
     isYou,
-    variant,
     hasTable,
     seatsLocked,
     name,
@@ -160,89 +144,70 @@ function TableSeat({
     );
     const handleClick = canMoveHere ? handleSwap : undefined;
 
+    // The only empty seat that shows a person is the signed-in player's stand-in
+    // while the lobby is opening.
     if (!player && isYou && !hasTable) {
         return (
-            <SeatCard
+            <SeatTile
                 avatarUrl={avatarUrl}
                 name={name}
-                meta=""
-                tags={[{ label: copy.you }]}
-                className="w-full"
+                note={copy.you}
+                className="size-full"
             />
         );
     }
 
     if (!player) {
-        // A vacancy is drawn at the size the seat that fills it will be. In the
-        // side columns that is the column itself, so the dashed square and the
-        // tile that replaces it have the same footprint and the swap animation
-        // has nothing to resize. The row slots have a whole width to spare and
-        // take a centred square instead, cut to the same measure.
+        // A vacancy is drawn at the size of the seat that fills it, which is now
+        // the same size everywhere: the slot itself. The dashed square and the
+        // tile that replaces it have one footprint between them, so a swap has
+        // nothing to resize.
         return (
             <EmptySeat
                 label={copy.openSeat}
                 onClick={handleClick}
                 actionLabel={copy.lobby.takeSeat}
                 disabled={disabled}
-                className={
-                    variant === "side"
-                        ? "size-full"
-                        : "mx-auto size-[88px] shrink-0 self-center desk:size-[104px] desk-lg:size-[176px]"
-                }
+                className="size-full"
             />
         );
     }
-
-    const actionLabel = copy.lobby.moveHereWith.replace("{name}", name);
-    const ready = player.status === LobbyPlayerStatus.READY;
-
-    if (variant === "side") {
-        return (
-            <SideSeat
-                name={name}
-                avatarUrl={avatarUrl}
-                ready={ready}
-                note={
-                    isYou
-                        ? copy.you
-                        : player.host
-                          ? copy.lobby.host
-                          : copy.lobby.opponent
-                }
-                onClick={handleClick}
-                actionLabel={actionLabel}
-                disabled={disabled}
-                className="w-full"
-            />
-        );
-    }
-
-    const relation =
-        seat === chair
-            ? null
-            : seat === partnerSeat(chair)
-              ? copy.partner
-              : copy.lobby.opponent;
-    const meta = [relation, player.host ? copy.lobby.host : null]
-        .filter(Boolean)
-        .join(" · ");
-    const tags: SeatTag[] = [
-        ...(isYou ? [{ label: copy.you }] : []),
-        ...(ready ? [{ label: copy.lobby.ready, tone: "ready" as const }] : []),
-    ];
 
     return (
-        <SeatCard
-            avatarUrl={avatarUrl}
+        <SeatTile
             name={name}
-            meta={meta}
-            tags={tags}
+            avatarUrl={avatarUrl}
+            ready={player.status === LobbyPlayerStatus.READY}
+            note={seatNote(copy, player, seat, chair, isYou)}
             onClick={handleClick}
-            actionLabel={actionLabel}
+            actionLabel={copy.lobby.moveHereWith.replace("{name}", name)}
             disabled={disabled}
-            className="w-full"
+            className="size-full"
         />
     );
+}
+
+/**
+ * The one line under the name, in the order a player would want it.
+ *
+ * The tile has room for a single word where the old wide card had a row of
+ * tags, so they are ranked rather than listed: which seat is yours first,
+ * then who you are playing with, and only then who opened the table. Being the
+ * host changes nothing about the hand you are dealt; being across from someone
+ * decides it.
+ */
+function seatNote(
+    copy: TableCopy,
+    player: LobbyPlayer,
+    seat: number,
+    chair: number,
+    isYou: boolean,
+): string {
+    if (isYou) return copy.you;
+    if (seat === partnerSeat(chair)) return copy.lobby.partner;
+    if (player.host) return copy.lobby.host;
+
+    return copy.lobby.opponent;
 }
 
 export default function LobbyTable({
@@ -263,30 +228,11 @@ export default function LobbyTable({
         (seat: number) => {
             if (swapRequest) return;
 
-            const usesShapeBlur =
-                !reduceMotion &&
-                teamOf(chair) !== teamOf(seat) &&
-                variantForSeat(chair) !== variantForSeat(seat);
-
-            setSwapRequest({ fromChair: chair, targetSeat: seat, usesShapeBlur });
-            if (!usesShapeBlur) onSwapSeat(seat);
+            setSwapRequest({ fromChair: chair });
+            onSwapSeat(seat);
         },
-        [chair, onSwapSeat, reduceMotion, swapRequest],
+        [chair, onSwapSeat, swapRequest],
     );
-
-    // Blur first, then ask the server to move the card into its differently
-    // shaped destination. The small lead-in keeps a wide row card from visibly
-    // squashing into a side tile (or the reverse) during the layout spring.
-    useEffect(() => {
-        if (!swapRequest?.usesShapeBlur) return;
-
-        const timeout = setTimeout(
-            () => onSwapSeat(swapRequest.targetSeat),
-            SHAPE_BLUR_MS,
-        );
-
-        return () => clearTimeout(timeout);
-    }, [onSwapSeat, swapRequest]);
 
     // The pending fallback returns the controls if a response is lost during a
     // reconnect. Once acknowledged, the short hold lets the spring finish
@@ -309,24 +255,14 @@ export default function LobbyTable({
               stiffness: 320,
               damping: 28,
           };
-    const blurTransition = reduceMotion
-        ? { duration: 0 }
-        : { duration: 0.12, ease: "easeOut" as const };
 
-    const renderSeat = (
-        player: LobbyPlayer | null,
-        seat: number,
-        variant: SeatVariant,
-    ) => {
+    const renderSeat = (player: LobbyPlayer | null, seat: number) => {
         const isYou = seat === chair;
-        const shouldBlur =
-            swapRequest?.usesShapeBlur &&
-            (seat === swapRequest.fromChair || seat === swapRequest.targetSeat);
         // Keyed by who is in the chair, not by which slot it is: when players
         // change chairs their elements unmount here and mount in the new slot,
         // and Motion's shared layout carries each one from its old bounds to
-        // its new ones — size included, so a full-width card shrinks into a
-        // side tile instead of snapping between the two.
+        // its new ones. Every slot is the same square, so that is a travel
+        // across the table and nothing else.
         const identity = player ? `player-${player.userId}` : `empty-${seat}`;
         return (
             <motion.div
@@ -335,25 +271,18 @@ export default function LobbyTable({
                 transition={transition}
                 className="flex size-full"
             >
-                <motion.div
-                    animate={{ filter: shouldBlur ? "blur(6px)" : "blur(0px)" }}
-                    transition={blurTransition}
-                    className="flex size-full"
-                >
-                    <ResolvedTableSeat
-                        copy={copy}
-                        player={player}
-                        seat={seat}
-                        chair={chair}
-                        isYou={isYou}
-                        variant={variant}
-                        hasTable={hasTable}
-                        seatsLocked={seatsLocked}
-                        user={user}
-                        disabled={swapRequest !== null}
-                        onRequestSwap={requestSwap}
-                    />
-                </motion.div>
+                <ResolvedTableSeat
+                    copy={copy}
+                    player={player}
+                    seat={seat}
+                    chair={chair}
+                    isYou={isYou}
+                    hasTable={hasTable}
+                    seatsLocked={seatsLocked}
+                    user={user}
+                    disabled={swapRequest !== null}
+                    onRequestSwap={requestSwap}
+                />
             </motion.div>
         );
     };
@@ -361,10 +290,10 @@ export default function LobbyTable({
     return (
         <LayoutGroup id={`lobby-table-${user.id}`}>
             <TableStage
-                near={renderSeat(seats[near], near, "row")}
-                across={renderSeat(seats[across], across, "row")}
-                left={renderSeat(seats[left], left, "side")}
-                right={renderSeat(seats[right], right, "side")}
+                near={renderSeat(seats[near], near)}
+                across={renderSeat(seats[across], across)}
+                left={renderSeat(seats[left], left)}
+                right={renderSeat(seats[right], right)}
                 centre={
                     <>
                         <CardFan />

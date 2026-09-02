@@ -7,7 +7,12 @@ import DeclarationList from "@/components/pages/game/blocks/controls/Declaration
 import { declarationPoints } from "@/lib/game/rules";
 import type { Declaration, Type } from "@bela/protocol";
 import { cn } from "@/lib/ui/cn";
-import { panelNested } from "@/lib/ui/styles";
+import {
+    panelNested,
+    popEnterFrom,
+    popEnterTo,
+    popTransition,
+} from "@/lib/ui/styles";
 
 type DeclarationsPanelProps = {
     /** The server-resolved declarations currently credited to both teams. */
@@ -61,13 +66,20 @@ function Side({
         <div
             className={cn(
                 panelNested,
-                "flex min-w-0 flex-1 flex-col items-center gap-1.5 px-3 py-3 text-center sm:px-4 sm:py-4",
+                // No shadow on this one. `panelNested` casts one so a block can
+                // lift off the felt it is laid on, and this block is not on the
+                // felt — it is inside a panel that is already lifted, and a
+                // second shadow within the same silhouette only muddies the
+                // corner it shares with the first. The step in colour is what
+                // separates it here.
+                "shadow-none",
+                "flex min-w-0 flex-1 flex-col items-center gap-2 px-4 py-3 text-center",
             )}
         >
-            <span className="truncate text-[9px] font-bold tracking-wide text-mint/70 uppercase sm:text-[11px]">
+            <span className="truncate text-[11px] font-bold tracking-wide text-mint/70 uppercase">
                 {label}
             </span>
-            <span className="font-display text-[20px] leading-none font-extrabold tracking-[-.03em] text-cream sm:text-[26px]">
+            <span className="font-display text-[22px] leading-none font-extrabold tracking-[-.03em] text-cream">
                 +{declarationPoints(declarations)}
             </span>
 
@@ -80,7 +92,7 @@ function Side({
                 declarations={declarations}
                 typeNames={typeNames}
                 nameOf={nameOf}
-                className="mt-1 items-center"
+                className="mt-0.5 items-center"
             />
         </div>
     );
@@ -124,26 +136,22 @@ export default function DeclarationsPanel({
     const playerTotal = declarationPoints(my);
     const mode = asking ? (answered ? "pending" : "prompt") : "summary";
 
-    const reveal = reduceMotion ? undefined : { opacity: 1, scale: 1, y: 0 };
-    const transition = reduceMotion
-        ? { duration: 0 }
-        : { type: "spring" as const, stiffness: 320, damping: 32, mass: 0.8 };
+    const reveal = reduceMotion ? undefined : popEnterTo;
+    const transition = reduceMotion ? { duration: 0 } : popTransition;
 
     if (mode === "prompt") {
         return (
             <motion.div
                 key="prompt"
-                initial={
-                    reduceMotion ? false : { opacity: 0, scale: 0.98, y: 6 }
-                }
+                initial={reduceMotion ? false : popEnterFrom}
                 animate={reveal}
                 transition={transition}
-                className="flex w-full flex-col items-center gap-2 text-center sm:gap-3 [@media(max-height:560px)]:flex-row [@media(max-height:560px)]:justify-center [@media(max-height:560px)]:gap-3"
+                className="flex w-fit max-w-full flex-col items-center gap-3 text-center [@media(max-height:560px)]:flex-row [@media(max-height:560px)]:justify-center [@media(max-height:560px)]:gap-3"
             >
-                <p className="font-display text-[15px] font-extrabold whitespace-nowrap tracking-[-.02em] text-cream sm:text-[18px] [@media(max-height:560px)]:text-[14px]">
+                <p className="font-display text-[17px] font-extrabold whitespace-nowrap tracking-[-.02em] text-cream [@media(max-height:560px)]:text-[15px]">
                     {promptHeading}
                 </p>
-                <p className="max-w-[260px] text-[11px] leading-snug font-medium text-mint/75 sm:text-[13px] [@media(max-height:560px)]:hidden">
+                <p className="max-w-[300px] text-[13px] leading-snug font-medium text-mint/75 [@media(max-height:560px)]:hidden">
                     {playerTotal > 0
                         ? promptBody.replace("{points}", String(playerTotal))
                         : promptBodyNone}
@@ -153,7 +161,7 @@ export default function DeclarationsPanel({
                         size="sm"
                         soft
                         onClick={onDeclare}
-                        className="px-3 py-2 text-[13px] sm:px-5 sm:py-[11px] sm:text-[15px]"
+                        className="min-h-11"
                     >
                         {declareLabel}
                     </Button>
@@ -162,7 +170,7 @@ export default function DeclarationsPanel({
                         size="sm"
                         soft
                         onClick={onDecline}
-                        className="px-3 py-2 text-[13px] sm:px-5 sm:py-[11px] sm:text-[15px]"
+                        className="min-h-11"
                     >
                         {declineLabel}
                     </Button>
@@ -191,23 +199,23 @@ export default function DeclarationsPanel({
     return (
         <motion.div
             key="summary"
-            initial={reduceMotion ? false : { opacity: 0, scale: 0.98, y: 6 }}
+            initial={reduceMotion ? false : popEnterFrom}
             animate={reveal}
             transition={transition}
             aria-live="polite"
-            className="flex w-full flex-col items-center gap-2 sm:gap-3 [@media(max-height:560px)]:flex-row [@media(max-height:560px)]:justify-center"
+            className="flex w-fit max-w-full flex-col items-center gap-3 [@media(max-height:560px)]:flex-row [@media(max-height:560px)]:justify-center"
         >
             <div className="text-center">
-                <p className="font-display text-[14px] font-extrabold tracking-[-.02em] text-cream sm:text-[17px]">
+                <p className="font-display text-[17px] font-extrabold tracking-[-.02em] text-cream">
                     {heading}
                 </p>
-                <p className="text-[10px] font-bold tracking-wide text-mint/70 uppercase sm:text-[12px]">
+                <p className="text-[12px] font-bold tracking-wide text-mint/70 uppercase">
                     {totalLabel.replace("{points}", String(combinedTotal))}
                 </p>
             </div>
 
             {combinedTotal === 0 ? (
-                <p className="text-[12px] font-semibold text-mint/65 sm:text-[13px]">
+                <p className="text-[13px] font-semibold text-mint/65">
                     {noneLabel}
                 </p>
             ) : (

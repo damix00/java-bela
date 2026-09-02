@@ -16,7 +16,7 @@ import { cn } from "@/lib/ui/cn";
 import type { Locale } from "@/lib/i18n/config";
 import { localiseLobbyError } from "@/lib/game/lobby-errors";
 import { joinUrl } from "@/lib/navigation/routes";
-import { dip, focusRing } from "@/lib/ui/styles";
+import { bandCell, dip, focusRing } from "@/lib/ui/styles";
 
 type LobbyBandProps = {
     copy: Dictionary["table"];
@@ -114,7 +114,8 @@ export default function LobbyBand({
                     type="button"
                     onClick={() => setInviteOpen(true)}
                     className={cn(
-                        "flex min-h-14 portrait-sm:min-h-12 w-full cursor-pointer items-center gap-3 rounded-xl bg-baize px-4 py-2 text-left ring-1 ring-mint/20 desk:min-h-16",
+                        "flex min-h-14 portrait-sm:min-h-12 w-full cursor-pointer items-center gap-3 bg-baize px-4 py-2 text-left ring-1 ring-mint/20 desk:min-h-16",
+                        bandCell.middle,
                         dip,
                         focusRing,
                     )}
@@ -139,7 +140,14 @@ export default function LobbyBand({
                     }
                     size="lg"
                     onClick={() => setReady(!isReady)}
-                    className="min-h-14 portrait-sm:min-h-12 w-full py-3 text-center text-[18px] tracking-[-.02em] desk:min-h-16 desk:py-4 desk:text-[19px]"
+                    // The one block in the row that arrives as a pill, which
+                    // made it read as a control borrowed from somewhere else.
+                    // `cn` is `twMerge`, so this wins over `soft`'s
+                    // `rounded-full`.
+                    className={cn(
+                        "min-h-14 portrait-sm:min-h-12 w-full py-3 text-center text-[18px] tracking-[-.02em] desk:min-h-16 desk:py-4 desk:text-[19px]",
+                        bandCell.end,
+                    )}
                 >
                     {isSearching
                         ? searchLabel

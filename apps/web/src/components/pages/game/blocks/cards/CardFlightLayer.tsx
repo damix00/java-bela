@@ -156,7 +156,7 @@ function FlightCard({
                 scale: 1.035,
             }}
             animate={controls}
-            className="fixed top-0 left-0 z-50 origin-center will-change-transform"
+            className="fixed top-0 left-0 z-0 origin-center will-change-transform"
         >
             <PlayingCard card={flight.card} size="sm" className="w-full" />
         </motion.div>
@@ -172,7 +172,7 @@ export default function CardFlightLayer({
     return (
         <div
             aria-hidden="true"
-            className="pointer-events-none fixed inset-0 z-50 overflow-visible"
+            className="pointer-events-none fixed inset-0 z-[35] overflow-visible"
         >
             {flights.map((flight) => (
                 <FlightCard

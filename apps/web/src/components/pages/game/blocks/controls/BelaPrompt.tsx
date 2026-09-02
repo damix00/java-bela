@@ -1,15 +1,13 @@
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
-
 import { Button } from "@/components/controls/Button";
 import PlayingCard from "@/components/pages/game/blocks/cards/PlayingCard";
-import type { Card } from "@bela/protocol";
-import { cn } from "@/lib/ui/cn";
-import { panelRaised, scrim } from "@/lib/ui/styles";
+import Card from "@/components/ui/surfaces/Card";
+import Modal from "@/components/ui/surfaces/Modal";
+import type { Card as CardType } from "@bela/protocol";
 
 type BelaPromptProps = {
-    card: Card;
+    card: CardType;
     heading: string;
     body: string;
     declareLabel: string;
@@ -24,7 +22,9 @@ type BelaPromptProps = {
  *
  * Both answers play the card. There is no cancel: the press that opened this
  * was already the decision to play it, and a third option would turn one
- * decision into two.
+ * decision into two — which is what `dismissible={false}` says to the shell.
+ * The gate is also a straight upgrade on the scrim this used to draw for
+ * itself, which had no focus trap and no `Esc` handling whatsoever.
  */
 export default function BelaPrompt({
     card,
@@ -34,53 +34,49 @@ export default function BelaPrompt({
     skipLabel,
     onAnswer,
 }: BelaPromptProps) {
-    const reduceMotion = useReducedMotion();
-    const transition = reduceMotion
-        ? { duration: 0 }
-        : { type: "spring" as const, stiffness: 320, damping: 32, mass: 0.8 };
-
     return (
-        <div
-            role="dialog"
-            aria-modal="true"
-            aria-label={heading}
-            className={cn(scrim, "p-6")}
+        <Modal
+            surface="felt"
+            dismissible={false}
+            closeLabel={skipLabel}
+            onClose={() => onAnswer(false)}
+            className="max-w-[400px]"
         >
-            <motion.div
-                initial={
-                    reduceMotion ? false : { opacity: 0, scale: 0.97, y: 12 }
-                }
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={transition}
-                className={cn(
-                    panelRaised,
-                    "flex w-full max-w-[400px] flex-col items-center gap-4 p-6",
-                )}
+            <Card
+                surface="felt"
+                padding="none"
+                className="items-center gap-4 p-5 sm:p-6"
             >
                 <PlayingCard card={card} />
 
-                <p className="text-center font-display text-[20px] font-extrabold tracking-[-.02em] text-cream">
+                <p className="text-center font-display text-[17px] font-extrabold tracking-[-.02em] text-cream">
                     {heading}
                 </p>
 
-                <p className="text-center text-[14px] font-medium text-mint/80">
+                <p className="text-center text-[13px] font-medium text-mint/80">
                     {body}
                 </p>
 
                 <div className="flex w-full flex-wrap justify-center gap-2">
-                    <Button size="sm" soft onClick={() => onAnswer(true)}>
+                    <Button
+                        surface="felt"
+                        size="sm"
+                        className="min-h-11"
+                        onClick={() => onAnswer(true)}
+                    >
                         {declareLabel}
                     </Button>
                     <Button
+                        surface="felt"
                         tone="cream"
                         size="sm"
-                        soft
+                        className="min-h-11"
                         onClick={() => onAnswer(false)}
                     >
                         {skipLabel}
                     </Button>
                 </div>
-            </motion.div>
-        </div>
+            </Card>
+        </Modal>
     );
 }

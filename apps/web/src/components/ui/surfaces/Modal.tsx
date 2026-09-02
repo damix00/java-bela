@@ -6,7 +6,16 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, type ReactNode } from "react";
 
 import { cn } from "@/lib/ui/cn";
-import { edge, focusRing, type Surface } from "@/lib/ui/styles";
+import {
+    edge,
+    focusRing,
+    POP_OUT_MS,
+    popEnterFrom,
+    popEnterTo,
+    popExitTo,
+    popTransition,
+    type Surface,
+} from "@/lib/ui/styles";
 
 type ModalProps = {
     children: ReactNode;
@@ -35,12 +44,14 @@ type ModalProps = {
 };
 
 /**
- * The shell for an intercepted route rendered over the page beneath it.
+ * The shell every dialog in the app is put over the page with.
  *
  * Native `<dialog>` + `showModal()` rather than a portal and a hand-rolled
  * focus trap: the browser already gives us the top layer, the focus trap, the
  * inert background, the `Esc` handler and the `aria-modal` semantics, and every
- * one of those is easy to get subtly wrong by hand.
+ * one of those is easy to get subtly wrong by hand. The game route used to
+ * prove that twice over — two dialogs on the felt with a hand-drawn scrim, one
+ * with an `Esc` listener and no focus trap and one with neither.
  *
  * A gate (`dismissible={false}`) keeps all of that — the top layer, the focus
  * trap, the inert page — and only removes the ways out that aren't a decision:
@@ -53,19 +64,24 @@ type ModalProps = {
  * than two that can disagree. A dialog opened from component state has no such
  * history entry to unwind and passes `onClose` instead.
  *
- * The dim is a real element rather than the dialog's `::backdrop`. A
- * pseudo-element has no node to hand Motion, so animating it would mean a
- * keyframed stylesheet running alongside — two halves of one fade, in two
- * languages, kept in step by hand. A `fixed` child of a top-layer dialog covers
- * the viewport just as the backdrop does, and it animates on the same timeline
- * as the panel. It stays `pointer-events-none` so a click out there still lands
- * on the dialog itself, which is how the dismiss below recognises it.
+ * The dim is the real `::backdrop`, faded by CSS in `globals.css`, while the
+ * panel is animated by Motion. Two languages for one entrance is a cost, and it
+ * bought a fix: the dim used to be a `fixed` child of this dialog so Motion
+ * could have a node for it, and Chromium composites a fixed child of a
+ * top-layer element on its own layer that it does not merge until the next full
+ * paint — so the dim snapped in at the end of the panel's entrance rather than
+ * fading with it, and clipped square at the corners on the way. `POP_OUT_MS`
+ * is what holds the two halves together on the way out.
  *
- * Which is also why there is no `AnimatePresence` here. The panel is unmounted
- * by a *navigation*, and by the time React hears about it the route is already
- * gone — nothing is left to hold in the tree and play out. So the exit runs
- * first and the navigation second: `close()` plays the animation, awaits it,
- * and only then unwinds history.
+ * The scroll lives on the panel rather than on the dialog for the same reason:
+ * a top-layer element that is also a scroll container is the other half of that
+ * compositing problem, and nothing here needs the dialog itself to scroll.
+ *
+ * Which is also why there is no `AnimatePresence`. The panel is unmounted by a
+ * *navigation*, and by the time React hears about it the route is already gone
+ * — nothing is left to hold in the tree and play out. So the exit runs first
+ * and the navigation second: `close()` plays the animation, awaits it, and only
+ * then unwinds history.
  */
 export default function Modal({
     children,
@@ -78,7 +94,6 @@ export default function Modal({
     const router = useRouter();
     const dialogRef = useRef<HTMLDialogElement>(null);
     const [scope, animate] = useAnimate<HTMLDivElement>();
-    const [dimScope, animateDim] = useAnimate<HTMLDivElement>();
     const reduceMotion = useReducedMotion();
     // A modal can be dismissed twice in the time the exit takes to play — `Esc`
     // on the way to a backdrop click. Two `router.back()` calls unwind two
@@ -132,19 +147,19 @@ export default function Modal({
         if (closing.current) return;
         closing.current = true;
 
+        // Set before the await, not after: this is what starts the dim's own
+        // fade, and it has to leave alongside the panel rather than behind it.
+        dialogRef.current?.setAttribute("data-closing", "true");
+
         if (!reduceMotion) {
-            // The dim leaves with the panel, on the one timeline.
             await Promise.all([
-                animate(
-                    scope.current,
-                    { opacity: 0, scale: 0.97, y: 8 },
-                    { duration: 0.14, ease: "easeIn" },
-                ),
-                animateDim(
-                    dimScope.current,
-                    { opacity: 0 },
-                    { duration: 0.14, ease: "easeIn" },
-                ),
+                animate(scope.current, popExitTo, {
+                    duration: POP_OUT_MS / 1000,
+                    ease: "easeIn",
+                }),
+                // The dim is CSS, so there is no animation object to await —
+                // only the duration it was given.
+                new Promise((resolve) => setTimeout(resolve, POP_OUT_MS)),
             ]);
         }
 
@@ -154,13 +169,11 @@ export default function Modal({
         }
 
         router.back();
-    }, [animate, animateDim, dimScope, onClose, reduceMotion, router, scope]);
+    }, [animate, onClose, reduceMotion, router, scope]);
 
     return (
         <dialog
             ref={dialogRef}
-            // `Esc` fires `cancel` and would otherwise close the dialog while leaving
-            // the URL on the modal route, stranding the two out of step.
             onCancel={(event) => {
                 // Always prevented: `Esc` would otherwise close the dialog and leave
                 // the URL on the modal route, stranding the two out of step. On a gate
@@ -176,37 +189,38 @@ export default function Modal({
                 if (event.target === dialogRef.current) void close();
             }}
             className={cn(
-                "m-auto max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-[1080px]",
-                "overflow-y-auto overscroll-contain bg-transparent p-0",
-                "backdrop:bg-transparent",
+                // `modal-shell` is what the `::backdrop` rules in `globals.css`
+                // hang off. Without it the dialog has no dim at all.
+                "modal-shell m-auto w-[calc(100vw-2rem)] max-w-[1080px] bg-transparent p-0",
                 className,
             )}
         >
-            {/* The dim itself is what makes the dialog read as modal, so under
-          reduced motion it is simply there from the first frame — only the
-          fade goes. */}
-            <motion.div
-                ref={dimScope}
-                aria-hidden
-                initial={reduceMotion ? false : { opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.22, ease: "easeOut" }}
-                className="pointer-events-none fixed inset-0 bg-ink/70"
-            />
             {/* `relative` so the close button anchors to the content, not the
-          scroll container — otherwise it drifts away on a tall form.
+                page — otherwise it drifts away on a tall form. The scroll is
+                here rather than on the dialog: see the note above.
 
-          The panel rises a little as it fades in rather than only fading: the
-          blocks on this page are physical, and one that materialises in place
-          reads as a texture change instead of a thing arriving. */}
+                The panel rises a little as it fades in rather than only fading:
+                the blocks on this page are physical, and one that materialises
+                in place reads as a texture change instead of a thing arriving.
+
+                The padding is what a scroll container costs. `overflow-y-auto`
+                clips at this box, and everything a panel paints *outside* its
+                border box — its drop shadow, the rust ring the accented card
+                wears — was drawn straight through it. Since the clip is square
+                and the panel is not, the only part that survived was the wedge
+                in each corner: four rust commas on the sign-up card, four dark
+                ones everywhere else, none of which read as anything but dirt on
+                the screen. Padding gives the shadow somewhere to land inside
+                the clip: 4px is the ring plus the 2px the blur reaches sideways,
+                and the bottom takes 8px because the shadow is thrown downwards.
+                The close button's offsets carry the same 4px, so it still sits
+                12px in from the panel's own corner. */}
             <motion.div
                 ref={scope}
-                initial={
-                    reduceMotion ? false : { opacity: 0, scale: 0.96, y: 14 }
-                }
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                className="relative"
+                initial={reduceMotion ? false : popEnterFrom}
+                animate={popEnterTo}
+                transition={reduceMotion ? { duration: 0 } : popTransition}
+                className="relative max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain px-1 pt-1 pb-2"
             >
                 {dismissible && (
                     <button
@@ -215,7 +229,7 @@ export default function Modal({
                         aria-label={closeLabel}
                         className={cn(
                             focusRing,
-                            "absolute top-3 right-3 z-10 cursor-pointer p-1.5",
+                            "absolute top-4 right-4 z-10 cursor-pointer p-1.5",
                             surface === "felt"
                                 ? `rounded-full bg-baize-deep text-mint hover:text-cream ${edge}`
                                 : "border-[3px] border-ink bg-cream text-ink",
