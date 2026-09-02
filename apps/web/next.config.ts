@@ -9,6 +9,20 @@ const nextConfig: NextConfig = {
         serverSourceMaps: false,
     },
 
+    async headers() {
+        return [
+            {
+                source: "/cards/:path*",
+                headers: [
+                    {
+                        key: "Cache-Control",
+                        value: "public, max-age=31536000, immutable",
+                    },
+                ],
+            },
+        ];
+    },
+
     // Emits `.next/standalone`: the server plus only the files it actually uses, which is what
     // the container copies instead of a full node_modules.
     output: "standalone",
