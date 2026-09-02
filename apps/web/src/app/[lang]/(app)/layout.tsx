@@ -2,6 +2,7 @@ import { getInitialSession } from "@/actions/auth";
 import AppNavigationFrame from "@/components/layout/AppNavigationFrame";
 import GameNavigation from "@/components/layout/GameNavigation";
 import SessionSupersededModal from "@/components/layout/SessionSupersededModal";
+import CardAssetPrefetch from "@/components/pages/game/blocks/cards/CardAssetPrefetch";
 import { AuthProvider } from "@/context/auth-context";
 import { GameProvider } from "@/context/game-context";
 import { LobbyProvider } from "@/context/lobby-context";
@@ -57,6 +58,7 @@ export default async function AppLayout({
                         be listening yet and would miss the one frame it exists
                         to catch. */}
                     <GameProvider userId={user?.id ?? null}>
+                        <CardAssetPrefetch />
                         <div
                             data-felt=""
                             className={cn(felt, "flex min-h-dvh flex-col")}

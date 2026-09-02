@@ -2,6 +2,14 @@ import { Rank, Suite } from "@bela/protocol";
 
 const CARD_ASSET_ROOT = "/cards/hungarian";
 
+/**
+ * Keep prefetches and rendered cards on the same responsive image candidates.
+ * The browser can then reuse the optimized file selected for its viewport and
+ * pixel density instead of caching a different rendition in the background.
+ */
+export const HUNGARIAN_CARD_IMAGE_SIZES =
+    "(max-height: 560px) 68px, (min-width: 640px) 112px, calc((100vw - 3rem) / 4)";
+
 const suitMetadata = {
     [Suite.HEARTS]: { folder: "hearts", label: "hearts" },
     [Suite.BELLS]: { folder: "bells", label: "bells" },

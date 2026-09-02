@@ -6,6 +6,7 @@ import { useRef } from "react";
 
 import {
     HUNGARIAN_CARD_BACK_ASSET,
+    HUNGARIAN_CARD_IMAGE_SIZES,
     getHungarianCardAsset,
 } from "@/lib/game/card-assets";
 import { cn } from "@/lib/ui/cn";
@@ -165,7 +166,7 @@ export default function PlayingCard({
             src={asset?.src ?? HUNGARIAN_CARD_BACK_ASSET}
             alt={hidden ? "" : asset!.alt}
             fill
-            sizes="(max-height: 560px) 68px, (min-width: 640px) 112px, calc((100vw - 3rem) / 4)"
+            sizes={HUNGARIAN_CARD_IMAGE_SIZES}
             // The art never takes the pointer itself: a native image drag on
             // desktop, or iOS's long-press callout, would both cut the card's
             // own gesture short.
