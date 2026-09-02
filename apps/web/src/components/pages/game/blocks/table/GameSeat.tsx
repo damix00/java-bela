@@ -80,11 +80,19 @@ export default function GameSeat({
                 {name}
             </span>
 
-            {won ? (
-                <span className="text-[8px] font-bold tracking-wide text-mint uppercase sm:text-[10px]">
-                    {wonLabel}
-                </span>
-            ) : null}
+            {/* Always drawn, hidden until it is true: the seat is centred in its
+                row, so a line that only exists once the trick is taken lifts the
+                face and the name every time somebody wins one. `invisible`
+                keeps the row and keeps the words out of the accessibility tree,
+                where the seat's own `aria-label` already says it. */}
+            <span
+                className={cn(
+                    "text-[8px] font-bold tracking-wide text-mint uppercase sm:text-[10px]",
+                    !won && "invisible",
+                )}
+            >
+                {wonLabel}
+            </span>
         </div>
     );
 }

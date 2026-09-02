@@ -4,7 +4,8 @@ import { Button } from "@/components/controls/Button";
 import PlayingCard from "@/components/pages/game/blocks/cards/PlayingCard";
 import Card from "@/components/ui/surfaces/Card";
 import Modal from "@/components/ui/surfaces/Modal";
-import { Rank, type Card as CardType } from "@bela/protocol";
+import { belaPair, cardKey } from "@/lib/game/rules";
+import type { Card as CardType } from "@bela/protocol";
 
 type BelaPromptProps = {
     card: CardType;
@@ -33,10 +34,7 @@ export default function BelaPrompt({
     skipLabel,
     onAnswer,
 }: BelaPromptProps) {
-    const partner = {
-        suite: card.suite,
-        rank: card.rank === Rank.KING ? Rank.QUEEN : Rank.KING,
-    };
+    const pair = belaPair(card);
 
     return (
         <Modal
@@ -49,26 +47,28 @@ export default function BelaPrompt({
             <Card
                 surface="felt"
                 padding="none"
-                className="relative items-center gap-4 overflow-hidden px-5 py-6 sm:px-7 sm:py-7"
+                className="items-center gap-4 px-5 py-6 sm:px-7 sm:py-7"
             >
-                <div
-                    className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-[radial-gradient(circle_at_top,rgb(207_102_68_/_0.24),transparent_70%)]"
-                    aria-hidden
-                />
-
-                <div className="relative flex h-28 w-36 items-center justify-center" aria-hidden>
-                    <PlayingCard
-                        card={partner}
-                        className="absolute left-5 w-[4.35rem] -rotate-7"
-                    />
-                    <PlayingCard
-                        card={card}
-                        className="absolute right-5 w-[4.35rem] rotate-7"
-                    />
-                    <span className="absolute -bottom-1 z-10 rounded-full bg-rust px-3 py-1 font-display text-[14px] font-extrabold text-cream shadow-[0_2px_8px_rgb(0_0_0_/_0.35)]">
-                        +20
-                    </span>
+                {/* Just the pair and the price. There was a plate under
+                    these with a rust glow on it and a clipped overflow, which
+                    cost the cards their corners and the badge its bottom half
+                    to say nothing the two cards do not already say. */}
+                <div className="flex items-end justify-center gap-3" aria-hidden>
+                    {pair.map((member) => (
+                        <PlayingCard
+                            key={cardKey(member)}
+                            card={member}
+                            className="w-[4.75rem]"
+                        />
+                    ))}
                 </div>
+
+                <span
+                    className="rounded-full bg-rust px-3.5 py-1 font-display text-[14px] font-extrabold text-cream"
+                    aria-hidden
+                >
+                    +20
+                </span>
 
                 <div className="space-y-1.5">
                     <h2 className="text-center font-display text-[20px] font-extrabold tracking-[-.02em] text-cream">
@@ -79,7 +79,11 @@ export default function BelaPrompt({
                     </p>
                 </div>
 
-                <div className="grid w-full grid-cols-2 gap-2 pt-1">
+                {/* Rust against the panel's own colour, not against cream. A
+                    cream block is the light one on a dark table and reads as
+                    the loud half of the pair, which is backwards here — calling
+                    it is the offer, playing quietly is the way past. */}
+                <div className="grid w-full grid-cols-2 gap-2">
                     <Button
                         surface="felt"
                         size="sm"
@@ -90,7 +94,7 @@ export default function BelaPrompt({
                     </Button>
                     <Button
                         surface="felt"
-                        tone="cream"
+                        tone="mint"
                         size="sm"
                         className="min-h-12 px-3"
                         onClick={() => onAnswer(false)}

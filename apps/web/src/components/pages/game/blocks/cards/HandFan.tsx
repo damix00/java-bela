@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import PlayingCard, {
     type CardOrigin,
@@ -74,6 +75,23 @@ export default function HandFan({
     pendingCardKey = null,
 }: HandFanProps) {
     const reduceMotion = useReducedMotion();
+    const gridRef = useRef<HTMLDivElement>(null);
+    const [height, setHeight] = useState<number | null>(null);
+
+    useLayoutEffect(() => {
+        const grid = gridRef.current;
+        if (!grid) return;
+
+        const measure = () => setHeight(grid.getBoundingClientRect().height);
+
+        measure();
+
+        const observer = new ResizeObserver(measure);
+        observer.observe(grid);
+
+        return () => observer.disconnect();
+    }, []);
+
     const sorted = sortHand(hand, trumpSuite);
     const legal = active ? legalMoveKeys(trickCards, trumpSuite, hand) : null;
     // In one row the card is sized from the viewport rather than pinned: eight
@@ -94,15 +112,45 @@ export default function HandFan({
           };
 
     return (
-        <div
-            data-game-hand=""
-            data-active={active ? "true" : "false"}
-            className={handClass}
-            role="group"
+        // The row count is the hand's height, and losing a row hands that height
+        // straight to the table: the trick jumps a centimetre up the screen mid
+        // trick, dragging a card in flight along with it. The measured height is
+        // animated so the table grows into the room instead of snapping into it.
+        <motion.div
+            className="flex w-full items-start justify-center"
+            initial={false}
+            animate={{ height: height ?? "auto" }}
+            transition={layoutTransition}
         >
-            {sorted.map((card) => {
-                // The last two of the deal stay face down until trump is called.
-                if (card.hidden) {
+            <div
+                ref={gridRef}
+                data-game-hand=""
+                data-active={active ? "true" : "false"}
+                className={handClass}
+                role="group"
+            >
+                {sorted.map((card) => {
+                    // The last two of the deal stay face down until trump is called.
+                    if (card.hidden) {
+                        return (
+                            <motion.div
+                                key={cardKey(card)}
+                                layout={reduceMotion ? false : "position"}
+                                transition={layoutTransition}
+                                className={cardClass}
+                            >
+                                <PlayingCard
+                                    faceDown
+                                    label={hiddenLabel}
+                                    className={cardClass}
+                                />
+                            </motion.div>
+                        );
+                    }
+
+                    const playable = legal !== null && legal.has(cardKey(card));
+                    const pending = pendingCardKey === cardKey(card);
+
                     return (
                         <motion.div
                             key={cardKey(card)}
@@ -111,63 +159,44 @@ export default function HandFan({
                             className={cardClass}
                         >
                             <PlayingCard
-                                faceDown
-                                label={hiddenLabel}
-                                className={cardClass}
+                                card={card}
+                                disabled={!playable}
+                                dimmed={legal !== null && !playable}
+                                onClick={
+                                    playable
+                                        ? (origin) => onPlay(card, origin)
+                                        : undefined
+                                }
+                                onDragPlay={
+                                    playable
+                                        ? (origin) => onPlay(card, origin)
+                                        : undefined
+                                }
+                                className={cn(
+                                    cardClass,
+                                    playable && "hover:z-10 focus-visible:z-20",
+                                    pending && "invisible",
+                                )}
                             />
                         </motion.div>
                     );
-                }
+                })}
 
-                const playable = legal !== null && legal.has(cardKey(card));
-                const pending = pendingCardKey === cardKey(card);
-
-                return (
+                {Array.from({ length: hiddenCount }, (_, index) => (
                     <motion.div
-                        key={cardKey(card)}
+                        key={`undealt-${index}`}
                         layout={reduceMotion ? false : "position"}
                         transition={layoutTransition}
                         className={cardClass}
                     >
                         <PlayingCard
-                            card={card}
-                            disabled={!playable}
-                            dimmed={legal !== null && !playable}
-                            onClick={
-                                playable
-                                    ? (origin) => onPlay(card, origin)
-                                    : undefined
-                            }
-                            onDragPlay={
-                                playable
-                                    ? (origin) => onPlay(card, origin)
-                                    : undefined
-                            }
-                            className={cn(
-                                cardClass,
-                                playable &&
-                                    "hover:z-10 focus-visible:z-20",
-                                pending && "invisible",
-                            )}
+                            faceDown
+                            label={hiddenLabel}
+                            className={cardClass}
                         />
                     </motion.div>
-                );
-            })}
-
-            {Array.from({ length: hiddenCount }, (_, index) => (
-                <motion.div
-                    key={`undealt-${index}`}
-                    layout={reduceMotion ? false : "position"}
-                    transition={layoutTransition}
-                    className={cardClass}
-                >
-                    <PlayingCard
-                        faceDown
-                        label={hiddenLabel}
-                        className={cardClass}
-                    />
-                </motion.div>
-            ))}
-        </div>
+                ))}
+            </div>
+        </motion.div>
     );
 }

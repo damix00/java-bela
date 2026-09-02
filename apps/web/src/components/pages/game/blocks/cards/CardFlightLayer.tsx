@@ -6,7 +6,7 @@ import {
     useMotionValue,
     type Transition,
 } from "motion/react";
-import { useLayoutEffect, useRef, type RefObject } from "react";
+import { useLayoutEffect, type RefObject } from "react";
 import type { Card } from "@bela/protocol";
 
 import PlayingCard, { type CardOrigin } from "@/components/pages/game/blocks/cards/PlayingCard";
@@ -91,9 +91,6 @@ function FlightCard({
     const rotate = useMotionValue(flight.rotation);
     const scale = useMotionValue(1.035);
 
-    const onCompleteRef = useRef(onComplete);
-    onCompleteRef.current = onComplete;
-
     useLayoutEffect(() => {
         let cancelled = false;
         let frame = 0;
@@ -105,7 +102,7 @@ function FlightCard({
         const finish = () => {
             if (cancelled || arrived) return;
             arrived = true;
-            onCompleteRef.current(flight.id, flight.returning);
+            onComplete(flight.id, flight.returning);
         };
 
         // Retargeting rather than replaying: the slot the card is heading for
@@ -118,15 +115,25 @@ function FlightCard({
             const transition = arrived ? instant : flightSpring;
             const run = ++generation;
 
-            animate(y, destination.top, transition);
-            animate(width, destination.width, transition);
-            animate(height, destination.height, transition);
+            // Every property has to land before the card is done travelling.
+            // Watching one of them is not enough: the across seat sits directly
+            // over its slot, so its x barely moves, finishes on the first frame,
+            // and would end the flight while the card was still falling.
+            const legs = [
+                animate(x, destination.left, transition),
+                animate(y, destination.top, transition),
+                animate(width, destination.width, transition),
+                animate(height, destination.height, transition),
+            ];
 
-            void animate(x, destination.left, transition).then(() => {
-                // Only the newest run may report arrival; a retarget stops the
-                // previous animation, which settles its promise all the same.
-                if (run === generation) finish();
-            });
+            void Promise.all(legs).then(
+                () => {
+                    // Only the newest run may report arrival; a retarget stops
+                    // the previous run, whose promise settles all the same.
+                    if (run === generation) finish();
+                },
+                () => {},
+            );
         };
 
         const tick = () => {
@@ -177,6 +184,7 @@ function FlightCard({
         flight.returning,
         flight.rotation,
         height,
+        onComplete,
         rootRef,
         rotate,
         scale,

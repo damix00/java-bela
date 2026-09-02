@@ -130,6 +130,28 @@ export function canDeclareBela(
 }
 
 /**
+ * The pair a bela is made of, king first, derived from whichever of the two was
+ * played.
+ *
+ * The wire only ever names the card being thrown — the prompt that asks about
+ * it, the announcement that follows and the declaration credited to the team
+ * all have to draw both halves, and each of them worked the partner out for
+ * itself until they lived here. The partner is the played card with its rank
+ * and its point value swapped; nothing that shows a bela compares these cards,
+ * so the `strength` carried over from its twin is never read.
+ */
+export function belaPair(played: Card): [Card, Card] {
+    const playedKing = played.rank === Rank.KING;
+    const partner: Card = {
+        ...played,
+        rank: playedKing ? Rank.QUEEN : Rank.KING,
+        points: playedKing ? 3 : 4,
+    };
+
+    return playedKing ? [played, partner] : [partner, played];
+}
+
+/**
  * Whether a card may be thrown into the trick in progress.
  *
  * Bela's obligations, in the order they apply: follow the led suit; while

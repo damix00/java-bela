@@ -6,9 +6,7 @@ import { Button } from "@/components/controls/Button";
 import DeclarationList from "@/components/pages/game/blocks/controls/DeclarationList";
 import { declarationPoints } from "@/lib/game/rules";
 import type { Declaration, Type } from "@bela/protocol";
-import { cn } from "@/lib/ui/cn";
 import {
-    panelNested,
     popEnterFrom,
     popEnterTo,
     popTransition,
@@ -63,19 +61,13 @@ function Side({
     nameOf: (seat: number) => string;
 }) {
     return (
-        <div
-            className={cn(
-                panelNested,
-                // No shadow on this one. `panelNested` casts one so a block can
-                // lift off the felt it is laid on, and this block is not on the
-                // felt — it is inside a panel that is already lifted, and a
-                // second shadow within the same silhouette only muddies the
-                // corner it shares with the first. The step in colour is what
-                // separates it here.
-                "shadow-none",
-                "flex min-w-0 flex-1 flex-col items-center gap-2 px-4 py-3 text-center",
-            )}
-        >
+        // No block of its own. This used to sit on a `panelNested` plate, which
+        // is `baize-deep` — the same colour as the raised panel it is laid on,
+        // so the plate was never visible and its padding read as the overlay
+        // having enormous margins. The label is what separates one side from
+        // the other; the step in colour that `panelNested` promises is not
+        // available against a block of its own colour.
+        <div className="flex min-w-0 flex-1 flex-col items-start gap-2 text-left">
             <span className="truncate text-[11px] font-bold tracking-wide text-mint/70 uppercase">
                 {label}
             </span>
@@ -88,11 +80,15 @@ function Side({
                 The cards remain visible at every table height: revealing them
                 is what makes the declaration valid, so the points alone are
                 not an adequate table summary. */}
+            {/* Left-aligned, and every row the full width of the panel. Centring
+                the column sized each set to its own cards, so a three-card set
+                and a four-card set started at different places down the same
+                list and nothing lined up with the heading above it. */}
             <DeclarationList
                 declarations={declarations}
                 typeNames={typeNames}
                 nameOf={nameOf}
-                className="mt-0.5 items-center"
+                className="mt-0.5 w-full"
             />
         </div>
     );
@@ -203,9 +199,9 @@ export default function DeclarationsPanel({
             animate={reveal}
             transition={transition}
             aria-live="polite"
-            className="flex w-fit max-w-full flex-col items-center gap-3 [@media(max-height:560px)]:flex-row [@media(max-height:560px)]:justify-center"
+            className="flex w-full max-w-full flex-col items-start gap-3 [@media(max-height:560px)]:flex-row [@media(max-height:560px)]:items-center [@media(max-height:560px)]:justify-center"
         >
-            <div className="text-center">
+            <div className="w-full text-left">
                 <p className="font-display text-[17px] font-extrabold tracking-[-.02em] text-cream">
                     {heading}
                 </p>
@@ -219,7 +215,7 @@ export default function DeclarationsPanel({
                     {noneLabel}
                 </p>
             ) : (
-                <div className="flex w-full max-w-[380px] items-start justify-center gap-2">
+                <div className="flex w-full max-w-[380px] items-start gap-5">
                     {[
                         { label: mineLabel, declarations: mine },
                         { label: theirsLabel, declarations: theirs },

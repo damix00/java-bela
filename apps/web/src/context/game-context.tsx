@@ -11,6 +11,7 @@ import {
 import {
     GameStatus,
     RoundStatus,
+    Type,
     type Card,
     type Declaration,
     type PlayedCard,
@@ -21,7 +22,7 @@ import {
 
 import { useSocketCommands } from "@/context/socket-context";
 import { useSocketEvent } from "@/hooks/use-socket-event";
-import { sameCard } from "@/lib/game/rules";
+import { belaPair, sameCard } from "@/lib/game/rules";
 import { seatingFor, type GameSeating } from "@/lib/game/seats";
 
 /**
@@ -225,6 +226,26 @@ function readHands(team1: TeamSnapshot, team2: TeamSnapshot, userId: string) {
 /** `-1` is the backend's "not yet" for both of these, not a seat. */
 function optionalIndex(value: number | undefined | null) {
     return value === undefined || value === null || value < 0 ? null : value;
+}
+
+/**
+ * The bela a seat just called, as a declaration its team can be shown holding.
+ *
+ * Every other zvanje is settled before a card is played and arrives in
+ * `game:declarationsRevealed`; bela is called mid-trick, on the trump king or
+ * queen, and the only thing that says so is the `cardThrown` event that carries
+ * it. The server counts it in the round score straight away and hands it back
+ * inside the team lists on the next snapshot — this is the same entry, built a
+ * few minutes earlier so the board and the declarations dialog agree with the
+ * points the score is already showing.
+ */
+function belaDeclaration(playerIndex: number, played: Card): Declaration {
+    return {
+        type: Type.BELA,
+        playerIndex,
+        points: 20,
+        cards: belaPair(played),
+    };
 }
 
 export function GameProvider({
@@ -665,6 +686,23 @@ export function GameProvider({
                     sameCard(played.card, data.card),
             );
 
+            // A seat calls bela once a round, and the same event can arrive
+            // twice after a reconnect, so the seat's own entry is the guard.
+            const declaringTeam = data.playerIndex % 2 === 0 ? 1 : 2;
+            const teamDeclarations =
+                declaringTeam === 1
+                    ? prev.round.team1Declarations
+                    : prev.round.team2Declarations;
+            const bela =
+                data.belaDeclared &&
+                !teamDeclarations.some(
+                    (declaration) =>
+                        declaration.type === Type.BELA &&
+                        declaration.playerIndex === data.playerIndex,
+                )
+                    ? belaDeclaration(data.playerIndex, data.card)
+                    : null;
+
             return {
                 ...prev,
                 hand: mine
@@ -713,6 +751,14 @@ export function GameProvider({
                     team2RoundPoints: data.team2RoundPoints,
                     team1CardPoints: data.team1CardPoints ?? 0,
                     team2CardPoints: data.team2CardPoints ?? 0,
+                    team1Declarations:
+                        bela && declaringTeam === 1
+                            ? [...prev.round.team1Declarations, bela]
+                            : prev.round.team1Declarations,
+                    team2Declarations:
+                        bela && declaringTeam === 2
+                            ? [...prev.round.team2Declarations, bela]
+                            : prev.round.team2Declarations,
                     myBelaDeclared:
                         prev.round.myBelaDeclared ||
                         (mine && data.belaDeclared),

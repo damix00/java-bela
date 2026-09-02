@@ -268,6 +268,8 @@ export default function GameScreen({
     const [belaAnnouncement, setBelaAnnouncement] = useState<{
         key: string;
         playerIndex: number;
+        /** The trump king or queen it was called on, so the toast can show the pair. */
+        card: Card;
     } | null>(null);
 
     useEffect(() => {
@@ -378,6 +380,7 @@ export default function GameScreen({
             setBelaAnnouncement({
                 key: `${data.roundNumber}-${data.trickNumber}-${data.playerIndex}`,
                 playerIndex: data.playerIndex,
+                card: data.card,
             });
         }
 
@@ -871,11 +874,18 @@ export default function GameScreen({
                 />
             )}
 
-            <div className="pointer-events-none fixed top-[max(1rem,env(safe-area-inset-top))] left-1/2 z-[60] w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2">
+            {/* Under the scoreboard, not over it. The call is a two-and-a-half
+                second interruption and the board it used to cover is the one
+                thing on this screen that is read every trick — including the
+                declaration bonus this very call has just changed. Same offsets
+                the action overlay hangs from, so the two never disagree about
+                where the felt starts. */}
+            <div className="pointer-events-none fixed top-[max(6.5rem,calc(env(safe-area-inset-top)+5.75rem))] left-1/2 z-[60] w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2 flat:top-[max(4.5rem,calc(env(safe-area-inset-top)+4rem))] desk:top-[max(7rem,calc(env(safe-area-inset-top)+6rem))]">
                 <AnimatePresence mode="wait">
                     {belaAnnouncement ? (
                         <BelaAnnouncement
                             key={belaAnnouncement.key}
+                            card={belaAnnouncement.card}
                             message={copy.bela.announcement.replace(
                                 "{name}",
                                 nameOf(belaAnnouncement.playerIndex),

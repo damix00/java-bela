@@ -419,7 +419,7 @@
             "declare": "Declare it",
             "skip": "Play quietly",
             "announcement": "{name} called bela!",
-            "points": "Trump king + queen · 20 points"
+            "points": "Trump king + queen"
         },
         "trick": {
             "empty": "No cards played yet",
