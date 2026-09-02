@@ -36,10 +36,10 @@ type HandFanProps = {
  * the table appeared.
  */
 const handClass = [
-    "grid w-[calc(100%-0.5rem)] max-w-[26rem] grid-cols-4 items-end justify-center gap-2 px-0.5 pt-1",
-    "portrait-md:max-w-[22rem]",
-    "portrait-sm:max-w-[19rem] portrait-sm:gap-1.5",
-    "portrait-xs:max-w-[16.5rem]",
+    "grid w-[calc(100%-3.5rem)] max-w-[22.5rem] grid-cols-4 items-end justify-center gap-2 px-0.5 pt-1",
+    "portrait-md:max-w-[19.5rem]",
+    "portrait-sm:max-w-[16.5rem] portrait-sm:gap-1.5",
+    "portrait-xs:max-w-[14.5rem]",
     // One row, and the cards stand apart in it. They used to tuck under each
     // other the way a held hand does, which bought width but left every card
     // but the last one half-read; eight separate faces are the thing to look
@@ -99,8 +99,8 @@ export default function HandFan({
     // a fixed 80px hand overflows a 640px window the moment it stops tucking.
     const cardClass = cn(
         "w-full",
-        "desk:w-[clamp(3.25rem,10.5vw,7rem)]",
-        "flat:w-[clamp(2.5rem,8vw,4.25rem)]",
+        "desk:w-[clamp(3.125rem,10vw,6.5rem)]",
+        "flat:w-[clamp(2.25rem,7vw,3.75rem)]",
     );
     const layoutTransition = reduceMotion
         ? { duration: 0 }

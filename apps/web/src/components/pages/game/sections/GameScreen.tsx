@@ -245,6 +245,7 @@ export default function GameScreen({
     const reduceMotion = useReducedMotion();
     const screenRef = useRef<HTMLElement>(null);
     const nextFlightId = useRef(0);
+    const autoDeclinedDeclarationKey = useRef<string | null>(null);
     const [flights, setFlights] = useState<CardFlight[]>([]);
     const [flightConnection, setFlightConnection] = useState({
         status,
@@ -358,6 +359,39 @@ export default function GameScreen({
 
         return () => clearTimeout(id);
     }, [phase, leaveGame]);
+
+    /**
+     * An empty declaration hand has no decision to make. Decline it as soon as
+     * the server asks and keep the prompt off-screen. The connection epoch is
+     * part of the key so an unanswered round is retried after a reconnect, but
+     * ordinary snapshots and Strict Mode cannot send the command twice.
+     */
+    useEffect(() => {
+        const round = game?.round;
+        if (
+            status !== "connected" ||
+            phase !== "declaring" ||
+            !round ||
+            chair === -1 ||
+            round.myDeclarations.length > 0 ||
+            round.answeredDeclarationSeats.includes(chair)
+        ) {
+            return;
+        }
+
+        const key = `${connectionEpoch}-${round.roundNumber}`;
+        if (autoDeclinedDeclarationKey.current === key) return;
+
+        autoDeclinedDeclarationKey.current = key;
+        declineDeclarations();
+    }, [
+        status,
+        phase,
+        game?.round,
+        chair,
+        connectionEpoch,
+        declineDeclarations,
+    ]);
 
     const roundNumber = game?.round?.roundNumber ?? null;
     const trickNumber = game?.round?.currentTrickNumber ?? null;
@@ -657,7 +691,8 @@ export default function GameScreen({
             );
 
     const showRoundAction =
-        phase === "declaring" ||
+        (phase === "declaring" &&
+            (round?.myDeclarations.length ?? 0) > 0) ||
         phase === "declarations" ||
         (phase === "choosing-trump" && isMyTurn);
 
@@ -953,13 +988,15 @@ function Centre({
         return <Notice>{copy.trick.yourTurn}</Notice>;
     }
 
-    if (phase === "declaring" || phase === "declarations") {
+    if (phase === "declaring") {
+        if (round.myDeclarations.length === 0) return null;
+
+        return <Notice>{copy.declarations.promptHeading}</Notice>;
+    }
+
+    if (phase === "declarations") {
         return (
-            <Notice>
-                {phase === "declaring"
-                    ? copy.declarations.promptHeading
-                    : copy.declarations.heading}
-            </Notice>
+            <Notice>{copy.declarations.heading}</Notice>
         );
     }
 

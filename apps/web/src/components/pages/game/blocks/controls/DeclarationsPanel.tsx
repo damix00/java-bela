@@ -97,12 +97,10 @@ function Side({
 /**
  * Zvanja — first the private question, then the table's resolved totals.
  *
- * The question is asked of everyone, including the seats holding nothing: a
- * prompt that appeared only for players with zvanja would announce that somebody
- * has them, which is the one thing this phase is for keeping quiet. Whether this
- * player has answered is the server's to say, not local state — the round only
- * moves on once every seat has, so a client-side "I clicked it" would be lying
- * about what the table is waiting for.
+ * Players holding nothing are declined automatically before this panel is
+ * shown. Whether a prompted player has answered is still the server's to say,
+ * not local state — the round only moves on once every seat has, so a
+ * client-side "I clicked it" would be lying about what the table is waiting for.
  */
 export default function DeclarationsPanel({
     mine,

@@ -23,9 +23,9 @@ const stageClass = [
     "relative grid h-full min-h-0 w-full max-w-180 mx-auto items-center justify-items-center gap-1",
     "grid-cols-[minmax(2.75rem,4rem)_minmax(0,1fr)_minmax(2.75rem,4rem)] grid-rows-[auto_minmax(0,1fr)]",
     "flat:gap-0.5 flat:grid-cols-[3rem_minmax(0,1fr)_3rem]",
-    "desk:max-w-160 desk:items-stretch desk:justify-items-stretch desk:gap-[clamp(0.5rem,1.75vh,1rem)]",
+    "desk:max-w-[44rem] desk:items-stretch desk:justify-items-stretch desk:gap-[clamp(0.5rem,1.75vh,1rem)]",
     "desk:grid-cols-[5rem_minmax(0,1fr)_5rem]",
-    "desk-lg:max-w-250 desk-lg:gap-[clamp(0.5rem,2.25vh,1.5rem)] desk-lg:grid-cols-[minmax(0,1fr)_24rem_minmax(0,1fr)]",
+    "desk-lg:max-w-[66rem] desk-lg:gap-[clamp(0.5rem,2.25vh,1.5rem)] desk-lg:grid-cols-[minmax(0,1fr)_26rem_minmax(0,1fr)]",
     "desk-xl:gap-[clamp(0.5rem,2.5vh,2rem)]",
 ].join(" ");
 
