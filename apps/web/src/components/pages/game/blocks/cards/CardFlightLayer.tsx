@@ -1,11 +1,12 @@
 "use client";
 
 import {
+    animate,
     motion,
-    useAnimationControls,
+    useMotionValue,
     type Transition,
 } from "motion/react";
-import { useLayoutEffect, type RefObject } from "react";
+import { useLayoutEffect, useRef, type RefObject } from "react";
 import type { Card } from "@bela/protocol";
 
 import PlayingCard, { type CardOrigin } from "@/components/pages/game/blocks/cards/PlayingCard";
@@ -41,6 +42,8 @@ const flightSpring: Transition = {
     mass: 0.85,
 };
 
+const instant: Transition = { duration: 0 };
+
 function destinationFor(
     root: HTMLElement,
     playerIndex: number,
@@ -61,6 +64,15 @@ function destinationFor(
     };
 }
 
+function moved(a: CardOrigin, b: CardOrigin) {
+    return (
+        Math.abs(a.left - b.left) > 0.5 ||
+        Math.abs(a.top - b.top) > 0.5 ||
+        Math.abs(a.width - b.width) > 0.5 ||
+        Math.abs(a.height - b.height) > 0.5
+    );
+}
+
 function FlightCard({
     flight,
     rootRef,
@@ -70,92 +82,113 @@ function FlightCard({
     rootRef: RefObject<HTMLElement | null>;
     onComplete: CardFlightLayerProps["onComplete"];
 }) {
-    const controls = useAnimationControls();
     const { source } = flight;
 
+    const x = useMotionValue(source.left);
+    const y = useMotionValue(source.top);
+    const width = useMotionValue(source.width);
+    const height = useMotionValue(source.height);
+    const rotate = useMotionValue(flight.rotation);
+    const scale = useMotionValue(1.035);
+
+    const onCompleteRef = useRef(onComplete);
+    onCompleteRef.current = onComplete;
+
     useLayoutEffect(() => {
-        let frame = 0;
         let cancelled = false;
+        let frame = 0;
+        let generation = 0;
+        let started = false;
+        let arrived = false;
+        let target: CardOrigin | null = null;
 
         const finish = () => {
-            if (!cancelled) onComplete(flight.id, flight.returning);
+            if (cancelled || arrived) return;
+            arrived = true;
+            onCompleteRef.current(flight.id, flight.returning);
         };
 
-        const run = () => {
-            if (flight.returning) {
-                void controls
-                    .start({
-                        x: source.left,
-                        y: source.top,
-                        width: source.width,
-                        height: source.height,
-                        rotate: flight.rotation,
-                        scale: 1,
-                        transition: flightSpring,
-                    })
-                    .then(finish);
-                return;
-            }
+        // Retargeting rather than replaying: the slot the card is heading for
+        // moves whenever the layout under it does — most visibly when the hand
+        // drops a row and the table takes the height back. A flight aimed at
+        // the rect measured on take-off would land beside the trick, and a
+        // card that has already landed would sit there while the pile slid out
+        // from under it.
+        const aim = (destination: CardOrigin) => {
+            const transition = arrived ? instant : flightSpring;
+            const run = ++generation;
+
+            animate(y, destination.top, transition);
+            animate(width, destination.width, transition);
+            animate(height, destination.height, transition);
+
+            void animate(x, destination.left, transition).then(() => {
+                // Only the newest run may report arrival; a retarget stops the
+                // previous animation, which settles its promise all the same.
+                if (run === generation) finish();
+            });
+        };
+
+        const tick = () => {
+            if (cancelled) return;
 
             const root = rootRef.current;
-            const destination = root
-                ? destinationFor(root, flight.playerIndex)
-                : null;
+            const destination = flight.returning
+                ? source
+                : root
+                  ? destinationFor(root, flight.playerIndex)
+                  : null;
 
             // The first card can switch the centre from a status panel to the
             // trick in the same socket turn. Wait for that slot rather than
             // guessing where it will be and landing a frame off-centre.
-            if (!destination) {
-                frame = requestAnimationFrame(run);
-                return;
+            if (destination) {
+                if (!target || moved(target, destination)) {
+                    target = destination;
+                    aim(destination);
+                }
+
+                if (!started) {
+                    started = true;
+                    animate(
+                        rotate,
+                        flight.returning
+                            ? flight.rotation
+                            : flight.landingRotation,
+                        flightSpring,
+                    );
+                    animate(scale, 1, flightSpring);
+                }
             }
 
-            void controls
-                .start({
-                    x: destination.left,
-                    y: destination.top,
-                    width: destination.width,
-                    height: destination.height,
-                    rotate: flight.landingRotation,
-                    scale: 1,
-                    transition: flightSpring,
-                })
-                .then(finish);
+            frame = requestAnimationFrame(tick);
         };
 
-        run();
+        tick();
 
         return () => {
             cancelled = true;
             cancelAnimationFrame(frame);
-            controls.stop();
         };
     }, [
-        controls,
         flight.id,
         flight.landingRotation,
         flight.playerIndex,
         flight.returning,
         flight.rotation,
-        onComplete,
+        height,
         rootRef,
-        source.height,
-        source.left,
-        source.top,
-        source.width,
+        rotate,
+        scale,
+        source,
+        width,
+        x,
+        y,
     ]);
 
     return (
         <motion.div
-            initial={{
-                x: source.left,
-                y: source.top,
-                width: source.width,
-                height: source.height,
-                rotate: flight.rotation,
-                scale: 1.035,
-            }}
-            animate={controls}
+            style={{ x, y, width, height, rotate, scale }}
             className="fixed top-0 left-0 z-0 origin-center will-change-transform"
         >
             <PlayingCard card={flight.card} size="sm" className="w-full" />
