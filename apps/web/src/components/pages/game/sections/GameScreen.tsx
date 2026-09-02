@@ -1028,7 +1028,12 @@ function RoundActionOverlay({ children }: { children: React.ReactNode }) {
                 transition={reduceMotion ? { duration: 0 } : popTransition}
                 className={cn(
                     panelRaised,
-                    "pointer-events-auto max-h-full w-fit max-w-full justify-self-center overflow-y-auto overscroll-contain px-4 py-3.5 desk:min-w-[20rem] desk:px-5 desk:py-4",
+                    // `w-fit` hugs the content, but `min-w` can still make the
+                    // block wider than it — and a shrink-to-fit child inside a
+                    // block box would then sit against the left padding rather
+                    // than in the middle. Centring is the column's job, not the
+                    // content's.
+                    "pointer-events-auto flex max-h-full w-fit max-w-full flex-col items-center justify-self-center overflow-y-auto overscroll-contain px-4 py-3.5 desk:min-w-[20rem] desk:px-5 desk:py-4",
                 )}
             >
                 {children}
