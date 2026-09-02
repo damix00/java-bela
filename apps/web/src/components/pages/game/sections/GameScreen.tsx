@@ -31,6 +31,7 @@ import LeaveMatchDialog from "@/components/pages/game/blocks/status/LeaveMatchDi
 import DealCountdown from "@/components/pages/game/blocks/status/DealCountdown";
 import ScoreBoard from "@/components/pages/game/blocks/status/ScoreBoard";
 import TurnTimer from "@/components/pages/game/blocks/status/TurnTimer";
+import BelaAnnouncement from "@/components/pages/game/blocks/status/BelaAnnouncement";
 import {
     useGame,
     useGameActions,
@@ -264,6 +265,17 @@ export default function GameScreen({
         card: Card;
         origin: CardOrigin;
     } | null>(null);
+    const [belaAnnouncement, setBelaAnnouncement] = useState<{
+        key: string;
+        playerIndex: number;
+    } | null>(null);
+
+    useEffect(() => {
+        if (!belaAnnouncement) return;
+
+        const timeout = window.setTimeout(() => setBelaAnnouncement(null), 2400);
+        return () => window.clearTimeout(timeout);
+    }, [belaAnnouncement]);
 
     /** Which side of the score has been tapped for its declarations. */
     const [showDeclarations, setShowDeclarations] = useState<
@@ -361,6 +373,13 @@ export default function GameScreen({
 
     useSocketEvent("game:cardThrown", (data) => {
         const local = data.playerIndex === chair;
+
+        if (data.belaDeclared) {
+            setBelaAnnouncement({
+                key: `${data.roundNumber}-${data.trickNumber}-${data.playerIndex}`,
+                playerIndex: data.playerIndex,
+            });
+        }
 
         if (local) {
             setFlights((current) => {
@@ -573,7 +592,10 @@ export default function GameScreen({
 
     /** A card leaves the hand either straight away, or after the bela question. */
     const play = (card: Card, origin: CardOrigin) => {
-        if (canDeclareBela(card, trumpSuite, game.hand, game.myPlayedCards)) {
+        if (
+            round?.myBelaDeclared === false &&
+            canDeclareBela(card, trumpSuite, game.hand, game.myPlayedCards)
+        ) {
             setBelaCard({ card, origin });
             return;
         }
@@ -848,6 +870,21 @@ export default function GameScreen({
                     onAnswer={answerBela}
                 />
             )}
+
+            <div className="pointer-events-none fixed top-[max(1rem,env(safe-area-inset-top))] left-1/2 z-[60] w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2">
+                <AnimatePresence mode="wait">
+                    {belaAnnouncement ? (
+                        <BelaAnnouncement
+                            key={belaAnnouncement.key}
+                            message={copy.bela.announcement.replace(
+                                "{name}",
+                                nameOf(belaAnnouncement.playerIndex),
+                            )}
+                            pointsLabel={copy.bela.points}
+                        />
+                    ) : null}
+                </AnimatePresence>
+            </div>
 
             {confirmingLeave && (
                 <LeaveMatchDialog

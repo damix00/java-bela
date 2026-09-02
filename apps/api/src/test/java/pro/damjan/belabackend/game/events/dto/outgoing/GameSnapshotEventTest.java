@@ -96,6 +96,16 @@ class GameSnapshotEventTest {
         assertThat(RoundSnapshot.from(round, null, null, null).getMyDeclarations()).isEmpty();
     }
 
+    @Test
+    void onlyThePerspectiveSeatGetsItsBelaCallState() {
+        BeloteRound round = roundWithZvanja(RoundStatus.PLAYING);
+        round.getRoundPlayer(0).setBelaDeclared(true);
+
+        assertThat(RoundSnapshot.from(round, 0, null, null).isMyBelaDeclared()).isTrue();
+        assertThat(RoundSnapshot.from(round, 1, null, null).isMyBelaDeclared()).isFalse();
+        assertThat(RoundSnapshot.from(round, null, null, null).isMyBelaDeclared()).isFalse();
+    }
+
     private BeloteRound roundWithZvanja(RoundStatus status) {
         BeloteRound round = new BeloteRound(0, 0, status);
         round.getRoundPlayer(0).setDeclarations(List.of(new Declaration(

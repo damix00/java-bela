@@ -28,6 +28,9 @@ public class CardThrownEvent extends OutgoingEvent {
     private int team2CardPoints;
     private int team1TotalScore;
     private int team2TotalScore;
+    // True only on the throw where the player actually announced bela. This is distinct from
+    // `bela`, which becomes true when the second card completes and scores the pair.
+    private boolean belaDeclared;
     private boolean bela;
 
     public CardThrownEvent(
@@ -48,7 +51,8 @@ public class CardThrownEvent extends OutgoingEvent {
             int team2CardPoints,
             int team1TotalScore,
             int team2TotalScore,
-            boolean bela
+            boolean bela,
+            boolean belaDeclared
     ) {
         super("game:cardThrown");
         this.roundNumber = roundNumber;
@@ -69,5 +73,6 @@ public class CardThrownEvent extends OutgoingEvent {
         this.team1TotalScore = team1TotalScore;
         this.team2TotalScore = team2TotalScore;
         this.bela = bela;
+        this.belaDeclared = belaDeclared;
     }
 }

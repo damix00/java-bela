@@ -26,7 +26,8 @@ public class BeloteRound implements Serializable {
             boolean trickComplete,
             Integer winningPlayerIndex,
             boolean nextTrickPending,
-            boolean bela
+            boolean bela,
+            boolean belaDeclared
     ) {}
 
     private final int roundNumber;
@@ -176,7 +177,7 @@ public class BeloteRound implements Serializable {
         }
 
         if (!TrickValidator.isLegalMove(currentTrick, card, trumpSuite, gamePlayer)) {
-            return new CardThrowResult(false, currentTrickNumber, false, null, false, false);
+            return new CardThrowResult(false, currentTrickNumber, false, null, false, false, false);
         }
 
         int playedTrickNumber = currentTrickNumber;
@@ -188,7 +189,10 @@ public class BeloteRound implements Serializable {
 
         gamePlayer.removeCard(card);
 
-        boolean bela = awardBelaIfCompleted(gamePlayer.getSeatIndex(), card, declareBela);
+        boolean belaPreviouslyDeclared = getRoundPlayer(gamePlayer.getSeatIndex()).isBelaDeclared();
+        boolean bela = awardBelaIfCompleted(gamePlayer, card, declareBela);
+        boolean belaDeclared = !belaPreviouslyDeclared
+                && getRoundPlayer(gamePlayer.getSeatIndex()).isBelaDeclared();
 
         if (currentTrick.isComplete()) {
             int winningPlayerIndex = TrickValidator.determineTrickWinner(currentTrick, trumpSuite);
@@ -201,23 +205,26 @@ public class BeloteRound implements Serializable {
                 getRoundTeamForPlayerIndex(winningPlayerIndex).addCardPoints(10);
                 awardAllTricksBonusIfApplicable();
                 roundStatus = RoundStatus.FINISHED;
-                return new CardThrowResult(true, playedTrickNumber, true, winningPlayerIndex, false, bela);
+                return new CardThrowResult(
+                        true, playedTrickNumber, true, winningPlayerIndex, false, bela, belaDeclared);
             }
 
-            return new CardThrowResult(true, playedTrickNumber, true, winningPlayerIndex, true, bela);
+            return new CardThrowResult(
+                    true, playedTrickNumber, true, winningPlayerIndex, true, bela, belaDeclared);
         }
 
         advanceTurn();
-        return new CardThrowResult(true, playedTrickNumber, false, null, false, bela);
+        return new CardThrowResult(
+                true, playedTrickNumber, false, null, false, bela, belaDeclared);
     }
 
     /**
-     * Bela (King + Queen of the trump suite) is optional and announced on play. A player declaring
-     * on either trump K/Q throw records the intent (OR-accumulated). The +20 is awarded — by
-     * appending a {@code BELA} declaration to that player's {@link RoundPlayer} — at the moment they
-     * complete the pair, but only if they declared. Returns true if this card awarded the bela.
+     * Bela (King + Queen of the trump suite) is optional and announced on play. A valid declaration
+     * is accepted once, on either trump K/Q, only while the player still owns (or has already played)
+     * its partner. The +20 is awarded when the pair is completed. Keeping "declared now" separate
+     * from "awarded now" lets the server broadcast the spoken call on the first card as well.
      */
-    private boolean awardBelaIfCompleted(int seatIndex, Card card, boolean declareBela) {
+    private boolean awardBelaIfCompleted(GamePlayer gamePlayer, Card card, boolean declareBela) {
         if (trumpSuite == null || card.getSuite() != trumpSuite) {
             return false;
         }
@@ -225,27 +232,33 @@ public class BeloteRound implements Serializable {
             return false;
         }
 
+        int seatIndex = gamePlayer.getSeatIndex();
         RoundPlayer roundPlayer = getRoundPlayer(seatIndex);
-        if (declareBela) {
+        Rank partnerRank = card.getRank() == Rank.KING ? Rank.QUEEN : Rank.KING;
+        Card playedPartner = findPlayedCard(seatIndex, trumpSuite, partnerRank);
+        boolean holdsPartner = gamePlayer.getHand().stream()
+                .anyMatch(held -> held.getSuite() == trumpSuite && held.getRank() == partnerRank);
+        boolean ownsPair = holdsPartner || playedPartner != null;
+        boolean newlyDeclared = declareBela && ownsPair && !roundPlayer.isBelaDeclared();
+
+        if (newlyDeclared) {
             roundPlayer.setBelaDeclared(true);
         }
 
-        Rank partnerRank = card.getRank() == Rank.KING ? Rank.QUEEN : Rank.KING;
-        Card partnerCard = findPlayedCard(seatIndex, trumpSuite, partnerRank);
-        if (partnerCard == null) {
-            return false; // the other half of the bela has not been played yet
+        if (playedPartner == null) {
+            return false;
         }
 
         if (!roundPlayer.isBelaDeclared()) {
-            return false; // pair completed but the player chose not to declare
+            return false;
         }
 
         List<Card> belaCards = new ArrayList<>();
         if (card.getRank() == Rank.KING) {
             belaCards.add(card);
-            belaCards.add(partnerCard);
+            belaCards.add(playedPartner);
         } else {
-            belaCards.add(partnerCard);
+            belaCards.add(playedPartner);
             belaCards.add(card);
         }
 

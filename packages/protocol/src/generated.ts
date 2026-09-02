@@ -58,6 +58,7 @@ export interface Card {
 
 export interface CardThrowResult {
     bela: boolean;
+    belaDeclared: boolean;
     legalMove: boolean;
     nextTrickPending: boolean;
     trickComplete: boolean;
@@ -67,6 +68,7 @@ export interface CardThrowResult {
 
 export interface CardThrownEvent extends OutgoingEvent {
     bela: boolean;
+    belaDeclared: boolean;
     card: Card;
     expired: boolean;
     nextTrickPending: boolean;
@@ -303,7 +305,9 @@ export interface RoundSnapshot {
     currentTrickWinningPlayerIndex: number;
     currentTurnIndex: number;
     declinedDeclarationSeats: number[];
+    myBelaDeclared: boolean;
     myDeclarations: Declaration[];
+    myPlayedCards: Card[];
     roundNumber: number;
     roundStatus: RoundStatus;
     team1CardPoints: number;

@@ -13,6 +13,7 @@ import pro.damjan.belabackend.game.model.round.BeloteRound;
 import pro.damjan.belabackend.game.model.round.RoundPlayer;
 import pro.damjan.belabackend.game.model.round.RoundStatus;
 import pro.damjan.belabackend.game.model.round.trick.PlayedCard;
+import pro.damjan.belabackend.game.model.round.trick.Trick;
 import pro.damjan.belabackend.websocket.events.dto.OutgoingEvent;
 
 import java.util.List;
@@ -145,6 +146,11 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
         // the perspective player's own zvanja, so they can be asked about them without anyone
         // else's holdings travelling with the question
         private final List<Declaration> myDeclarations;
+        // Perspective-only state used to avoid asking for bela again after this player called it.
+        private final boolean myBelaDeclared;
+        // The perspective player's earlier throws survive reconnects, so the client can still
+        // recognize the second half of bela after the first card's trick has left the felt.
+        private final List<Card> myPlayedCards;
         // the active countdown: which timer is running (ScheduledTaskType name) and seconds remaining.
         // Both null when no client-facing timer is active.
         private final String timerType;
@@ -169,6 +175,8 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
                 List<Integer> declinedDeclarationSeats,
                 List<Integer> answeredDeclarationSeats,
                 List<Declaration> myDeclarations,
+                boolean myBelaDeclared,
+                List<Card> myPlayedCards,
                 String timerType,
                 Long timeoutSeconds,
                 Integer currentTrickWinningPlayerIndex
@@ -189,6 +197,8 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
             this.declinedDeclarationSeats = declinedDeclarationSeats;
             this.answeredDeclarationSeats = answeredDeclarationSeats;
             this.myDeclarations = myDeclarations;
+            this.myBelaDeclared = myBelaDeclared;
+            this.myPlayedCards = myPlayedCards;
             this.timerType = timerType;
             this.timeoutSeconds = timeoutSeconds;
             this.currentTrickWinningPlayerIndex = currentTrickWinningPlayerIndex;
@@ -235,6 +245,8 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
                     declinedSeats,
                     round.answeredDeclarationSeats(),
                     ownDeclarations(round, perspectiveSeat),
+                    perspectiveSeat != null && round.getRoundPlayer(perspectiveSeat).isBelaDeclared(),
+                    ownPlayedCards(round, perspectiveSeat),
                     timerType,
                     timeoutSeconds,
                     winningPlayerIndex
@@ -249,6 +261,19 @@ public class GameSnapshotEvent extends PerspectiveOutgoingEvent {
 
             return round.getRoundPlayer(perspectiveSeat).getDeclarations().stream()
                     .filter(declaration -> declaration.getType() != Declaration.Type.BELA)
+                    .toList();
+        }
+
+        private static List<Card> ownPlayedCards(BeloteRound round, Integer perspectiveSeat) {
+            if (perspectiveSeat == null) {
+                return List.of();
+            }
+
+            List<Trick> tricks = round.getTricks() == null ? List.of() : round.getTricks();
+            return tricks.stream()
+                    .flatMap(trick -> trick.getPlayedCards().stream())
+                    .filter(played -> played.getPlayerIndex() == perspectiveSeat)
+                    .map(PlayedCard::getCard)
                     .toList();
         }
     }

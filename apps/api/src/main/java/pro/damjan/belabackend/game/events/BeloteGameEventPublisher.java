@@ -276,7 +276,8 @@ public class BeloteGameEventPublisher {
             Integer winningPlayerIndex,
             long timeoutSeconds,
             long pendingDelaySeconds,
-            boolean bela
+            boolean bela,
+            boolean belaDeclared
     ) {
         broadcastToGame(
                 game,
@@ -298,7 +299,8 @@ public class BeloteGameEventPublisher {
                         game.getCurrentRound().getCardPoints(1),
                         game.getTeam1().getTotalScore(),
                         game.getTeam2().getTotalScore(),
-                        bela
+                        bela,
+                        belaDeclared
                 )
         );
     }

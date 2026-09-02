@@ -109,7 +109,8 @@ public class CardPlayService {
                 result.winningPlayerIndex(),
                 timeoutSeconds,
                 pendingDelaySeconds,
-                result.bela()
+                result.bela(),
+                result.belaDeclared()
         );
 
         if (round.getRoundStatus() == RoundStatus.FINISHED) {

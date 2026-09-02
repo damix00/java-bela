@@ -97,6 +97,7 @@ class CardPlayServiceTest {
                 eq(3),
                 eq(0L),
                 eq(3L),
+                eq(false),
                 eq(false)
         );
         verify(gamePublisher, never()).cardTurnStarted(game, 30L);
@@ -115,6 +116,7 @@ class CardPlayServiceTest {
                 eq(3),
                 eq(0L),
                 eq(3L),
+                eq(false),
                 eq(false)
         );
         order.verify(scheduledTaskRegistry).registerTask(any(ScheduledGameTask.class));
@@ -187,6 +189,7 @@ class CardPlayServiceTest {
                 eq(3),
                 eq(0L),
                 eq(5L),
+                eq(false),
                 eq(false)
         );
     }
@@ -221,7 +224,7 @@ class CardPlayServiceTest {
         InOrder order = inOrder(gamePublisher);
         order.verify(gamePublisher).cardThrown(
                 eq(game), eq(0), eq(0), eq(3), any(Card.class),
-                eq(false), eq(true), eq(false), eq(3), eq(0L), eq(5L), eq(false)
+                eq(false), eq(true), eq(false), eq(3), eq(0L), eq(5L), eq(false), eq(false)
         );
         order.verify(gamePublisher).gameEnded(game);
     }
@@ -295,7 +298,7 @@ class CardPlayServiceTest {
         cardPlayService.handleCardThrowTimeout("game-1", 0, 99, 0);
 
         verify(gameAccessService, never()).save(any());
-        verify(gamePublisher, never()).cardThrown(any(), any(Integer.class), any(Integer.class), any(Integer.class), any(), any(Boolean.class), any(Boolean.class), any(Boolean.class), any(), any(Long.class), any(Long.class), any(Boolean.class));
+        verify(gamePublisher, never()).cardThrown(any(), any(Integer.class), any(Integer.class), any(Integer.class), any(), any(Boolean.class), any(Boolean.class), any(Boolean.class), any(), any(Long.class), any(Long.class), any(Boolean.class), any(Boolean.class));
         verify(scheduledTaskRegistry, never()).registerTask(any());
     }
 
@@ -390,8 +393,8 @@ class CardPlayServiceTest {
                         && task.getRequiredIntParameter("trickNumber") == 0
                         && task.getRequiredIntParameter("turnIndex") == 1
         ));
-        verify(gamePublisher).cardThrown(eq(game), eq(0), eq(0), eq(0), any(Card.class), eq(false), eq(false), eq(false), eq(null), eq(30L), eq(0L), eq(false));
-        verify(gamePublisher, never()).cardThrown(eq(game), eq(0), eq(0), eq(1), any(Card.class), eq(true), eq(false), eq(false), eq(null), eq(30L), eq(0L), eq(false));
+        verify(gamePublisher).cardThrown(eq(game), eq(0), eq(0), eq(0), any(Card.class), eq(false), eq(false), eq(false), eq(null), eq(30L), eq(0L), eq(false), eq(false));
+        verify(gamePublisher, never()).cardThrown(eq(game), eq(0), eq(0), eq(1), any(Card.class), eq(true), eq(false), eq(false), eq(null), eq(30L), eq(0L), eq(false), eq(false));
     }
 
     @Test

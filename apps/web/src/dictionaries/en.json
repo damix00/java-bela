@@ -415,9 +415,11 @@
         },
         "bela": {
             "heading": "Declare bela?",
-            "body": "The trump king and queen together are worth 20 — but only if you say so as you play the second one.",
+            "body": "The trump king and queen are worth 20. Call bela while playing either one — you only need to call it once.",
             "declare": "Declare it",
-            "skip": "Play quietly"
+            "skip": "Play quietly",
+            "announcement": "{name} called bela!",
+            "points": "Trump king + queen · 20 points"
         },
         "trick": {
             "empty": "No cards played yet",

@@ -415,9 +415,11 @@
         },
         "bela": {
             "heading": "Zvati belu?",
-            "body": "Adutski kralj i baba zajedno vrijede 20 — ali samo ako to kažeš kad baciš drugu od njih.",
+            "body": "Adutski kralj i baba vrijede 20 bodova. Zovi belu uz bilo koju od njih — dovoljno je jednom.",
             "declare": "Zovi belu",
-            "skip": "Baci bez zvanja"
+            "skip": "Baci bez zvanja",
+            "announcement": "{name} je zvao belu!",
+            "points": "Adutski kralj + baba · 20 bodova"
         },
         "trick": {
             "empty": "Još nema bačenih karata",

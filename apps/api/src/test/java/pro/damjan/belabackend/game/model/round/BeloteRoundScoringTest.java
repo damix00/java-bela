@@ -62,12 +62,14 @@ class BeloteRoundScoringTest {
         playFromHand(round, players.get(2));
         playFromHand(round, players.get(3));
         assertThat(kingResult.bela()).isFalse(); // queen not played yet
+        assertThat(kingResult.belaDeclared()).isTrue();
 
         // Trick 2: seat 0 leads trump QUEEN, completing the (already-declared) bela.
         round.startNewTrick();
         BeloteRound.CardThrowResult queenResult = playFromHand(round, players.get(0), false);
 
         assertThat(queenResult.bela()).isTrue();
+        assertThat(queenResult.belaDeclared()).isFalse();
         assertThat(declarationPoints(round, 0)).isEqualTo(20);
     }
 
@@ -88,7 +90,24 @@ class BeloteRoundScoringTest {
         BeloteRound.CardThrowResult queenResult = playFromHand(round, players.get(0), true);
 
         assertThat(queenResult.bela()).isTrue();
+        assertThat(queenResult.belaDeclared()).isTrue();
         assertThat(declarationPoints(round, 0)).isEqualTo(20);
+    }
+
+    @Test
+    void belaCannotBeDeclaredWithoutOwningTheTrumpPair() {
+        BeloteRound round = playingRound();
+        GamePlayer player = player("p0", 0, List.of(
+                card(TRUMP, Rank.KING),
+                card(Suite.BELLS, Rank.SEVEN)
+        ));
+
+        round.startNewTrick();
+        BeloteRound.CardThrowResult result = playFromHand(round, player, true);
+
+        assertThat(result.belaDeclared()).isFalse();
+        assertThat(round.getRoundPlayer(0).isBelaDeclared()).isFalse();
+        assertThat(declarationPoints(round, 0)).isZero();
     }
 
     @Test

@@ -75,6 +75,8 @@ export type RoundView = {
     answeredDeclarationSeats: number[];
     /** My own zvanja. The only holdings the server will name while it is asking. */
     myDeclarations: Declaration[];
+    /** Whether I have already called bela this round. */
+    myBelaDeclared: boolean;
 };
 
 export type GameView = {
@@ -302,10 +304,6 @@ export function GameProvider({
         const self = data.perspectiveUserId || userId || "";
         const { hand, counts } = readHands(data.team1, data.team2, self);
         const snapshot = data.currentRound;
-        const mySeat = [data.team1, data.team2]
-            .flatMap((team) => team.players ?? [])
-            .find((player) => player.userId === self)?.seatIndex;
-
         const round: RoundView | null = snapshot
             ? {
                   roundNumber: snapshot.roundNumber,
@@ -329,6 +327,7 @@ export function GameProvider({
                   answeredDeclarationSeats:
                       snapshot.answeredDeclarationSeats ?? [],
                   myDeclarations: snapshot.myDeclarations ?? [],
+                  myBelaDeclared: snapshot.myBelaDeclared ?? false,
               }
             : null;
 
@@ -340,13 +339,7 @@ export function GameProvider({
             team2: data.team2,
             hand,
             counts,
-            // Earlier tricks are not in a snapshot, so the only cards of mine we
-            // can recover are the ones still on the felt. Bela may therefore go
-            // unoffered for a pair split across a reload — it costs 20 points in
-            // a rare case, and inventing the rest would be worse.
-            myPlayedCards: (snapshot?.currentTrickCards ?? [])
-                .filter((played) => played.playerIndex === mySeat)
-                .map((played) => played.card),
+            myPlayedCards: snapshot?.myPlayedCards ?? [],
             round,
         });
 
@@ -436,6 +429,7 @@ export function GameProvider({
                     declinedDeclarationSeats: [],
                     answeredDeclarationSeats: [],
                     myDeclarations: [],
+                    myBelaDeclared: false,
                 },
             };
         });
@@ -573,6 +567,7 @@ export function GameProvider({
                     declinedDeclarationSeats: [],
                     answeredDeclarationSeats: [],
                     myDeclarations: data.myDeclarations ?? [],
+                    myBelaDeclared: false,
                 },
             };
         });
@@ -718,6 +713,9 @@ export function GameProvider({
                     team2RoundPoints: data.team2RoundPoints,
                     team1CardPoints: data.team1CardPoints ?? 0,
                     team2CardPoints: data.team2CardPoints ?? 0,
+                    myBelaDeclared:
+                        prev.round.myBelaDeclared ||
+                        (mine && data.belaDeclared),
                 },
             };
         });
