@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -13,14 +14,17 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import pro.damjan.belabackend.security.jwt.JwtAuthEntryPoint;
+import pro.damjan.belabackend.security.jwt.JwtAccessDeniedHandler;
 import pro.damjan.belabackend.user.UserRepository;
 
 @Configuration
 @RequiredArgsConstructor
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final JwtAuthEntryPoint jwtAuthEntryPoint;
+    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -46,9 +50,17 @@ public class SecurityConfig {
                         .requestMatchers("/auth/me", "/auth/logout-all").authenticated()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
+                        // Keep this before the authenticated fallback. The internal-source
+                        // header only bypasses rate limits and never contributes an authority.
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
-                .exceptionHandling(handling -> handling.authenticationEntryPoint(jwtAuthEntryPoint))
+                .exceptionHandling(handling -> handling
+                        .authenticationEntryPoint(jwtAuthEntryPoint)
+                        // Write the response directly. Spring's default sendError(403) triggers
+                        // an /error dispatch after the security context has been cleared, which
+                        // turns a genuine authorization failure into a misleading 401.
+                        .accessDeniedHandler(jwtAccessDeniedHandler))
                 // no cookies
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)

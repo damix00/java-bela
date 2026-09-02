@@ -16,6 +16,7 @@ jobs:
     outputs:
       api: ${{ steps.filter.outputs.api }}
       web: ${{ steps.filter.outputs.web }}
+      admin: ${{ steps.filter.outputs.admin }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -33,6 +34,15 @@ jobs:
               - 'apps/web/**'
               - 'packages/**'
               - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - '.github/workflows/ci.yml'
+            admin:
+              - 'apps/admin/**'
+              - 'packages/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
               - '.github/workflows/ci.yml'
 
   api:
@@ -96,10 +106,14 @@ jobs:
           path: apps/api/build/reports/tests/test
 
   web:
-    name: Web (Next.js)
+    name: Web apps (Next.js)
     needs: changes
-    # API DTO changes can affect the generated package consumed by the web app.
-    if: needs.changes.outputs.web == 'true' || needs.changes.outputs.api == 'true'
+    # Keep the existing job id so required-check configuration does not change. Both Next.js
+    # apps share the generated protocol and one pnpm install, so build them together.
+    if: >-
+      needs.changes.outputs.web == 'true'
+      || needs.changes.outputs.admin == 'true'
+      || needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -137,8 +151,11 @@ jobs:
       - name: Type check
         run: pnpm run typecheck
 
-      - name: Build
+      - name: Build web
         run: pnpm run build:web
+
+      - name: Build admin
+        run: pnpm run build:admin
 
       # The README claims CI fails on stale generated types, but nothing checked until now:
       # generateTypeScript regenerated the file and the diff was silently discarded. A stale
@@ -221,6 +238,9 @@ jobs:
       - name: Deploy web
         run: kamal deploy -c config/deploy.web.yml
 
+      - name: Deploy admin
+        run: kamal deploy -c config/deploy.admin.yml
+
       # The health check alone cannot catch every broken deploy — a container with no CORS
       # mapping is "healthy" and still unusable from a browser — so assert on the header that
       # actually distinguishes them, not just on a 200.
@@ -232,6 +252,22 @@ jobs:
 
           echo "Web:"
           curl -fsS -o /dev/null -w '%{http_code}\n' https://bela.damjan.pro/api/health
+
+          echo "Admin health:"
+          curl -fsS https://bela-admin.damjan.pro/api/health
+
+          echo "Admin login:"
+          curl -fsS -o /dev/null https://bela-admin.damjan.pro/login
+
+          echo "Admin dashboard authentication gate:"
+          admin_dashboard_status=$(curl -sS -o /dev/null -w '%{http_code}' https://bela-admin.damjan.pro/)
+          test "$admin_dashboard_status" = "307" \
+            || { echo "Expected admin dashboard to redirect, got $admin_dashboard_status"; exit 1; }
+
+          echo "Admin API authentication gate:"
+          admin_api_status=$(curl -sS -o /dev/null -w '%{http_code}' https://bela-api.damjan.pro/admin/analytics)
+          test "$admin_api_status" = "401" \
+            || { echo "Expected unauthenticated admin API to return 401, got $admin_api_status"; exit 1; }
 
           echo "CORS mapping present:"
           curl -fsS -o /dev/null -D - -X OPTIONS https://bela-api.damjan.pro/auth/me \

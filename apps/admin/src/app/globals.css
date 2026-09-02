@@ -1,0 +1,147 @@
+:root {
+    color-scheme: light;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f5f5f5;
+    color: #171717;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+}
+
+a {
+    color: inherit;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+.page {
+    width: min(72rem, 100%);
+    margin: 0 auto;
+    padding: 2rem 1rem 4rem;
+}
+
+.page--narrow {
+    width: min(28rem, 100%);
+    min-height: 100vh;
+    display: grid;
+    align-content: center;
+}
+
+.header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.header h1,
+.panel h1,
+.section h2 {
+    margin-top: 0;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.panel,
+.section,
+.metric {
+    border: 1px solid #d4d4d4;
+    border-radius: 0.5rem;
+    background: white;
+}
+
+.panel,
+.section {
+    padding: 1.25rem;
+}
+
+.section + .section {
+    margin-top: 1.5rem;
+}
+
+.metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 0.75rem;
+}
+
+.metric {
+    padding: 1rem;
+}
+
+.metric dt {
+    color: #525252;
+    font-size: 0.875rem;
+}
+
+.metric dd {
+    margin: 0.35rem 0 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.form {
+    display: grid;
+    gap: 1rem;
+}
+
+.field {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.field input {
+    width: 100%;
+    padding: 0.65rem;
+    border: 1px solid #a3a3a3;
+    border-radius: 0.35rem;
+}
+
+.button {
+    padding: 0.65rem 0.9rem;
+    border: 1px solid #262626;
+    border-radius: 0.35rem;
+    background: #262626;
+    color: white;
+    cursor: pointer;
+}
+
+.button--secondary {
+    background: white;
+    color: #262626;
+}
+
+.error {
+    padding: 0.75rem;
+    border: 1px solid #dc2626;
+    border-radius: 0.35rem;
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.muted {
+    color: #525252;
+}
+
+@media (max-width: 36rem) {
+    .header {
+        display: block;
+    }
+
+    .header-actions {
+        margin-top: 1rem;
+    }
+}

@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import pro.damjan.belabackend.user.auth.AuthProvider;
+import pro.damjan.belabackend.user.auth.Role;
 
 import java.time.Instant;
 import java.util.List;
@@ -13,6 +14,10 @@ public interface UserRepository extends JpaRepository<User, String> {
     Optional<User> findByUsername(String username);
     boolean existsByUsername(String username);
     Optional<User> findByEmail(String email);
+
+    long countByAuthProvider(AuthProvider authProvider);
+    long countByRole(Role role);
+    long countByAuthProviderAndCreatedAtGreaterThanEqual(AuthProvider authProvider, Instant createdAt);
 
     void deleteUsersByAuthProviderAndCreatedAtBefore(AuthProvider authProvider, Instant createdAtBefore);
 

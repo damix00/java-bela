@@ -1,8 +1,8 @@
 # bela
 
 A real-time, multiplayer [Belote](https://en.wikipedia.org/wiki/Belote) (bela)
-card game. The repository contains a Spring Boot API, a Next.js web client,
-and a shared TypeScript wire protocol.
+card game. The repository contains a Spring Boot API, a Next.js web client, a
+small Next.js admin panel, and a shared TypeScript wire protocol.
 
 The current app supports guest and registered sessions, English and Croatian,
 invite-code lobbies, seat and team management, and a playable four-player game
@@ -12,6 +12,7 @@ over WebSockets.
 
 ```
 apps/
+  admin/            Next.js 16 read-only analytics panel.
   api/              Spring Boot, Java 25, Gradle. PostgreSQL + Redis.
   web/              Next.js 16 client (App Router, Tailwind 4, TypeScript).
   web-deprecated/   The previous Next.js client. Reference only, frozen.
@@ -45,10 +46,11 @@ installed; it still runs standalone on npm from its own directory.
    have environment-variable overrides; their development defaults are in
    `apps/api/src/main/resources/application.properties`.
 
-3. Configure the web client:
+3. Configure the Next.js apps:
 
    ```bash
    cp apps/web/.env.example apps/web/.env.local
+   cp apps/admin/.env.example apps/admin/.env.local
    ```
 
    Set `INTERNAL_API_KEY_SB` to the same value as the API's
@@ -61,18 +63,20 @@ pnpm install
 pnpm dev
 ```
 
-`pnpm dev` starts Redis in Docker, then runs the API and the web client
-together with prefixed logs. Open http://localhost:3000. The API listens on
+`pnpm dev` starts Redis in Docker, then runs the API, web client, and admin
+panel together with prefixed logs. Open http://localhost:3000 for the game or
+http://localhost:3001 for the admin panel. The API listens on
 http://localhost:8080 and its WebSocket endpoint is `ws://localhost:8080/ws`.
 
 | Command | What it does |
 |---|---|
-| `pnpm dev` | Redis + API + web |
+| `pnpm dev` | Redis + API + web + admin |
 | `pnpm dev:api` | API only |
 | `pnpm dev:web` | Web only |
-| `pnpm build` | Build both apps |
+| `pnpm dev:admin` | Admin only, on port 3001 |
+| `pnpm build` | Build the API and both Next.js apps |
 | `pnpm test` | API test suite |
-| `pnpm lint` | Lint the web app |
+| `pnpm lint` | Lint both Next.js apps |
 | `pnpm typecheck` | Type check every workspace package |
 | `pnpm protocol` | Regenerate `packages/protocol` from the Java DTOs |
 | `pnpm redis:up` / `redis:down` | Redis lifecycle |
@@ -125,6 +129,27 @@ authentication flows, lobby table, and live game UI are implemented in
 
 The UI uses Tailwind 4 theme tokens defined in `apps/web/src/app/globals.css`.
 See `apps/web/README.md` for its design-system and component conventions.
+
+## Admin panel
+
+The read-only panel lives in `apps/admin` and is deployed automatically from
+`main` to https://bela-admin.damjan.pro. Its browser never calls the Spring API
+directly: the Next.js server forwards the administrator's bearer token over the
+private Docker network. The API still enforces `ROLE_ADMIN` on every request.
+
+Register a normal local account first, then promote it deliberately in
+PostgreSQL:
+
+```sql
+UPDATE users
+SET role = 'ADMIN'
+WHERE email = '<email>' AND auth_provider = 'LOCAL';
+```
+
+There is intentionally no HTTP endpoint or UI for granting administrator
+access. Before the first production deploy, create a proxied Cloudflare DNS
+record for `bela-admin.damjan.pro` pointing at the existing origin and ensure
+the Cloudflare origin certificate covers that hostname or `*.damjan.pro`.
 
 ## Java 25 note
 
