@@ -172,6 +172,51 @@ class BeloteRoundScoringTest {
     }
 
     @Test
+    void sweptTeamForfeitsItsDeclarationsIncludingBela() {
+        BeloteRound round = roundSweptByTeam0();
+
+        // Team 1 wins the zvanja contest on cards alone, and also holds a bela...
+        round.getRoundPlayer(1).addDeclaration(
+                new Declaration(Declaration.Type.SEQUENCE_3, 1, List.of()));
+        round.getRoundPlayer(1).addDeclaration(
+                new Declaration(Declaration.Type.BELA, 1, List.of()));
+        // ...while team 0 holds only a bela, which is normally credited regardless of the contest.
+        round.getRoundPlayer(0).addDeclaration(
+                new Declaration(Declaration.Type.BELA, 0, List.of()));
+
+        // ...but team 1 never took a trick, so none of it is credited to them - bela included.
+        assertThat(round.getDeclarations(1)).isEmpty();
+        assertThat(declarationPoints(round, 1)).isZero();
+
+        // Team 0 took every trick, so its bela stands.
+        assertThat(declarationPoints(round, 0)).isEqualTo(20);
+    }
+
+    @Test
+    void sweptTeamsForfeitedDeclarationsLeaveThePassThreshold() {
+        BeloteRound round = roundSweptByTeam0();
+        round.getRoundPlayer(1).addDeclaration(
+                new Declaration(Declaration.Type.FOUR_JACKS, 1, List.of()));
+
+        // Team 0 called, swept for 252, and team 1's forfeited 200 never joins the game total.
+        assertThat(round.getTeam1RoundScore()).isEqualTo(252);
+        assertThat(round.getTeam2RoundScore()).isZero();
+    }
+
+    @Test
+    void belotIsCreditedEvenThoughNoTrickWasEverPlayed() {
+        BeloteRound round = new BeloteRound(0, 0, RoundStatus.CHOOSING_TRUMP);
+        round.chooseTrump(TRUMP);
+        round.getRoundPlayer(0).addDeclaration(
+                new Declaration(Declaration.Type.BELOTE, 0, List.of()));
+        round.setRoundStatus(RoundStatus.FINISHED);
+
+        // A belot ends the round before a single trick exists. The no-trick forfeit must not
+        // swallow it: there were no tricks for anyone to take.
+        assertThat(declarationPoints(round, 0)).isEqualTo(162);
+    }
+
+    @Test
     void currentTrickIsAlwaysTheLastTrickInTheList() {
         // The current trick must be derived from the tricks list, not a duplicate field. Storing it
         // separately de-aliased it from the list across a persistence round trip, freezing the list
@@ -221,6 +266,29 @@ class BeloteRoundScoringTest {
 
         assertThat(round.getTrick(0).getPlayedCards()).hasSize(4);
         assertThat(round.getTrick(0).getWinningPlayerIndex()).isEqualTo(0);
+    }
+
+    /** A finished round in which team 0 (seats 0 and 2) took all eight tricks. */
+    private BeloteRound roundSweptByTeam0() {
+        BeloteRound round = new BeloteRound(0, 0, RoundStatus.CHOOSING_TRUMP);
+        round.chooseTrump(TRUMP);
+        round.setRoundStatus(RoundStatus.PLAYING);
+
+        // Seat 0 holds every trump and the others hold a suit each, so seat 0 wins every trick.
+        GamePlayer p0 = player("p0", 0, allOfSuite(TRUMP));
+        GamePlayer p1 = player("p1", 1, allOfSuite(Suite.BELLS));
+        GamePlayer p2 = player("p2", 2, allOfSuite(Suite.ACORN));
+        GamePlayer p3 = player("p3", 3, allOfSuite(Suite.LEAF));
+
+        for (int trick = 0; trick < 8; trick++) {
+            round.startNewTrick();
+            playFromHand(round, p0);
+            playFromHand(round, p1);
+            playFromHand(round, p2);
+            playFromHand(round, p3);
+        }
+
+        return round;
     }
 
     private BeloteRound finishedRoundWithCaller(int callerTeamSeat) {

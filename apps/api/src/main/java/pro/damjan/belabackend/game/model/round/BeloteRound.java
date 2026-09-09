@@ -390,11 +390,38 @@ public class BeloteRound implements Serializable {
     }
 
     /**
+     * Zvanja are credited only to a team that took at least one trick, bela included: a pair that
+     * ends the deal with nothing in front of it scores nothing for what it held.
+     *
+     * Only a deal that was actually played out can forfeit. A belot finishes the round before a
+     * single trick exists, so a round with no tricks forfeits nothing - there was nothing for
+     * anyone to take.
+     */
+    private boolean forfeitsDeclarations(int teamIndex) {
+        if (roundStatus != RoundStatus.FINISHED) {
+            return false;
+        }
+
+        List<Trick> played = tricksOrEmpty();
+        if (played.isEmpty()) {
+            return false;
+        }
+
+        return played.stream().noneMatch(trick ->
+                trick.isComplete() && trick.getWinningPlayerIndex() % 2 == teamIndex);
+    }
+
+    /**
      * Declarations shown/scored for a team: the zvanja awarded by the resolver (only the winning
      * team's, and only the belot for a belot hand), plus that team's bela declarations, which are
-     * always scored per-team regardless of the contest.
+     * always scored per-team regardless of the contest. A team that took no trick is credited
+     * nothing at all - see {@link #forfeitsDeclarations(int)}.
      */
     public List<Declaration> getDeclarations(int teamIndex) {
+        if (forfeitsDeclarations(teamIndex)) {
+            return List.of();
+        }
+
         DeclarationResolver.Result result = resolveDeclarations();
         List<Declaration> declarations = new ArrayList<>(
                 teamIndex == 0 ? result.team1Declarations() : result.team2Declarations());
