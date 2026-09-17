@@ -1,6 +1,12 @@
 /* tslint:disable */
 /* eslint-disable */
 
+export interface AdminAnalyticsResponse {
+    activity: LiveActivityAnalyticsResponse;
+    generatedAt: Date;
+    users: UserAnalyticsResponse;
+}
+
 export interface AuthResponse {
     accessToken: string;
     expiresIn: number;
@@ -163,6 +169,19 @@ export interface IncomingEvent {
 
 export interface JoinLobbyViaCodeCommand extends IncomingEvent {
     inviteCode: string;
+}
+
+export interface LiveActivityAnalyticsResponse {
+    connectedUsers: number;
+    gamesFinished: number;
+    gamesInProgress: number;
+    gamesTotal: number;
+    gamesWaiting: number;
+    lobbiesInGame: number;
+    lobbiesInLobby: number;
+    lobbiesMatchmaking: number;
+    lobbiesTotal: number;
+    sessions: number;
 }
 
 export interface Lobby {
@@ -410,6 +429,16 @@ export interface UpdateProfileRequest {
     bio: string;
     countryCode: string;
     username: string;
+}
+
+export interface UserAnalyticsResponse {
+    admins: number;
+    guests: number;
+    registered: number;
+    registeredLast24Hours: number;
+    registeredLast30Days: number;
+    registeredLast7Days: number;
+    total: number;
 }
 
 export interface UserResponse {

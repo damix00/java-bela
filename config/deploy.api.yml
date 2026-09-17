@@ -99,6 +99,7 @@ env:
     - INTERNAL_API_KEY
     - DB_PASSWORD
     - REDIS_PASSWORD
+    - ADMIN_EMAIL
 
 accessories:
   postgres:
