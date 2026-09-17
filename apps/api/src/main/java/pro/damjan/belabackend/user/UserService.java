@@ -18,6 +18,11 @@ public class UserService {
         return userRepository.findById(userId).orElse(null);
     }
 
+    /** Looks up the exact stored username; usernames are case-sensitive. */
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username).orElse(null);
+    }
+
     /**
      * Applies a partial profile update.
      *

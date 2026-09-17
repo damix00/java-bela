@@ -57,6 +57,11 @@ export function profilePath(locale: Locale) {
     return `/${locale}/profile`;
 }
 
+/** One player's public profile, addressed by their exact stored username. */
+export function publicProfilePath(locale: Locale, username: string) {
+    return `${profilePath(locale)}/${encodeURIComponent(username)}`;
+}
+
 export function settingsPath(locale: Locale) {
     return `/${locale}/settings`;
 }

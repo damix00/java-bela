@@ -456,6 +456,7 @@
     },
     "profile": {
         "title": "Your profile",
+        "publicTitle": "{username}'s profile",
         "memberSince": "Playing since",
         "emailLabel": "Email",
         "bioEmpty": "No line under your name yet.",
@@ -474,7 +475,12 @@
         "submit": "Save profile",
         "saved": "Profile saved.",
         "sessionExpired": "Your session timed out. Press save once more.",
-        "failed": "We couldn’t save your profile. Please try again."
+        "failed": "We couldn’t save your profile. Please try again.",
+        "notFound": {
+            "heading": "Player not found",
+            "body": "There’s no profile under that username.",
+            "action": "Back to the lobby"
+        }
     },
     "settings": {
         "title": "Settings",

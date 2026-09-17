@@ -2,10 +2,9 @@
 
 import { cookies } from "next/headers";
 
-import { internalApiFetch } from "@/api/internal";
+import { authenticatedApiFetch } from "@/api/authenticated";
 import type { User } from "@/api/types/user";
 import {
-    ACCESS_TOKEN_COOKIE,
     clearSessionCookies,
     setUserCookie,
     setWelcomeDone,
@@ -19,34 +18,6 @@ import {
     type ProfileActionResult,
     type ProfileUpdate,
 } from "@/lib/profile/result";
-
-/**
- * Server-to-server, but on the caller's behalf.
- *
- * `internalApiFetch` carries the internal source token, which says *which app*
- * is calling; endpoints behind `@AuthenticationPrincipal` need to know *who*,
- * and that is the access token. Both headers go, and the access token is read
- * from the httpOnly cookie rather than passed in — a client that could name its
- * own bearer token is a client that could act as someone else.
- */
-async function callAsUser<T>(endpoint: string, options: RequestInit = {}) {
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get(ACCESS_TOKEN_COOKIE)?.value;
-
-    if (!accessToken) {
-        // The access cookie expires well before the refresh one, so this is the
-        // ordinary case for a tab left open, not a signed-out user.
-        return { ok: false as const, status: 401, data: null, error: null };
-    }
-
-    return internalApiFetch<T>(endpoint, {
-        ...options,
-        headers: {
-            ...options.headers,
-            Authorization: `Bearer ${accessToken}`,
-        },
-    });
-}
 
 /** Maps a failed call onto the shape the screens render. */
 function failure(result: {
@@ -81,7 +52,7 @@ function failure(result: {
 export async function updateProfile(
     values: ProfileUpdate,
 ): Promise<ProfileActionResult> {
-    const result = await callAsUser<User>("/users/me", {
+    const result = await authenticatedApiFetch<User>("/users/me", {
         method: "PATCH",
         body: JSON.stringify(values),
     });
@@ -102,7 +73,9 @@ export async function updateProfile(
  * session they name is already dead server-side.
  */
 export async function signOutEverywhere(): Promise<ActionResult> {
-    const result = await callAsUser("/auth/logout-all", { method: "POST" });
+    const result = await authenticatedApiFetch("/auth/logout-all", {
+        method: "POST",
+    });
 
     if (!result.ok) {
         return failure(result);

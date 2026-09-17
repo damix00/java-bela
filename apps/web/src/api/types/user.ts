@@ -27,6 +27,18 @@ export type User = {
 };
 
 /**
+ * The profile fields another player may see.
+ *
+ * Kept separate from `User`: this is the privacy boundary represented by the
+ * backend's `PublicUserResponse`, and its nullable fields and wire-format date
+ * need the same manual correction as the authenticated response above.
+ */
+export type PublicUser = Pick<
+    User,
+    "id" | "username" | "avatarUrl" | "bio" | "countryCode" | "createdAt"
+>;
+
+/**
  * What the Next server hands to the browser. The refresh token is deliberately
  * absent — it lives only in an httpOnly cookie and never crosses into client JS.
  */

@@ -456,6 +456,7 @@
     },
     "profile": {
         "title": "Tvoj profil",
+        "publicTitle": "Profil — {username}",
         "memberSince": "Igra od",
         "emailLabel": "E-mail",
         "bioEmpty": "Još nema retka ispod imena.",
@@ -474,7 +475,12 @@
         "submit": "Spremi profil",
         "saved": "Profil je spremljen.",
         "sessionExpired": "Sesija je istekla. Pritisni spremi još jednom.",
-        "failed": "Nismo uspjeli spremiti profil. Pokušaj ponovno."
+        "failed": "Nismo uspjeli spremiti profil. Pokušaj ponovno.",
+        "notFound": {
+            "heading": "Igrač nije pronađen",
+            "body": "Nema profila s tim korisničkim imenom.",
+            "action": "Natrag u predvorje"
+        }
     },
     "settings": {
         "title": "Postavke",

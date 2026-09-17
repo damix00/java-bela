@@ -6,6 +6,8 @@ import pro.damjan.belabackend.exception.ExceptionResponse;
 import pro.damjan.belabackend.user.auth.AuthProvider;
 import pro.damjan.belabackend.user.dto.request.UpdateProfileRequest;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,6 +26,23 @@ class UserServiceTest {
         userRepository = mock(UserRepository.class);
         userService = new UserService(userRepository);
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    }
+
+    @Test
+    void findsAUserByTheExactUsername() {
+        User user = existingUser();
+        when(userRepository.findByUsername("Kruno")).thenReturn(Optional.of(user));
+
+        assertThat(userService.getUserByUsername("Kruno")).isSameAs(user);
+        verify(userRepository).findByUsername("Kruno");
+    }
+
+    @Test
+    void aMissingUsernameReturnsNull() {
+        when(userRepository.findByUsername("kruno")).thenReturn(Optional.empty());
+
+        assertThat(userService.getUserByUsername("kruno")).isNull();
+        verify(userRepository).findByUsername("kruno");
     }
 
     private User existingUser() {

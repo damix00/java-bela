@@ -7,7 +7,8 @@ import { countryName } from "@/lib/i18n/countries";
 import type { Locale } from "@/lib/i18n/config";
 
 type ProfileFactsProps = {
-    email: string | null;
+    /** Owner-only. Omit it entirely on another player's public profile. */
+    email?: string | null;
     countryCode: string | null;
     createdAt: string;
     copy: Dictionary["profile"];
@@ -46,7 +47,9 @@ export default function ProfileFacts({
 
     return (
         <DividedPanel surface="felt">
-            <Row label={copy.emailLabel}>{email}</Row>
+            {email !== undefined && (
+                <Row label={copy.emailLabel}>{email}</Row>
+            )}
             <Row label={copy.countryLabel} flag={countryCode}>
                 {country}
             </Row>

@@ -33,6 +33,18 @@ public class UserController {
         return PublicUserResponse.fromUser(user);
     }
 
+    /** Returns only fields that are safe for another player to see. */
+    @GetMapping("/by-username/{username}")
+    public PublicUserResponse getUserByUsername(@PathVariable String username) {
+        User user = userService.getUserByUsername(username);
+
+        if (user == null) {
+            throw new NotFoundException();
+        }
+
+        return PublicUserResponse.fromUser(user);
+    }
+
     /**
      * Edits the caller's own profile. Returns the full {@link UserResponse} rather
      * than 204, because the web app mirrors it into its session cookie and would
