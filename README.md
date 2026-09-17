@@ -137,14 +137,10 @@ The read-only panel lives in `apps/admin` and is deployed automatically from
 directly: the Next.js server forwards the administrator's bearer token over the
 private Docker network. The API still enforces `ROLE_ADMIN` on every request.
 
-Register a normal local account first, then promote it deliberately in
-PostgreSQL:
-
-```sql
-UPDATE users
-SET role = 'ADMIN'
-WHERE email = '<email>' AND auth_provider = 'LOCAL';
-```
+Set `ADMIN_EMAIL` to the email of an existing local account. On every API
+startup, the initializer promotes that account to `ADMIN` if necessary. It is
+idempotent and never creates an account, so register the local account before
+starting or restart the API after registration.
 
 There is intentionally no HTTP endpoint or UI for granting administrator
 access. Before the first production deploy, create a proxied Cloudflare DNS
