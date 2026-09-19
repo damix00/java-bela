@@ -47,6 +47,8 @@ export async function internalApiFetch<T>(
     return {
         ok: true,
         status: response.status,
-        data: (await response.json()) as T,
+        data: (response.status === 204
+            ? undefined
+            : await response.json()) as T,
     };
 }

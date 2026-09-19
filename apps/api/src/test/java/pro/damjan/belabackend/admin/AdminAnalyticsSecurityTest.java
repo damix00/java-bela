@@ -145,6 +145,19 @@ class AdminAnalyticsSecurityTest {
     }
 
     @Test
+    void anAuthenticationCutoffImmediatelyRejectsAnExistingAccessToken() throws Exception {
+        User admin = saveUser("RevokedAdmin", AuthProvider.LOCAL, Role.ADMIN);
+        String token = jwtService.generateAccessToken(admin.getId());
+        admin.setCredentialsValidAfter(Instant.now().plusSeconds(1));
+        userRepository.saveAndFlush(admin);
+
+        HttpResponse<String> response = get(token, null);
+
+        assertRejected(response, 401);
+        assertThat(response.body()).contains("TOKEN_INVALID");
+    }
+
+    @Test
     void allowsAnAdminAndReturnsOnlyTheAnalyticsPayload() throws Exception {
         User admin = saveUser("ActiveAdmin", AuthProvider.LOCAL, Role.ADMIN);
 

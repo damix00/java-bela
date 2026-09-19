@@ -45,6 +45,10 @@ public class JwtService {
      *                          token (refresh me) from a forged one (log me out).
      */
     public String parseAccessToken(String token) {
+        return parseAccessTokenDetails(token).userId();
+    }
+
+    public ParsedAccessToken parseAccessTokenDetails(String token) {
         if (token == null || token.isBlank()) {
             throw new JwtAuthException(TokenError.MISSING, "No token provided");
         }
@@ -74,7 +78,12 @@ public class JwtService {
             throw new JwtAuthException(TokenError.MALFORMED, "Token has no subject");
         }
 
-        return subject;
+        Date issuedAt = claims.getIssuedAt();
+        if (issuedAt == null) {
+            throw new JwtAuthException(TokenError.MALFORMED, "Token has no issued-at timestamp");
+        }
+
+        return new ParsedAccessToken(subject, issuedAt.toInstant());
     }
 
     /**
@@ -89,4 +98,6 @@ public class JwtService {
             return null;
         }
     }
+
+    public record ParsedAccessToken(String userId, Instant issuedAt) {}
 }

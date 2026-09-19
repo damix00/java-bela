@@ -22,6 +22,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -94,6 +95,17 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
             eventRegistry.dispatch(session, wsMessage.getEvent(), wsMessage.getBody());
         } catch (Exception e) {
             log.error("Failed to handle message", e);
+        }
+    }
+
+    public void closeUserSessions(String userId) {
+        List<WebSocketSession> userSessions = List.copyOf(sessions.getOrDefault(userId, Set.of()));
+        for (WebSocketSession session : userSessions) {
+            try {
+                session.close(new CloseStatus(4403, "signed out by administrator"));
+            } catch (IOException exception) {
+                log.warn("Failed to close session for administratively signed-out user [{}]", userId, exception);
+            }
         }
     }
 

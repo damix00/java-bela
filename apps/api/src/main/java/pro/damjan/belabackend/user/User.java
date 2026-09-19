@@ -71,6 +71,10 @@ public class User implements UserDetails {
     @Column(nullable = true)
     private Instant lastLoginAt;
 
+    /** Access tokens issued at or before this instant are no longer accepted. */
+    @Column(nullable = true)
+    private Instant credentialsValidAfter;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));

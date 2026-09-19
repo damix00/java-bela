@@ -41,6 +41,10 @@ public class UserPresenceService {
         return presence != null && presence.isOnline();
     }
 
+    public void deleteUserPresence(String userId) {
+        redisTemplate.delete(PRESENCE_KEY_PREFIX + userId);
+    }
+
     public boolean isUserStale(String userId) {
         UserPresence presence = getUserPresence(userId);
         return presence == null || presence.isStale();

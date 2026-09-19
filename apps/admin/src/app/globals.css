@@ -18,7 +18,8 @@ a {
 }
 
 button,
-input {
+input,
+select {
     font: inherit;
 }
 
@@ -110,6 +111,15 @@ input {
     border-radius: 0.35rem;
 }
 
+.field select,
+.action-card input {
+    width: 100%;
+    padding: 0.65rem;
+    border: 1px solid #a3a3a3;
+    border-radius: 0.35rem;
+    background: white;
+}
+
 .button {
     padding: 0.65rem 0.9rem;
     border: 1px solid #262626;
@@ -124,6 +134,16 @@ input {
     color: #262626;
 }
 
+.button--danger {
+    border-color: #b91c1c;
+    background: #b91c1c;
+}
+
+.button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
 .error {
     padding: 0.75rem;
     border: 1px solid #dc2626;
@@ -136,6 +156,196 @@ input {
     color: #525252;
 }
 
+.success {
+    padding: 0.75rem;
+    border: 1px solid #16a34a;
+    border-radius: 0.35rem;
+    background: #f0fdf4;
+    color: #166534;
+}
+
+.tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #d4d4d4;
+}
+
+.tab {
+    padding: 0.65rem 0.85rem;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+}
+
+.tab--active {
+    border-color: #171717;
+    font-weight: 700;
+}
+
+.filters {
+    display: grid;
+    grid-template-columns: minmax(14rem, 2fr) repeat(3, minmax(8rem, 1fr)) auto;
+    align-items: end;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border: 1px solid #d4d4d4;
+    border-radius: 0.5rem;
+    background: white;
+}
+
+.table-wrap {
+    overflow-x: auto;
+    border: 1px solid #d4d4d4;
+    border-radius: 0.5rem;
+    background: white;
+}
+
+.account-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.account-table th,
+.account-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #e5e5e5;
+    text-align: left;
+    vertical-align: top;
+}
+
+.account-table th {
+    color: #525252;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.account-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.account-link {
+    display: block;
+    font-weight: 700;
+}
+
+.account-secondary {
+    display: block;
+    max-width: 24rem;
+    margin-top: 0.25rem;
+    overflow: hidden;
+    color: #737373;
+    font-size: 0.8rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.status {
+    display: inline-block;
+    padding: 0.2rem 0.45rem;
+    border-radius: 999px;
+    background: #e5e5e5;
+    text-transform: capitalize;
+}
+
+.status--active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.empty-state,
+.load-more {
+    padding: 1.25rem;
+    text-align: center;
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 0.75rem;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 0;
+}
+
+.detail-grid div,
+.session-card dl div {
+    min-width: 0;
+}
+
+.detail-grid dt,
+.session-card dt {
+    color: #737373;
+    font-size: 0.8rem;
+}
+
+.detail-grid dd,
+.session-card dd {
+    margin: 0.25rem 0 0;
+    overflow-wrap: anywhere;
+}
+
+.detail-grid__wide {
+    grid-column: 1 / -1;
+}
+
+.session-list,
+.action-stack {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.session-card,
+.action-card {
+    padding: 1rem;
+    border: 1px solid #d4d4d4;
+    border-radius: 0.5rem;
+}
+
+.session-card__header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.session-card dl {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+}
+
+.action-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(12rem, 18rem) auto;
+    align-items: end;
+    gap: 0.75rem;
+}
+
+.action-card h3,
+.action-card p {
+    margin: 0;
+}
+
+.action-card p + p,
+.action-card h3 + p {
+    margin-top: 0.35rem;
+}
+
+.action-card .error,
+.action-card .success,
+.action-card > .muted {
+    grid-column: 1 / -1;
+}
+
+.action-card--danger {
+    border-color: #fecaca;
+}
+
 @media (max-width: 36rem) {
     .header {
         display: block;
@@ -143,5 +353,32 @@ input {
 
     .header-actions {
         margin-top: 1rem;
+    }
+
+    .filters,
+    .detail-grid,
+    .action-card {
+        grid-template-columns: 1fr;
+    }
+
+    .detail-grid__wide,
+    .action-card .error,
+    .action-card .success,
+    .action-card > .muted {
+        grid-column: auto;
+    }
+
+    .session-card__header {
+        display: grid;
+    }
+}
+
+@media (min-width: 36.01rem) and (max-width: 64rem) {
+    .filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .field--wide {
+        grid-column: 1 / -1;
     }
 }

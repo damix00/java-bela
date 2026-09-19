@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Date;
+import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -35,6 +36,16 @@ class JwtServiceTest {
         String token = jwtService.generateAccessToken("user-1");
 
         assertThat(jwtService.parseAccessToken(token)).isEqualTo("user-1");
+    }
+
+    @Test
+    void exposesTheSignedIssuedAtForCredentialCutoffChecks() {
+        Instant before = Instant.now().minusSeconds(1);
+        JwtService.ParsedAccessToken parsed = jwtService.parseAccessTokenDetails(
+                jwtService.generateAccessToken("user-1"));
+
+        assertThat(parsed.userId()).isEqualTo("user-1");
+        assertThat(parsed.issuedAt()).isAfter(before);
     }
 
     @Test
