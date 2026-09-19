@@ -85,6 +85,7 @@ export default async function DashboardPage() {
                     </p>
                 </div>
                 <div className="header-actions">
+                    <Link href="/accounts">Accounts</Link>
                     <Link href="/">Refresh</Link>
                     <form action={logout}>
                         <button className="button button--secondary" type="submit">

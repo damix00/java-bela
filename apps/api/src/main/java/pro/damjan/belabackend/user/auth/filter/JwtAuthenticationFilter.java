@@ -18,6 +18,7 @@ import pro.damjan.belabackend.security.jwt.AuthErrorWriter;
 import pro.damjan.belabackend.security.jwt.JwtAuthException;
 import pro.damjan.belabackend.security.jwt.JwtService;
 import pro.damjan.belabackend.security.jwt.TokenError;
+import pro.damjan.belabackend.user.User;
 
 import java.io.IOException;
 
@@ -63,8 +64,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String userId;
         UserDetails userDetails;
         try {
-            userId = jwtService.parseAccessToken(authHeader.substring(7));
+            JwtService.ParsedAccessToken token = jwtService.parseAccessTokenDetails(authHeader.substring(7));
+            userId = token.userId();
             userDetails = userDetailsService.loadUserByUsername(userId);
+            if (userDetails instanceof User user
+                    && user.getCredentialsValidAfter() != null
+                    && !token.issuedAt().isAfter(user.getCredentialsValidAfter())) {
+                throw new JwtAuthException(TokenError.MALFORMED, "Token has been revoked");
+            }
         } catch (JwtAuthException e) {
             // TOKEN_EXPIRED is the signal the client keys refresh-and-retry on, so it has to
             // be distinguishable from a token that will never work

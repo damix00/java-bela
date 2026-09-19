@@ -46,7 +46,15 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
         }
 
         String token = servletRequest.getServletRequest().getParameter("token");
-        String userId = jwtService.getIdFromToken(token);
+        JwtService.ParsedAccessToken parsedToken;
+        try {
+            parsedToken = jwtService.parseAccessTokenDetails(token);
+        } catch (RuntimeException exception) {
+            log.warn("WebSocket handshake with a missing or invalid token");
+            attributes.put(AUTH_ERROR_ATTRIBUTE, true);
+            return true;
+        }
+        String userId = parsedToken.userId();
 
         if (userId == null) {
             log.warn("WebSocket handshake with a missing or invalid token");
@@ -57,6 +65,12 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
         User user = userService.getUserById(userId);
         if (user == null) {
             log.warn("WebSocket handshake for non-existent user ID [{}]", userId);
+            attributes.put(AUTH_ERROR_ATTRIBUTE, true);
+            return true;
+        }
+        if (user.getCredentialsValidAfter() != null
+                && !parsedToken.issuedAt().isAfter(user.getCredentialsValidAfter())) {
+            log.warn("WebSocket handshake with a revoked token for user [{}]", userId);
             attributes.put(AUTH_ERROR_ATTRIBUTE, true);
             return true;
         }

@@ -1,10 +1,77 @@
 /* tslint:disable */
 /* eslint-disable */
 
+export interface AdminAccountActionsResponse {
+    canChangeRole: boolean;
+    canDelete: boolean;
+    canForceSignOut: boolean;
+    deletionBlockedReason: string;
+    roleChangeBlockedReason: string;
+}
+
+export interface AdminAccountDetailResponse {
+    actions: AdminAccountActionsResponse;
+    authProvider: AuthProvider;
+    avatarUrl: string;
+    bio: string;
+    countryCode: string;
+    createdAt: Date;
+    email: string;
+    id: string;
+    lastLoginAt: Date;
+    presence: AdminAccountPresenceResponse;
+    role: Role;
+    sessions: AdminAccountSessionResponse[];
+    updatedAt: Date;
+    username: string;
+}
+
+export interface AdminAccountPageResponse {
+    accounts: AdminAccountSummaryResponse[];
+    nextCursor: string;
+}
+
+export interface AdminAccountPresenceResponse {
+    gameId: string;
+    lastPing: Date;
+    lobbyId: string;
+    status: PresenceStatus;
+}
+
+export interface AdminAccountSessionResponse {
+    active: boolean;
+    createdAt: Date;
+    id: string;
+    ipAddress: string;
+    userAgent: string;
+}
+
+export interface AdminAccountSummaryResponse {
+    active: boolean;
+    authProvider: AuthProvider;
+    createdAt: Date;
+    email: string;
+    id: string;
+    lastLoginAt: Date;
+    presenceStatus: PresenceStatus;
+    role: Role;
+    sessionCount: number;
+    username: string;
+}
+
 export interface AdminAnalyticsResponse {
     activity: LiveActivityAnalyticsResponse;
     generatedAt: Date;
     users: UserAnalyticsResponse;
+}
+
+export interface AdminChangeRoleRequest {
+    confirmUsername: string;
+    role: string;
+}
+
+export interface AdminDeleteAccountRequest {
+    confirmUsername: string;
 }
 
 export interface AuthResponse {
@@ -452,6 +519,11 @@ export interface UserResponse {
     lastLoginAt: Date;
     role: string;
     username: string;
+}
+
+export enum AuthProvider {
+    LOCAL = "LOCAL",
+    ANONYMOUS = "ANONYMOUS",
 }
 
 export enum GameStatus {

@@ -96,6 +96,14 @@ public class SessionService {
         sessionRepository.deleteById(sessionId);
     }
 
+    public List<UserSession> getUserSessions(String userId) {
+        return List.copyOf(findUserSessions(userId));
+    }
+
+    public void deleteUserSessions(String userId) {
+        sessionRepository.deleteByUserId(userId);
+    }
+
     private List<UserSession> findUserSessions(String userId) {
         List<UserSession> sessions = sessionRepository.findByUserId(userId);
         return sessions == null ? List.of() : sessions;
