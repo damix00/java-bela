@@ -8,17 +8,28 @@ import java.util.List;
 
 public interface FriendshipRepository extends JpaRepository<Friendship, String> {
     @Query("""
-        SELECT u
-        FROM User u
-        WHERE EXISTS (
-            SELECT f
+        SELECT f.receiver
+        FROM Friendship f
+        WHERE f.status = pro.damjan.belabackend.friendships.FriendshipStatus.ACCEPTED
+          AND f.requester = :user
+        UNION
+        SELECT f.requester
+        FROM Friendship f
+        WHERE f.status = pro.damjan.belabackend.friendships.FriendshipStatus.ACCEPTED
+          AND f.receiver = :user
+        """)
+    List<User> findFriendsFor(User user);
+
+    @Query("""
+        SELECT EXISTS (
+            SELECT 1
             FROM Friendship f
             WHERE f.status = pro.damjan.belabackend.friendships.FriendshipStatus.ACCEPTED
               AND (
-                    (f.requester = :user AND f.receiver = u)
-                 OR (f.receiver = :user AND f.requester = u)
+                    (f.requester = :firstUser AND f.receiver = :secondUser)
+                 OR (f.requester = :secondUser AND f.receiver = :firstUser)
               )
         )
         """)
-    List<User> findFriendsFor(User user);
+    boolean areFriends(User firstUser, User secondUser);
 }

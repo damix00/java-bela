@@ -3,10 +3,12 @@ package pro.damjan.belabackend.user.presence;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import pro.damjan.belabackend.user.User;
 import pro.damjan.belabackend.user.presence.session.SessionService;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
+import java.util.*;
 
 /**
  * Service for managing user presence in the application.
@@ -39,6 +41,56 @@ public class UserPresenceService {
     public boolean isUserOnline(String userId) {
         UserPresence presence = getUserPresence(userId);
         return presence != null && presence.isOnline();
+    }
+
+    public Map<String, Boolean> getUsersOnlineStatus(List<User> users) {
+        List<String> uids = new ArrayList<>();
+
+        for (User user : users) {
+            uids.add(user.getId());
+        }
+
+        return getUsersOnlineStatus(uids);
+    }
+
+    /**
+     * Checks multiple users with a single Redis request.
+     * Missing or expired presence records are reported as offline.
+     */
+    public Map<String, Boolean> getUsersOnlineStatus(Collection<String> userIds) {
+        List<String> distinctUserIds = userIds.stream().distinct().toList();
+
+        if (distinctUserIds.isEmpty()) {
+            return Map.of();
+        }
+
+        List<String> presenceKeys = distinctUserIds.stream()
+                .map(userId -> PRESENCE_KEY_PREFIX + userId)
+                .toList();
+        List<Object> storedPresences = redisTemplate.opsForValue().multiGet(presenceKeys);
+        Map<String, Boolean> onlineStatusByUserId = new LinkedHashMap<>();
+
+        for (int index = 0; index < distinctUserIds.size(); index++) {
+            Object storedPresence = storedPresences != null && index < storedPresences.size()
+                    ? storedPresences.get(index)
+                    : null;
+            UserPresence presence = toUserPresence(storedPresence);
+            onlineStatusByUserId.put(distinctUserIds.get(index), presence != null && presence.isOnline());
+        }
+
+        return onlineStatusByUserId;
+    }
+
+    private UserPresence toUserPresence(Object storedPresence) {
+        if (storedPresence == null) {
+            return null;
+        }
+
+        if (storedPresence instanceof UserPresence presence) {
+            return presence;
+        }
+
+        return new ObjectMapper().convertValue(storedPresence, UserPresence.class);
     }
 
     public void deleteUserPresence(String userId) {
