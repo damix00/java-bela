@@ -3,9 +3,12 @@ package pro.damjan.belabackend.user;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pro.damjan.belabackend.exception.codes.NotFoundException;
+import pro.damjan.belabackend.friendships.FriendshipRelationStatus;
+import pro.damjan.belabackend.friendships.FriendshipService;
 import pro.damjan.belabackend.user.auth.AuthProvider;
 import pro.damjan.belabackend.user.auth.Role;
 import pro.damjan.belabackend.user.dto.response.PublicUserResponse;
+import pro.damjan.belabackend.user.dto.response.UserProfileResponse;
 
 import java.lang.reflect.Field;
 import java.time.Instant;
@@ -22,12 +25,14 @@ import static org.mockito.Mockito.when;
 class UserControllerTest {
 
     private UserService userService;
+    private FriendshipService friendshipService;
     private UserController userController;
 
     @BeforeEach
     void setUp() {
         userService = mock(UserService.class);
-        userController = new UserController(userService);
+        friendshipService = mock(FriendshipService.class);
+        userController = new UserController(userService, friendshipService);
     }
 
     @Test
@@ -44,16 +49,25 @@ class UserControllerTest {
         user.setRole(Role.ADMIN);
         user.setAuthProvider(AuthProvider.LOCAL);
 
+        User viewer = new User();
+        viewer.setId("viewer-id");
+        UserProfileResponse expectedResponse = UserProfileResponse.builder()
+                .user(PublicUserResponse.fromUser(user))
+                .online(true)
+                .friendship(FriendshipRelationStatus.FRIENDS)
+                .build();
         when(userService.getUserByUsername("Kruno")).thenReturn(user);
+        when(friendshipService.getUserProfile(viewer, user)).thenReturn(expectedResponse);
 
-        PublicUserResponse response = userController.getUserByUsername("Kruno");
+        UserProfileResponse response = userController.getUserByUsername(viewer, "Kruno");
 
-        assertThat(response.getId()).isEqualTo("user-id");
-        assertThat(response.getUsername()).isEqualTo("Kruno");
-        assertThat(response.getAvatarUrl()).isEqualTo("https://cdn.example/avatar.png");
-        assertThat(response.getBio()).isEqualTo("Plays the fours.");
-        assertThat(response.getCountryCode()).isEqualTo("HR");
-        assertThat(response.getCreatedAt()).isEqualTo(createdAt);
+        assertThat(response).isSameAs(expectedResponse);
+        assertThat(response.getUser().getId()).isEqualTo("user-id");
+        assertThat(response.getUser().getUsername()).isEqualTo("Kruno");
+        assertThat(response.getUser().getAvatarUrl()).isEqualTo("https://cdn.example/avatar.png");
+        assertThat(response.getUser().getBio()).isEqualTo("Plays the fours.");
+        assertThat(response.getUser().getCountryCode()).isEqualTo("HR");
+        assertThat(response.getUser().getCreatedAt()).isEqualTo(createdAt);
         assertThat(publicResponseFields()).containsExactlyInAnyOrder(
                 "id",
                 "username",
@@ -63,13 +77,17 @@ class UserControllerTest {
                 "createdAt"
         );
         verify(userService).getUserByUsername("Kruno");
+        verify(friendshipService).getUserProfile(viewer, user);
     }
 
     @Test
     void aMissingUsernameRaisesNotFound() {
         when(userService.getUserByUsername("Nobody")).thenReturn(null);
 
-        assertThatThrownBy(() -> userController.getUserByUsername("Nobody"))
+        User viewer = new User();
+        viewer.setId("viewer-id");
+
+        assertThatThrownBy(() -> userController.getUserByUsername(viewer, "Nobody"))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Not Found");
         verify(userService).getUserByUsername("Nobody");

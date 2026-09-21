@@ -2,7 +2,7 @@ package pro.damjan.belabackend.user.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
-import pro.damjan.belabackend.friendships.FriendshipStatus;
+import pro.damjan.belabackend.friendships.FriendshipRelationStatus;
 
 import java.io.Serializable;
 
@@ -11,5 +11,5 @@ import java.io.Serializable;
 public class UserProfileResponse implements Serializable {
     private PublicUserResponse user;
     private boolean online;
-    private FriendshipStatus friendship;
+    private FriendshipRelationStatus friendship;
 }

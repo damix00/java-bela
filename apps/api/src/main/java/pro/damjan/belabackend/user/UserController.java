@@ -10,10 +10,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pro.damjan.belabackend.exception.codes.NotFoundException;
+import pro.damjan.belabackend.friendships.FriendshipService;
 import pro.damjan.belabackend.security.ratelimit.RateLimit;
 import pro.damjan.belabackend.user.auth.dto.response.UserResponse;
 import pro.damjan.belabackend.user.dto.request.UpdateProfileRequest;
 import pro.damjan.belabackend.user.dto.response.PublicUserResponse;
+import pro.damjan.belabackend.user.dto.response.UserProfileResponse;
 
 @RestController
 @RequestMapping("/users")
@@ -21,6 +23,7 @@ import pro.damjan.belabackend.user.dto.response.PublicUserResponse;
 public class UserController {
 
     private final UserService userService;
+    private final FriendshipService friendshipService;
 
     @GetMapping("/{id}")
     public PublicUserResponse getUserById(@PathVariable String id) {
@@ -35,14 +38,15 @@ public class UserController {
 
     /** Returns only fields that are safe for another player to see. */
     @GetMapping("/by-username/{username}")
-    public PublicUserResponse getUserByUsername(@PathVariable String username) {
+    public UserProfileResponse getUserByUsername(@AuthenticationPrincipal User viewer,
+                                                 @PathVariable String username) {
         User user = userService.getUserByUsername(username);
 
         if (user == null) {
             throw new NotFoundException();
         }
 
-        return PublicUserResponse.fromUser(user);
+        return friendshipService.getUserProfile(viewer, user);
     }
 
     /**

@@ -1,10 +1,13 @@
 package pro.damjan.belabackend.friendships;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import pro.damjan.belabackend.user.User;
 
+import jakarta.persistence.LockModeType;
 import java.util.List;
+import java.util.Optional;
 
 public interface FriendshipRepository extends JpaRepository<Friendship, String> {
     @Query("""
@@ -32,4 +35,19 @@ public interface FriendshipRepository extends JpaRepository<Friendship, String> 
         )
         """)
     boolean areFriends(User firstUser, User secondUser);
+
+    @Query("""
+        SELECT f
+        FROM Friendship f
+        WHERE (f.requester = :firstUser AND f.receiver = :secondUser)
+           OR (f.requester = :secondUser AND f.receiver = :firstUser)
+        """)
+    Optional<Friendship> findBetween(User firstUser, User secondUser);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<Friendship> findByRequesterAndReceiverAndStatus(
+            User requester,
+            User receiver,
+            FriendshipStatus status
+    );
 }
